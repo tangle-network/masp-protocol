@@ -27,7 +27,7 @@
 </details>
 
 <h2 id="start"> Getting Started  🎉 </h2>
-The `protocol-solidity-extensions` contains `protocol-solidity` protocol extensions. These are protocols that build on top of the core `protocol-solidity` contracts by adding new functionality and enabling new applications. The current applications supported and in development here are:
+The **protocol-solidity-extensions** contains **protocol-solidity** protocol extensions. These are protocols that build on top of the core `protocol-solidity` contracts by adding new functionality and enabling new applications. The current applications supported and in development here are:
 - Identity Protocol - An identity-based shielded pool implementation using Semaphore as the identity provider.
 - MASP Protocol - A multi-asset shielded pool protocol supporting incentives, swaps, and delegatable proof generation.
 
@@ -124,26 +124,11 @@ Populate fixtures from the submodules:
 yarn fetch:fixtures
 ```
 
-To compile contracts and build typescript interfaces
+To compile contracts and build typescript interfaces/classes
 
 ```
 yarn build
 ```
-
-The above command will build the Solidity system, performing the following build steps:
-
-1. Compile the smart contracts and generate appropriate typescript bindings in a folder `typechain` at the root directory. 
-
-2. Compile the hashers. These hashers are provided to the merkle tree upon deployment.
-
-
-**Note:** If you need to generate fixtures you should run:
-
-```
-yarn build
-```
-
-The above command will `compile` the contracts but also compile the circom circuits, and generate ptau. The ptau is needed for setup of zero knowledge proofs. This ptau is for test and development purposes only!
 
 **Note:** If you push new fixtures to remote storage
 
@@ -202,26 +187,7 @@ To run TypeScript checks:
 yarn ts-check
 ```
 
-### Interacting
-
-This repository contains a variety of scripts to deploy and interact with the smart contracts in the `scripts` folder. To use these scripts, one will need to setup an `.env` file in the root directory:
-
-```
-# Setup an endpoint
-ENDPOINT=https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e
-
-# Add private key
-PRIVATE_KEY=XXX-XXX-XXX
-```
-After adding the `.env`, scripts can be executed using `ts-node`
-```bash
- npx ts-node ./scripts/evm/deployments/LocalEvmVBridge.ts
-```
-
 <h2 id="contribute"> Contributing </h2>
-
-Interested in contributing to the Webb Relayer Network? Thank you so much for your interest! We are always appreciative for contributions from the open-source community!
-
 If you have a contribution in mind, please check out our [Contribution Guide](./.github/CONTRIBUTING.md) for information on how to do so. We are excited for your first contribution!
 
 <h2 id="license"> License </h2>
