@@ -1,0 +1,37 @@
+node_modules
+.vscode
+.DS_STORE
+build/
+*.env
+
+# Packages
+packages/*/node_modules
+packages/*/dist
+packages/*/tsconfig.tsbuildinfo
+
+# Typechain
+typechain-types
+typechain
+
+
+# Directories
+cache
+out
+artifacts
+
+dist
+
+*.ptau
+yarn-error.log
+
+# files
+*.log
+.DS_Store
+.pnp.*
+lcov.info
+yarn.lock
+
+# broadcasts
+!broadcast
+broadcast/*
+broadcast/*/31337/

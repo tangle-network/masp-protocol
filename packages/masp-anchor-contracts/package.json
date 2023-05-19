@@ -1,0 +1,46 @@
+{
+  "name": "@webb-tools/masp-anchor-contracts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "license": "(MIT or Apache-2.0)",
+  "author": "Webb Developers <drew@webb.tools>",
+  "scripts": {
+    "build:contracts": "npx hardhat compile",
+    "build:library": "tsc -p tsconfig.build.json",
+    "build:typechain-foundry": "../../scripts/build-typechain.sh",
+    "compile": "yarn compile:contracts && yarn copy:declarations && yarn build:library",
+    "compile:contracts": "yarn run clean && yarn run build:contracts",
+    "copy:declarations": "copyfiles -f ./typechain-types/*.ts ./dist",
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rimraf -rf ./dist && rimraf -rf ./typechain-types && rimraf -rf ./cache && rimraf -rf ./artifacts",
+    "test": "npx hardhat test",
+    "test:parallel": "npx hardhat test --parallel",
+    "test:gas-reporter": "REPORT_GAS=true npx hardhat test --parallel"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/masp-anchor-contracts",
+    "type": "git",
+    "url": "git://github.com/webb-tools/protocol-solidity-extensions.git"
+  },
+  "version": "0.5.40",
+  "devDependencies": {
+    "@webb-tools/create2-utils": "^0.5.40",
+    "@webb-tools/evm-test-utils": "^0.5.40",
+    "@webb-tools/interfaces": "^0.5.40",
+    "@webb-tools/tokens": "^0.5.40",
+    "@webb-tools/utils": "^0.5.40",
+    "@webb-tools/vbridge": "^0.5.40",
+    "@webb-tools/contracts": "^0.5.40",
+    "@webb-tools/anchors": "^0.5.40",
+    "@webb-tools/protocol-solidity": "^1.0.0"
+  },
+  "dependencies": {
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "ethers": "^5.7.0",
+    "typescript": "^5.0.4"
+  }
+}

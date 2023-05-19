@@ -1,0 +1,56 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      /**
+      *   Solidity contracts
+      */
+      "@webb-tools/identity-protocol-solidity": [
+        "packages/identity-anchor-contracts/contracts"
+      ],
+      "@webb-tools/identity-protocol-solidity/*": [
+        "packages/identity-anchor-contracts/contracts/*"
+      ],
+      "@webb-tools/masp-protocol-solidity": [
+        "packages/masp-anchor-contracts/contracts"
+      ],
+      "@webb-tools/masp-protocol-solidity/*": [
+        "packages/masp-anchor-contracts/contracts/*"
+      ],
+
+      /**
+      *   Identity VAnchor TypeScript packages
+      */
+      "@webb-tools/identity-anchors": [
+        "packages/identity-anchors/src"
+      ],
+      "@webb-tools/identity-anchors/*": [
+        "packages/identity-anchors/src/*"
+      ],
+      "@webb-tools/identity-anchor-contracts": [
+        "packages/identity-anchor-contracts"
+      ],
+      "@webb-tools/identity-anchor-contracts/*": [
+        "packages/identity-anchor-contracts/typechain-types/*"
+      ],
+
+      /**
+      *   MASP VAnchor TypeScript packages
+      */
+      "@webb-tools/masp-anchors": [
+        "packages/masp-anchors/src"
+      ],
+      "@webb-tools/masp-anchors/*": [
+        "packages/masp-anchors/src/*"
+      ],
+      "@webb-tools/masp-anchor-contracts": [
+        "packages/masp-anchor-contracts"
+      ],
+      "@webb-tools/masp-anchor-contracts/*": [
+        "packages/masp-anchor-contracts/typechain-types/*"
+      ],
+    },
+    "noEmit": true
+  }
+}
