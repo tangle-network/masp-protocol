@@ -27,11 +27,12 @@
 </details>
 
 <h2 id="start"> Getting Started  🎉 </h2>
-The **protocol-solidity-extensions** contains **protocol-solidity** protocol extensions. These are protocols that build on top of the core `protocol-solidity` contracts by adding new functionality and enabling new applications. The current applications supported and in development here are:
+
+The `protocol-solidity-extensions` contains `protocol-solidity` protocol extensions. These are protocols that build on top of the core `protocol-solidity` contracts by adding new functionality and enabling new applications. The current applications supported and in development here are:
 - Identity Protocol - An identity-based shielded pool implementation using Semaphore as the identity provider.
 - MASP Protocol - A multi-asset shielded pool protocol supporting incentives, swaps, and delegatable proof generation.
 
-For additional information, please refer to the official [Webb docs site](http://docs.webb.tools/) 📝. Have feedback on how to improve protocol-solidity-extensions? Or have a specific question to ask? Checkout the [Anchor System Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
+For additional information on the base `protocol-solidity`, please refer to the [Webb protocol-solidity implementation docs](https://webb-tools.github.io/protocol-solidity/) and the official [Webb docs site](http://docs.webb.tools/) 📝. Have feedback on how to improve protocol-solidity? Or have a specific question to ask? Checkout the [Anchor System Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
 
 ## Prerequisites
 
@@ -124,7 +125,7 @@ Populate fixtures from the submodules:
 yarn fetch:fixtures
 ```
 
-To compile contracts and build typescript interfaces/classes
+To compile contracts and build typescript interfaces
 
 ```
 yarn build
@@ -169,25 +170,16 @@ Run test suite:
 yarn test
 ```
 
-It is also possible to output a gas report of the contracts by running:
-
-```
-yarn test:gas-reporter
-```
-
 To fix the formatting, please run:
 
 ```
 yarn format
 ```
 
-To run TypeScript checks:
-
-```
-yarn ts-check
-```
-
 <h2 id="contribute"> Contributing </h2>
+
+Interested in contributing to the Webb Relayer Network? Thank you so much for your interest! We are always appreciative for contributions from the open-source community!
+
 If you have a contribution in mind, please check out our [Contribution Guide](./.github/CONTRIBUTING.md) for information on how to do so. We are excited for your first contribution!
 
 <h2 id="license"> License </h2>
