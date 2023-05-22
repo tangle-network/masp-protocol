@@ -15,17 +15,14 @@ import {
   Utxo,
 } from '@webb-tools/sdk-core';
 import {
-  IMASPVAnchorPublicInputs,
   IVAnchor,
-  IMASPAllInputs,
-  IMASPSwapAllInputs,
-  IMASPSwapPublicInputs,
   IVariableAnchorExtData,
 } from '@webb-tools/interfaces';
 import { getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { RawPublicSignals } from '.';
 import { MaspKey } from './primitives/MaspKey';
 import { MaspUtxo } from './primitives/MaspUtxo';
+import { IMASPAllInputs, IMASPVAnchorPublicInputs, IMASPSwapAllInputs, IMASPSwapPublicInputs } from './interfaces';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
 const { poseidon, eddsa } = require('circomlibjs');
