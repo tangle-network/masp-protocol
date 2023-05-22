@@ -37,7 +37,7 @@ import { PoseidonHasher } from '@webb-tools/anchors';
 import { ERC20, ERC721, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 import { toFixedHex } from '@webb-tools/sdk-core';
-import { AssetType } from '@webb-tools/interfaces';
+import { AssetType } from '@webb-tools/masp-anchors/interfaces';
 
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
