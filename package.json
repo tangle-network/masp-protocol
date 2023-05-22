@@ -15,17 +15,6 @@
   "engines": {
     "node": "18.x.x"
   },
-  "resolutions": {
-    "@webb-tools/create2-utils": "file:../protocol-solidity/packages/create2-utils/dist",
-    "@webb-tools/evm-test-utils": "file:../protocol-solidity/packages/evm-test-utils/dist",
-    "@webb-tools/interfaces": "file:../protocol-solidity/packages/interfaces/dist",
-    "@webb-tools/tokens": "file:../protocol-solidity/packages/tokens/dist",
-    "@webb-tools/utils": "file:../protocol-solidity/packages/utils/dist",
-    "@webb-tools/vbridge": "file:../protocol-solidity/packages/vbridge/dist",
-    "@webb-tools/contracts": "file:../protocol-solidity/packages/contracts/dist",
-    "@webb-tools/anchors": "file:../protocol-solidity/packages/anchors/dist",
-    "@webb-tools/protocol-solidity": "file:../protocol-solidity/packages/contracts/contracts"
-  },
   "scripts": {
 
     "compile": "lerna run compile --parallel --scope=@webb-tools/identity-anchor-contracts --scope=@webb-tools/masp-anchor-contracts",
