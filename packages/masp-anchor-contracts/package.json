@@ -35,7 +35,7 @@
     "@webb-tools/vbridge": "^0.5.42",
     "@webb-tools/contracts": "^0.5.42",
     "@webb-tools/anchors": "^0.5.42",
-    "@webb-tools/protocol-solidity": "^1.0.0"
+    "@webb-tools/protocol-solidity": "^1.0.1"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
