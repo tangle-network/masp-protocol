@@ -8,13 +8,7 @@ const TruffleAssert = require('truffle-assertions');
 
 import { BigNumber } from 'ethers';
 
-import {
-  getChainIdType,
-  ZkComponents,
-  maspVAnchorFixtures,
-  maspSwapFixtures,
-  batchTreeFixtures,
-} from '@webb-tools/utils';
+import { getChainIdType, ZkComponents } from '@webb-tools/utils';
 
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 
@@ -37,11 +31,19 @@ import { PoseidonHasher } from '@webb-tools/anchors';
 import { ERC20, ERC721, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 import { toFixedHex } from '@webb-tools/sdk-core';
-import { AssetType } from '@webb-tools/interfaces';
+import { AssetType } from '@webb-tools/masp-anchors';
+import {
+  batchTreeFixtures,
+  maspSwapFixtures,
+  maspVAnchorFixtures,
+} from '@webb-tools/protocol-solidity-extension-utils';
 
 const snarkjs = require('snarkjs');
-const { toBN } = require('web3-utils');
 const { poseidon, eddsa } = require('circomlibjs');
+
+const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/solidity-fixtures');
+const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
+const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('MASP for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchTree;
@@ -77,13 +79,13 @@ describe('MASP for 2 max edges', () => {
   let signers;
 
   before('instantiate zkcomponents and user keypairs', async () => {
-    zkComponents2_2 = await maspVAnchorFixtures[22]();
-    zkComponents16_2 = await maspVAnchorFixtures[162]();
-    swapCircuitZkComponents = await maspSwapFixtures[220]();
-    batchTreeZkComponents_4 = await batchTreeFixtures[4]();
-    batchTreeZkComponents_8 = await batchTreeFixtures[8]();
-    batchTreeZkComponents_16 = await batchTreeFixtures[16]();
-    batchTreeZkComponents_32 = await batchTreeFixtures[32]();
+    zkComponents2_2 = await maspVAnchorZkComponents[22]();
+    zkComponents16_2 = await maspVAnchorZkComponents[162]();
+    swapCircuitZkComponents = await maspSwapZkComponents[220]();
+    batchTreeZkComponents_4 = await batchTreeZkComponents[4]();
+    batchTreeZkComponents_8 = await batchTreeZkComponents[8]();
+    batchTreeZkComponents_16 = await batchTreeZkComponents[16]();
+    batchTreeZkComponents_32 = await batchTreeZkComponents[32]();
 
     create2InputWitness = async (data: any) => {
       const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);

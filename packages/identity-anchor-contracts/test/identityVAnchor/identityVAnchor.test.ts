@@ -20,7 +20,6 @@ import {
   u8aToHex,
   VAnchorProofInputs,
   ZERO_BYTES32,
-  identityVAnchorFixtures,
 } from '@webb-tools/utils';
 import { BigNumber, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -41,11 +40,15 @@ import { IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { TransactionOptions, PoseidonHasher } from '@webb-tools/anchors';
+import { identityVAnchorFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 
 const BN = require('bn.js');
-const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
+
+const identityVAnchorZkComponents = identityVAnchorFixtures(
+  '../../../solidity-fixtures/solidity-fixtures'
+);
 
 describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
@@ -92,8 +95,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
   };
 
   before('instantiate zkcomponents and user keypairs', async () => {
-    zkComponents2_2 = await identityVAnchorFixtures[22]();
-    zkComponents16_2 = await identityVAnchorFixtures[162]();
+    zkComponents2_2 = await identityVAnchorZkComponents[22]();
+    zkComponents16_2 = await identityVAnchorZkComponents[162]();
 
     aliceKeypair = new Keypair();
     bobKeypair = new Keypair();
@@ -266,7 +269,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       aliceProof = fullProof.proof;
       alicePublicSignals = fullProof.publicSignals;
 
-      const vKey = await identityVAnchorFixtures.vkey_2_2();
+      const vKey = await identityVAnchorZkComponents.vkey_2_2();
 
       const res = await snarkjs.groth16.verify(vKey, alicePublicSignals, aliceProof);
       aliceCalldata = await snarkjs.groth16.exportSolidityCallData(
@@ -858,8 +861,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         },
         { gasLimit: '0x5B8D80' }
       );
-      await expect(tx).revertedWith('LinkableAnchor: non-existent edge is not set to the default root');
+      await expect(tx).revertedWith(
+        'LinkableAnchor: non-existent edge is not set to the default root'
+      );
     });
+
     it('should reject proofs made against Semaphore empty edges', async () => {
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const depositAmount = 1e7;
@@ -991,11 +997,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         { gasLimit: '0x5B8D80' }
       );
 
-      await expect(tx).revertedWith('LinkableAnchor: non-existent edge is not set to the default root');
+      await expect(tx).revertedWith('non-existent edge is not set to the default root');
     });
   });
 
-  describe('# prevent tampering', () => {
+  describe('#prevent tampering', () => {
     // before('Create valid public inputs as baseline for tampering', async () => {
     const relayer = '0x2111111111111111111111111111111111111111';
     const extAmount = 1e7;

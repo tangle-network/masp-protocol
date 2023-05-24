@@ -9,9 +9,12 @@ import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
-import { getChainIdType, hexToU8a, ZkComponents, maspRewardFixtures } from '@webb-tools/utils';
+import { getChainIdType, hexToU8a, ZkComponents } from '@webb-tools/utils';
 import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
+import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 const snarkjs = require('snarkjs');
+
+const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('Reward snarkjs local proof', () => {
   let unspentTree: MerkleTree;
@@ -54,7 +57,7 @@ describe('Reward snarkjs local proof', () => {
     rewardMerkleTree = new MerkleTree(levels);
     emptyTreeRoot = maspMerkleTree.root();
 
-    zkComponent = await maspRewardFixtures[230]();
+    zkComponent = await maspRewardZkComponents[230]();
 
     create2InputWitness = async (data: any) => {
       const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(data, 0);
@@ -84,7 +87,6 @@ describe('Reward snarkjs local proof', () => {
     await maspMerkleTree.insert(maspCommitment);
     assert.strictEqual(maspMerkleTree.number_of_elements(), 1);
     const maspPath = maspMerkleTree.path(0);
-    const maspPathElements = maspPath.pathElements.map((bignum: BigNumber) => bignum.toString());
     const maspPathIndices = MerkleTree.calculateIndexFromPathIndices(maspPath.pathIndices);
     maspUtxo.forceSetIndex(BigNumber.from(0));
 
@@ -116,7 +118,6 @@ describe('Reward snarkjs local proof', () => {
 
     const outputAmount = rate * (spentTimestamp - unspentTimestamp) * maspAmount.toNumber();
     const rewardOutputUtxo = await generateUTXOForTest(chainID, outputAmount);
-    const outputCommitment = toFixedHex(rewardOutputUtxo.commitment);
     const outputPrivateKey = rewardOutputUtxo.getKeypair().privkey;
     const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()];
     const unspentPath = unspentTree.path(0);
@@ -176,10 +177,10 @@ describe('Reward snarkjs local proof', () => {
     };
 
     const wtns = await create2InputWitness(circuitInput);
-    let res = await maspRewardFixtures.prove_2_30(wtns);
+    let res = await maspRewardZkComponents.prove_2_30(wtns);
     const proof = res.proof;
     let publicSignals = res.publicSignals;
-    const vKey = await maspRewardFixtures.vkey_2_30();
+    const vKey = await maspRewardZkComponents.vkey_2_30();
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
   });

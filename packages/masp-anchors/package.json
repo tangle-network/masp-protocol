@@ -3,7 +3,7 @@
   "main": "./dist/index.js",
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
-  "version": "0.5.40",
+  "version": "0.5.43",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
     "clean": "rimraf -rf ./dist",
@@ -18,11 +18,11 @@
     "url": "git://github.com/webb-tools/protocol-solidity-extensions.git"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.5.40",
-    "@webb-tools/contracts": "^0.5.40",
-    "@webb-tools/masp-anchor-contracts": "^0.5.40",
-    "@webb-tools/interfaces": "^0.5.40",
-    "@webb-tools/utils": "^0.5.40",
+    "@webb-tools/anchors": "^0.5.43",
+    "@webb-tools/contracts": "^0.5.43",
+    "@webb-tools/masp-anchor-contracts": "^0.5.43",
+    "@webb-tools/interfaces": "^0.5.43",
+    "@webb-tools/utils": "^0.5.35",
     "@webb-tools/sdk-core": "0.1.4-125",
     "chacha20": "^0.1.4",
     "ethers": "5.7.0",

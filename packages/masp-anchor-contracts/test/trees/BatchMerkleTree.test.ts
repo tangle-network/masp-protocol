@@ -9,7 +9,7 @@ import { BigNumber } from 'ethers';
 import { contract, ethers } from 'hardhat';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { BatchTreeUpdaterMock as BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
-import { ZkComponents, batchTreeFixtures } from '@webb-tools/utils';
+import { ZkComponents } from '@webb-tools/utils';
 import {
   VerifierBatch_4__factory,
   VerifierBatch_8__factory,
@@ -17,6 +17,9 @@ import {
   VerifierBatch_32__factory,
   BatchTreeVerifierSelector__factory,
 } from '@webb-tools/masp-anchor-contracts';
+import { batchTreeFixtures } from '@webb-tools/protocol-solidity-extension-utils';
+
+const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTree;
@@ -33,10 +36,10 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let initialRoot: BigNumber;
 
   beforeEach(async () => {
-    zkComponents_4 = await batchTreeFixtures[4]();
-    zkComponents_8 = await batchTreeFixtures[8]();
-    zkComponents_16 = await batchTreeFixtures[16]();
-    zkComponents_32 = await batchTreeFixtures[32]();
+    zkComponents_4 = await batchTreeZkComponents[4]();
+    zkComponents_8 = await batchTreeZkComponents[8]();
+    zkComponents_16 = await batchTreeZkComponents[16]();
+    zkComponents_32 = await batchTreeZkComponents[32]();
 
     const signers = await ethers.getSigners();
     const wallet = signers[0];

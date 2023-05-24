@@ -1,0 +1,27 @@
+{
+  "name": "@webb-tools/protocol-solidity-extension-utils",
+  "main": "./dist/index.js",
+  "license": "(MIT OR Apache-2.0)",
+  "author": "Webb Developers <drew@webb.tools>",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./dist",
+    "compile": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@webb-tools/sdk-core": "0.1.4-125",
+    "@webb-tools/utils": "0.5.35",
+    "babyjubjub": "^1.0.4",
+    "ethers": "5.7.0",
+    "snarkjs": "^0.6.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/utils",
+    "type": "git",
+    "url": "git://github.com/webb-tools/protocol-solidity-extnesions.git"
+  },
+  "version": "0.5.43"
+}

@@ -41,8 +41,6 @@ jobs:
       - name: clean
         run: yarn clean
 
-      - name: Compile @webb-tools/contracts
-        run: lerna run compile --scope=@webb-tools/contracts
       - name: Compile @webb-tools/identity-anchor-contracts
         run: lerna run compile --scope @webb-tools/identity-anchor-contracts
       - name: Compile @webb-tools/masp-anchor-contracts
