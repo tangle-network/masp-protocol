@@ -10,5 +10,6 @@ export * from './Verifier';
 
 export * from './primitives';
 export * from './tokens';
+export * from './interfaces';
 
 export type RawPublicSignals = string[11];

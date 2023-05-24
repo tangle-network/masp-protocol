@@ -8,10 +8,13 @@ import { MerkleTree, randomBN } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
-import { ZkComponents, maspSwapFixtures } from '@webb-tools/utils';
+import { ZkComponents } from '@webb-tools/utils';
 import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
+import { maspSwapFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 const snarkjs = require('snarkjs');
 const { poseidon, eddsa } = require('circomlibjs');
+
+const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('swap snarkjs local proof', () => {
   let sender: SignerWithAddress;
@@ -24,7 +27,7 @@ describe('swap snarkjs local proof', () => {
     const wallet = signers[0];
     sender = wallet;
 
-    zkComponent = await maspSwapFixtures[230]();
+    zkComponent = await maspSwapZkComponents[230]();
 
     create2InputWitness = async (data: any) => {
       const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(data, 0);
@@ -191,10 +194,10 @@ describe('swap snarkjs local proof', () => {
     };
 
     const wtns = await create2InputWitness(circuitInput);
-    let res = await maspSwapFixtures.prove_2_30(wtns);
+    let res = await maspSwapZkComponents.prove_2_30(wtns);
     const proof = res.proof;
     let publicSignals = res.publicSignals;
-    const vKey = await maspSwapFixtures.vkey_2_30();
+    const vKey = await maspSwapZkComponents.vkey_2_30();
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
   });

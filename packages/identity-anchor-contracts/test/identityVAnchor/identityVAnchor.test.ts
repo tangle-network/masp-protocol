@@ -20,7 +20,6 @@ import {
   u8aToHex,
   VAnchorProofInputs,
   ZERO_BYTES32,
-  identityVAnchorFixtures,
 } from '@webb-tools/utils';
 import { BigNumber, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -41,11 +40,14 @@ import { IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { TransactionOptions, PoseidonHasher } from '@webb-tools/anchors';
+import { identityVAnchorFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 
 const BN = require('bn.js');
 const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
+
+const identityVAnchorZkComponents = identityVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
@@ -92,8 +94,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
   };
 
   before('instantiate zkcomponents and user keypairs', async () => {
-    zkComponents2_2 = await identityVAnchorFixtures[22]();
-    zkComponents16_2 = await identityVAnchorFixtures[162]();
+    zkComponents2_2 = await identityVAnchorZkComponents[22]();
+    zkComponents16_2 = await identityVAnchorZkComponents[162]();
 
     aliceKeypair = new Keypair();
     bobKeypair = new Keypair();
@@ -266,7 +268,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       aliceProof = fullProof.proof;
       alicePublicSignals = fullProof.publicSignals;
 
-      const vKey = await identityVAnchorFixtures.vkey_2_2();
+      const vKey = await identityVAnchorZkComponents.vkey_2_2();
 
       const res = await snarkjs.groth16.verify(vKey, alicePublicSignals, aliceProof);
       aliceCalldata = await snarkjs.groth16.exportSolidityCallData(

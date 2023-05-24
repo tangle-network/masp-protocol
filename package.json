@@ -16,7 +16,6 @@
     "node": "18.x.x"
   },
   "scripts": {
-
     "compile": "lerna run compile --parallel --scope=@webb-tools/identity-anchor-contracts --scope=@webb-tools/masp-anchor-contracts",
     "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
