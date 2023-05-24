@@ -25,16 +25,16 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity-extensions.git"
   },
-  "version": "0.5.42",
+  "version": "0.5.43",
   "devDependencies": {
-    "@webb-tools/create2-utils": "^0.5.42",
-    "@webb-tools/evm-test-utils": "^0.5.42",
-    "@webb-tools/interfaces": "^0.5.42",
-    "@webb-tools/tokens": "^0.5.42",
-    "@webb-tools/utils": "^0.5.34",
-    "@webb-tools/vbridge": "^0.5.42",
-    "@webb-tools/contracts": "^0.5.42",
-    "@webb-tools/anchors": "^0.5.42",
+    "@webb-tools/create2-utils": "^0.5.43",
+    "@webb-tools/evm-test-utils": "^0.5.43",
+    "@webb-tools/interfaces": "^0.5.43",
+    "@webb-tools/tokens": "^0.5.43",
+    "@webb-tools/utils": "^0.5.35",
+    "@webb-tools/vbridge": "^0.5.43",
+    "@webb-tools/contracts": "^0.5.43",
+    "@webb-tools/anchors": "^0.5.43",
     "@webb-tools/protocol-solidity": "^1.0.1"
   },
   "dependencies": {

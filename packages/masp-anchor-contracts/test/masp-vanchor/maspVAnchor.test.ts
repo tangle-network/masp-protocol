@@ -8,10 +8,7 @@ const TruffleAssert = require('truffle-assertions');
 
 import { BigNumber } from 'ethers';
 
-import {
-  getChainIdType,
-  ZkComponents,
-} from '@webb-tools/utils';
+import { getChainIdType, ZkComponents } from '@webb-tools/utils';
 
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 
@@ -35,7 +32,11 @@ import { ERC20, ERC721, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-
 import { randomBytes } from 'ethers/lib/utils';
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { AssetType } from '@webb-tools/masp-anchors';
-import { batchTreeFixtures, maspSwapFixtures, maspVAnchorFixtures } from '@webb-tools/protocol-solidity-extension-utils';
+import {
+  batchTreeFixtures,
+  maspSwapFixtures,
+  maspVAnchorFixtures,
+} from '@webb-tools/protocol-solidity-extension-utils';
 
 const snarkjs = require('snarkjs');
 const { poseidon, eddsa } = require('circomlibjs');

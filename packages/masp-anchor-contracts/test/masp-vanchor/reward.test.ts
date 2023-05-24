@@ -57,7 +57,7 @@ describe('Reward snarkjs local proof', () => {
     rewardMerkleTree = new MerkleTree(levels);
     emptyTreeRoot = maspMerkleTree.root();
 
-    zkComponent = await maspRewardFixtures[230]();
+    zkComponent = await maspRewardZkComponents[230]();
 
     create2InputWitness = async (data: any) => {
       const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(data, 0);

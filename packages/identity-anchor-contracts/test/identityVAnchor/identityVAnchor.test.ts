@@ -43,11 +43,12 @@ import { TransactionOptions, PoseidonHasher } from '@webb-tools/anchors';
 import { identityVAnchorFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 
 const BN = require('bn.js');
-const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-const identityVAnchorZkComponents = identityVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
+const identityVAnchorZkComponents = identityVAnchorFixtures(
+  '../../../solidity-fixtures/solidity-fixtures'
+);
 
 describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
@@ -860,8 +861,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         },
         { gasLimit: '0x5B8D80' }
       );
-      await expect(tx).revertedWith('LinkableAnchor: non-existent edge is not set to the default root');
+      await expect(tx).revertedWith(
+        'LinkableAnchor: non-existent edge is not set to the default root'
+      );
     });
+
     it('should reject proofs made against Semaphore empty edges', async () => {
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const depositAmount = 1e7;
@@ -993,11 +997,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         { gasLimit: '0x5B8D80' }
       );
 
-      await expect(tx).revertedWith('LinkableAnchor: non-existent edge is not set to the default root');
+      await expect(tx).revertedWith('non-existent edge is not set to the default root');
     });
   });
 
-  describe('# prevent tampering', () => {
+  describe('#prevent tampering', () => {
     // before('Create valid public inputs as baseline for tampering', async () => {
     const relayer = '0x2111111111111111111111111111111111111111';
     const extAmount = 1e7;

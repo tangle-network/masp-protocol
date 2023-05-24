@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@webb-tools/sdk-core": "0.1.4-125",
-    "@webb-tools/utils": "0.5.34",
+    "@webb-tools/utils": "0.5.35",
     "babyjubjub": "^1.0.4",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"
@@ -23,5 +23,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity-extnesions.git"
   },
-  "version": "0.5.42"
+  "version": "0.5.43"
 }
