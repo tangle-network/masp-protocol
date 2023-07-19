@@ -46,27 +46,6 @@ copy_to_fixtures () {
 # compile batch_tree_64 batchMerkleTreeUpdate_64 64
 # copy_to_fixtures batch_tree_64 batchMerkleTreeUpdate_64 64 batch-tree
 
-
-###
-# WEBB IDENTITY-VANCHORS
-###
-
-# echo "Compiling Webb style Poseidon identity-vanchor 2 circuit w/ 2 inputs"
-# compile identity_vanchor_2 identity_vanchor_2_2 2
-# copy_to_fixtures identity_vanchor_2 identity_vanchor_2_2 2 identity_vanchor_2
-
-# echo "Compiling Webb style Poseidon identity-vanchor 2 circuit w/ 16 inputs"
-# compile identity_vanchor_16 identity_vanchor_16_2 2
-# copy_to_fixtures identity_vanchor_16 identity_vanchor_16_2 2 identity_vanchor_16
-
-# echo "Compiling Webb style Poseidon identity-vanchor 8 circuit w/ 2 inputs"
-# compile identity_vanchor_2 identity_vanchor_2_8 8
-# copy_to_fixtures identity_vanchor_2 identity_vanchor_2_8 8 identity_vanchor_2
-
-# echo "Compiling Webb style Poseidon identity-vanchor 8 circuit w/ 16 inputs"
-# compile identity_vanchor_16 identity_vanchor_16_8 8
-# copy_to_fixtures identity_vanchor_16 identity_vanchor_16_8 8 identity_vanchor_16
-
 ###
 # WEBB MASP-VANCHORS
 ###

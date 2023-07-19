@@ -16,12 +16,10 @@
     "node": "18.x.x"
   },
   "scripts": {
-    "compile": "lerna run compile --parallel --scope=@webb-tools/identity-anchor-contracts --scope=@webb-tools/masp-anchor-contracts",
+    "compile": "lerna run compile --scope=@webb-tools/masp-anchor-contracts",
     "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
-    "test": "yarn test:identity && yarn test:masp",
-    "test:identity": "lerna run test --scope=@webb-tools/identity-anchor-contracts",
-    "test:masp": "lerna run test --scope=@webb-tools/masp-anchor-contracts",
+    "test": "lerna run test --scope=@webb-tools/masp-anchor-contracts",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
@@ -31,8 +29,6 @@
     "prettier": "prettier -c .",
     "publish:packages": "lerna run compile && lerna publish",
     "publish:ci": "yarn compile && lerna publish patch --yes --message 'chore: release new versions' ",
-    "setup:groth16:identity-vanchor2": "./scripts/bash/groth16/identity_vanchor/phase2_identity_vanchor2.sh",
-    "setup:groth16:identity-vanchor8": "./scripts/bash/groth16/identity_vanchor/phase2_identity_vanchor8.sh",
     "setup:groth16:masp-vanchor2": "./scripts/bash/groth16/masp_vanchor/phase2_masp_vanchor2.sh",
     "setup:groth16:masp-vanchor8": "./scripts/bash/groth16/masp_vanchor/phase2_masp_vanchor8.sh",
     "setup:groth16:reward": "./scripts/bash/groth16/masp_vanchor/phase2_reward.sh",
