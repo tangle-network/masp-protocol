@@ -6,7 +6,7 @@ import {
 } from '@webb-tools/masp-anchor-contracts';
 
 import { MultiAssetVAnchorBatchTree } from './MultiAssetVAnchorBatchTree';
-import { toFixedHex } from '@webb-tools/sdk-core';
+import { toFixedHex } from '@webb-tools/utils';
 import { QueueDepositInfo } from './interfaces';
 
 export class MultiAssetVAnchorProxy {

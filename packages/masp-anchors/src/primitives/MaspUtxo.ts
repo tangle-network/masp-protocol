@@ -1,4 +1,4 @@
-import { randomBN } from '@webb-tools/sdk-core';
+import { randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { poseidon, babyjub } from 'circomlibjs';
 import { MaspKey } from './MaspKey';

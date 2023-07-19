@@ -4,7 +4,7 @@
  */
 
 const { expect } = require('chai');
-import { MerkleTree, toFixedHex, randomBN } from '@webb-tools/sdk-core';
+import { MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { contract, ethers } from 'hardhat';
 import { PoseidonHasher } from '@webb-tools/anchors';

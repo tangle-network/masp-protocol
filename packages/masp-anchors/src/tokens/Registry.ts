@@ -1,7 +1,8 @@
 import { BigNumberish, ethers } from 'ethers';
 import { Registry as RegistryContract, Registry__factory } from '@webb-tools/masp-anchor-contracts';
-import { generateFunctionSigHash, toHex } from '@webb-tools/sdk-core';
+import { generateFunctionSigHash, toHex } from '@webb-tools/utils';
 import { getChainIdType } from '@webb-tools/utils';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class Registry {
   contract: RegistryContract;
@@ -14,6 +15,12 @@ export class Registry {
   constructor(contract: RegistryContract, signer: ethers.Signer) {
     this.contract = contract;
     this.signer = signer;
+  }
+
+  public static async create2Registry(deployer: Deployer, saltHex: string, signer: ethers.Signer) {
+    const { contract: registry } = await deployer.deploy(Registry__factory, saltHex, signer);
+
+    return new Registry(registry, signer);
   }
 
   public static async createRegistry(deployer: ethers.Signer) {

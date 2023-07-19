@@ -4,7 +4,7 @@
  */
 
 const assert = require('assert');
-import { Keypair, CircomUtxo, MerkleTree, toFixedHex, randomBN } from '@webb-tools/sdk-core';
+import { Keypair, CircomUtxo, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';

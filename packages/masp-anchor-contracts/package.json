@@ -27,14 +27,14 @@
   },
   "version": "0.5.43",
   "devDependencies": {
-    "@webb-tools/create2-utils": "^0.5.43",
-    "@webb-tools/evm-test-utils": "^0.5.43",
-    "@webb-tools/interfaces": "^0.5.43",
-    "@webb-tools/tokens": "^0.5.43",
-    "@webb-tools/utils": "^0.5.35",
-    "@webb-tools/vbridge": "^0.5.43",
-    "@webb-tools/contracts": "^0.5.43",
-    "@webb-tools/anchors": "^0.5.43",
+    "@webb-tools/create2-utils": "^1.0.7",
+    "@webb-tools/evm-test-utils": "^1.0.7",
+    "@webb-tools/interfaces": "^1.0.7",
+    "@webb-tools/tokens": "^1.0.7",
+    "@webb-tools/utils": "^1.0.7",
+    "@webb-tools/vbridge": "^1.0.7",
+    "@webb-tools/contracts": "^1.0.7",
+    "@webb-tools/anchors": "^1.0.7",
     "@webb-tools/protocol-solidity": "^1.0.1"
   },
   "dependencies": {

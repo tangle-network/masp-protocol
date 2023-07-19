@@ -13,10 +13,25 @@ import { PoseidonHasher, VAnchor } from '@webb-tools/anchors';
 import { Deployer } from '@webb-tools/create2-utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Verifier } from '@webb-tools/anchors';
-
 import { startGanacheServer } from '../startGanache';
+import {
+  MultiAssetVerifier,
+  MultiAssetVAnchorTree,
+  Registry,
+  RegistryHandler,
+  MultiFungibleTokenManager,
+  MultiNftTokenManager,
+  MultiAssetVAnchorProxy,
+  SwapProofVerifier,
+} from '@webb-tools/masp-anchors';
+import {
+  maspSwapFixtures,
+  maspVAnchorFixtures,
+} from '@webb-tools/protocol-solidity-extension-utils';
+const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
+const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('Should deploy verifiers to the same address', () => {
+describe.only('Should deploy MASP contracts to the same address', () => {
   let deployer1: Deployer;
   let deployer2: Deployer;
   let token1: ERC20PresetMinterPauser;
@@ -115,6 +130,7 @@ describe('Should deploy verifiers to the same address', () => {
       deployer2 = new Deployer(deployer2Contract);
       assert.strictEqual(deployer1.address, deployer2.address);
     });
+
     it('should deploy ERC20PresetMinterPauser to the same address using different wallets', async () => {
       const salt = '666';
       const saltHex = ethers.utils.id(salt);
@@ -162,48 +178,160 @@ describe('Should deploy verifiers to the same address', () => {
       assert.strictEqual(poseidonHasher1.contract.address, poseidonHasher2.contract.address);
     });
   });
-  describe('#deploy VAnchor', () => {
-    let vanchorVerifier1: Verifier;
-    let vanchorVerifier2: Verifier;
+  describe('#deploy MASP VAnchor', () => {
+    let maspVanchorVerifier1: MultiAssetVerifier;
+    let maspVanchorVerifier2: MultiAssetVerifier;
+    let swapVerifier1: SwapProofVerifier;
+    let swapVerifier2: SwapProofVerifier;
+    let registry1: Registry;
+    let registry2: Registry;
+    let registryHandler1: RegistryHandler;
+    let registryHandler2: RegistryHandler;
+    let multiFungibleTokenManager1: MultiFungibleTokenManager;
+    let multiFungibleTokenManager2: MultiFungibleTokenManager;
+    let multiNftTokenManager1: MultiNftTokenManager;
+    let multiNftTokenManager2: MultiNftTokenManager;
+    let maspProxy1: MultiAssetVAnchorProxy;
+    let maspProxy2: MultiAssetVAnchorProxy;
+
+    let salt = '666';
 
     it('should deploy verifiers to the same address using different wallets', async () => {
       assert.strictEqual(deployer1.address, deployer2.address);
-      const salt = '666';
-      vanchorVerifier1 = await Verifier.create2Verifier(deployer1, salt, sender);
-      vanchorVerifier2 = await Verifier.create2Verifier(deployer2, salt, ganacheWallet2);
-      assert.strictEqual(vanchorVerifier1.contract.address, vanchorVerifier2.contract.address);
-    });
-    it('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
-      const salt = '666';
-      const levels = 30;
-      const saltHex = ethers.utils.id(salt);
-      assert.strictEqual(vanchorVerifier1.contract.address, vanchorVerifier2.contract.address);
-      assert.strictEqual(poseidonHasher1.contract.address, poseidonHasher2.contract.address);
-      assert.strictEqual(token1.address, token2.address);
-      const vanchor1 = await VAnchor.create2VAnchor(
+      maspVanchorVerifier1 = await Verifier.create2Verifier(deployer1, salt, sender);
+      maspVanchorVerifier2 = await Verifier.create2Verifier(deployer2, salt, ganacheWallet2);
+      assert.strictEqual(
+        maspVanchorVerifier1.contract.address,
+        maspVanchorVerifier2.contract.address
+      );
+      let two1 = await SwapProofVerifier.create2Verifiers(deployer1, salt, sender);
+      let two2 = await SwapProofVerifier.create2Verifiers(deployer2, salt, ganacheWallet2);
+      let swapVerifier1 = await SwapProofVerifier.create2SwapProofVerifier(
         deployer1,
-        saltHex,
-        vanchorVerifier1.contract.address,
-        levels,
-        poseidonHasher1.contract.address,
-        sender.address,
-        token1.address,
-        1,
-        undefined,
-        undefined,
+        salt,
+        sender,
+        two1.v2,
+        two1.v8
+      );
+      let swapVerifier2 = await SwapProofVerifier.create2SwapProofVerifier(
+        deployer2,
+        salt,
+        ganacheWallet2,
+        two2.v2,
+        two2.v8
+      );
+      assert.strictEqual(swapVerifier1.contract.address, swapVerifier2.contract.address);
+    });
+
+    it('should deploy MultiFungibleTokenManager to the same address using different wallets', async () => {
+      multiFungibleTokenManager1 = await MultiFungibleTokenManager.create2MultiFungibleTokenManager(
+        deployer1,
+        salt,
         sender
       );
-      const vanchor2 = await VAnchor.create2VAnchor(
+      multiFungibleTokenManager2 = await MultiFungibleTokenManager.create2MultiFungibleTokenManager(
         deployer2,
-        saltHex,
-        vanchorVerifier2.contract.address,
-        levels,
+        salt,
+        ganacheWallet2
+      );
+      assert.strictEqual(
+        multiFungibleTokenManager1.contract.address,
+        multiFungibleTokenManager2.contract.address
+      );
+    });
+
+    it('should deploy the MultiNftTokenManager to the same address using different wallets', async () => {
+      multiNftTokenManager1 = await MultiNftTokenManager.create2MultiNftTokenManager(
+        deployer1,
+        salt,
+        sender
+      );
+      multiNftTokenManager2 = await MultiNftTokenManager.create2MultiNftTokenManager(
+        deployer2,
+        salt,
+        ganacheWallet2
+      );
+      assert.strictEqual(
+        multiNftTokenManager1.contract.address,
+        multiNftTokenManager2.contract.address
+      );
+    });
+
+    it('should deploy the MastProxy to the same address using different wallets', async () => {
+      maspProxy1 = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(
+        poseidonHasher1.contract.address,
+        sender
+      );
+      maspProxy2 = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(
         poseidonHasher2.contract.address,
-        ganacheWallet1.address,
-        token2.address,
+        sender
+      );
+      assert.strictEqual(maspProxy1.contract.address, maspProxy2.contract.address);
+    });
+
+    it('should deploy the registry to the same addrss using different wallets', async () => {
+      registry1 = await Registry.create2Registry(deployer1, salt, sender);
+      registry2 = await Registry.create2Registry(deployer1, salt, ganacheWallet2);
+
+      let dummyBridgeSigner = await ethers.getSigners()[4];
+      registryHandler1 = await RegistryHandler.createRegistryHandler(
+        await dummyBridgeSigner.getAddress(),
+        [await registry1.createResourceId()],
+        [registry1.contract.address],
+        dummyBridgeSigner
+      );
+      registryHandler2 = await RegistryHandler.createRegistryHandler(
+        await dummyBridgeSigner.getAddress(),
+        [await registry2.createResourceId()],
+        [registry2.contract.address],
+        dummyBridgeSigner
+      );
+      assert.strictEqual(registryHandler1.contract.address, registryHandler2.contract.address);
+    });
+
+    it('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
+      const levels = 30;
+      const saltHex = ethers.utils.id(salt);
+      assert.strictEqual(
+        maspVanchorVerifier1.contract.address,
+        maspVanchorVerifier2.contract.address
+      );
+      assert.strictEqual(poseidonHasher1.contract.address, poseidonHasher2.contract.address);
+      assert.strictEqual(token1.address, token2.address);
+      let dummyHandlerAddress = await (await ethers.getSigners())[5].getAddress();
+      let zkComponents2_2 = await maspVAnchorZkComponents[22]();
+      let zkComponents16_2 = await maspVAnchorZkComponents[162]();
+      let swapCircuitZkComponents = await maspSwapZkComponents[220]();
+      const vanchor1 = await MultiAssetVAnchorTree.create2MultiAssetVAnchorTree(
+        deployer1,
+        salt,
+        registry1.contract.address,
+        maspVanchorVerifier1.contract.address,
+        swapVerifier1.contract.address,
+        dummyHandlerAddress,
+        poseidonHasher1.contract.address,
+        maspProxy1.contract.address,
+        levels,
         1,
-        undefined,
-        undefined,
+        zkComponents2_2,
+        zkComponents16_2,
+        swapCircuitZkComponents,
+        sender
+      );
+      const vanchor2 = await MultiAssetVAnchorTree.create2MultiAssetVAnchorTree(
+        deployer2,
+        salt,
+        registry2.contract.address,
+        maspVanchorVerifier2.contract.address,
+        swapVerifier2.contract.address,
+        dummyHandlerAddress,
+        poseidonHasher2.contract.address,
+        maspProxy2.contract.address,
+        levels,
+        1,
+        zkComponents2_2,
+        zkComponents16_2,
+        swapCircuitZkComponents,
         ganacheWallet2
       );
       assert.strictEqual(vanchor1.contract.address, vanchor2.contract.address);
