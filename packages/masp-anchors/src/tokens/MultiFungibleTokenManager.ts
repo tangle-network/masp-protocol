@@ -16,9 +16,10 @@ export class MultiFungibleTokenManager {
 
   public static async create2MultiFungibleTokenManager(
     deployer: Deployer,
-    saltHex: string,
+    salt: string,
     signer: ethers.Signer
   ) {
+    const saltHex = ethers.utils.id(salt);
     const { contract: manager } = await deployer.deploy(
       MultiFungibleTokenManager__factory,
       saltHex,

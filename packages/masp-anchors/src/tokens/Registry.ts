@@ -17,7 +17,8 @@ export class Registry {
     this.signer = signer;
   }
 
-  public static async create2Registry(deployer: Deployer, saltHex: string, signer: ethers.Signer) {
+  public static async create2Registry(deployer: Deployer, salt: string, signer: ethers.Signer) {
+    const saltHex = ethers.utils.id(salt);
     const { contract: registry } = await deployer.deploy(Registry__factory, saltHex, signer);
 
     return new Registry(registry, signer);

@@ -257,41 +257,49 @@ describe.only('Should deploy MASP contracts to the same address', () => {
       );
     });
 
-    it('should deploy the MastProxy to the same address using different wallets', async () => {
-      maspProxy1 = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(
+    it('should deploy the MaspProxy to the same address using different wallets', async () => {
+      maspProxy1 = await MultiAssetVAnchorProxy.create2MultiAssetVAnchorProxy(
+        deployer1,
+        salt,
         poseidonHasher1.contract.address,
         sender
       );
-      maspProxy2 = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(
+      maspProxy2 = await MultiAssetVAnchorProxy.create2MultiAssetVAnchorProxy(
+        deployer2,
+        salt,
         poseidonHasher2.contract.address,
-        sender
+        ganacheWallet2
       );
       assert.strictEqual(maspProxy1.contract.address, maspProxy2.contract.address);
     });
 
-    it('should deploy the registry to the same addrss using different wallets', async () => {
+    it('should deploy the registry to the same address using different wallets', async () => {
       registry1 = await Registry.create2Registry(deployer1, salt, sender);
-      registry2 = await Registry.create2Registry(deployer1, salt, ganacheWallet2);
+      registry2 = await Registry.create2Registry(deployer2, salt, ganacheWallet2);
+      assert.strictEqual(registry1.contract.address, registry2.contract.address);
 
-      let dummyBridgeSigner = await ethers.getSigners()[4];
-      registryHandler1 = await RegistryHandler.createRegistryHandler(
+      let dummyBridgeSigner = (await ethers.getSigners())[4];
+      registryHandler1 = await RegistryHandler.create2RegistryHandler(
         await dummyBridgeSigner.getAddress(),
         [await registry1.createResourceId()],
         [registry1.contract.address],
-        dummyBridgeSigner
+        deployer1,
+        salt,
+        sender,
       );
-      registryHandler2 = await RegistryHandler.createRegistryHandler(
+      registryHandler2 = await RegistryHandler.create2RegistryHandler(
         await dummyBridgeSigner.getAddress(),
         [await registry2.createResourceId()],
         [registry2.contract.address],
-        dummyBridgeSigner
+        deployer2,
+        salt,
+        ganacheWallet2
       );
       assert.strictEqual(registryHandler1.contract.address, registryHandler2.contract.address);
     });
 
     it('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
       const levels = 30;
-      const saltHex = ethers.utils.id(salt);
       assert.strictEqual(
         maspVanchorVerifier1.contract.address,
         maspVanchorVerifier2.contract.address
