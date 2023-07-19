@@ -24,6 +24,3 @@ move_verifiers_and_metadata_batch_insert packages/contracts/solidity-fixtures/so
 
 # compile_phase2 packages/contracts/solidity-fixtures/solidity-fixtures/batch-tree/64 batchMerkleTreeUpdate_64 ./artifacts/circuits/batch_tree_64
 # move_verifiers_and_metadata_batch_insert packages/contracts/solidity-fixtures/solidity-fixtures/batch-tree/64 64 batch_tree_64 64
-
-# compile_phase2 ./solidity-fixtures/solidity-fixtures/identity_vanchor_16/2 identity_vanchor_16_2 ./artifacts/circuits/identity_vanchor_16
-# move_verifiers_and_metadata_identity_vanchor ./solidity-fixtures/solidity-fixtures/identity_vanchor_16/2 2 identity_vanchor_16 16

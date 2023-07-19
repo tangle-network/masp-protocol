@@ -1,6 +1,6 @@
-<h1 align="center">Webb Identity Anchors</h1>
+<h1 align="center">Webb MASP Anchor Contracts</h1>
 
-Wrapper classes and utilities for deploying and interacting with zero-knowledge Identity Anchors in solidity.
+Wrapper classes and utilities for deploying and interacting with zero-knowledge MASP Anchors in solidity.
  
 ## License
 
