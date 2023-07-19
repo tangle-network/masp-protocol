@@ -1,4 +1,4 @@
-import { toFixedHex } from '@webb-tools/sdk-core';
+import { toFixedHex } from '@webb-tools/utils';
 import { ZkComponents } from '@webb-tools/utils';
 import { BigNumberish, ethers } from 'ethers';
 import {

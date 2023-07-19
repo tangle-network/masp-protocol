@@ -3,12 +3,27 @@ import {
   MultiNftTokenManager as MultiNftTokenManagerContract,
   MultiNftTokenManager__factory,
 } from '@webb-tools/masp-anchor-contracts';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class MultiNftTokenManager {
   contract: MultiNftTokenManagerContract;
 
   constructor(contract: MultiNftTokenManagerContract) {
     this.contract = contract;
+  }
+
+  public static async create2MultiNftTokenManager(
+    deployer: Deployer,
+    saltHex: string,
+    signer: ethers.Signer
+  ) {
+    const { contract: manager } = await deployer.deploy(
+      MultiNftTokenManager__factory,
+      saltHex,
+      signer
+    );
+
+    return new MultiNftTokenManager(manager);
   }
 
   public static async createMultiNftTokenManager(deployer: ethers.Signer) {

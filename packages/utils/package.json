@@ -9,8 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/sdk-core": "0.1.4-125",
-    "@webb-tools/utils": "0.5.35",
+    "@webb-tools/utils": "^1.0.7",
     "babyjubjub": "^1.0.4",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"

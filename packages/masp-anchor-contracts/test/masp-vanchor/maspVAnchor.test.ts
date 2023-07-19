@@ -30,7 +30,7 @@ import {
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { ERC20, ERC721, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
-import { toFixedHex } from '@webb-tools/sdk-core';
+import { toFixedHex } from '@webb-tools/utils';
 import { AssetType } from '@webb-tools/masp-anchors';
 import {
   batchTreeFixtures,
