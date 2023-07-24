@@ -131,40 +131,7 @@ To compile contracts and build typescript interfaces
 yarn build
 ```
 
-**Note:** If you push new fixtures to remote storage
-
-```
-cd solidity-fixtures
-dvc add solidity-fixtures
-dvc push --remote aws
-```
-
-<h2 id="test"> Testing 🧪 </h2>
-
-To run the test suite, update the submodules:
-
-```
-git submodule update --init --recursive
-```
-
-Fetch the fixtures:
-```
-yarn fetch:fixtures
-```
-
-Install the dependencies:
-
-```
-yarn install
-```
-
-Compile the contracts:
-
-```
-yarn compile
-```
-
-Run test suite:
+To run test suite:
 
 ```
 yarn test
@@ -174,6 +141,14 @@ To fix the formatting, please run:
 
 ```
 yarn format
+```
+
+**Note:** If you push new fixtures to remote storage
+
+```
+cd solidity-fixtures
+dvc add solidity-fixtures
+dvc push --remote aws
 ```
 
 <h2 id="contribute"> Contributing </h2>
