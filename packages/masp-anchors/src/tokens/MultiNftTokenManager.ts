@@ -14,10 +14,9 @@ export class MultiNftTokenManager {
 
   public static async create2MultiNftTokenManager(
     deployer: Deployer,
-    salt: string,
+    saltHex: string,
     signer: ethers.Signer
   ) {
-    const saltHex = ethers.utils.id(salt);
     const { contract: manager } = await deployer.deploy(
       MultiNftTokenManager__factory,
       saltHex,

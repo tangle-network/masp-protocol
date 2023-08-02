@@ -31,10 +31,9 @@ export class RegistryHandler {
     initResourceIds: string[],
     initContractAddresses: string[],
     deployer: Deployer,
-    salt: string,
+    saltHex: string,
     signer: ethers.Signer
   ) {
-    const saltHex = ethers.utils.id(salt);
     const argTypes = ['address', 'bytes32[]', 'address[]'];
     const args = [bridgeAddress, initResourceIds, initContractAddresses];
     const { contract: contract } = await deployer.deploy(

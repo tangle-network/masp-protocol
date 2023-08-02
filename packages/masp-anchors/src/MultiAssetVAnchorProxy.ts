@@ -20,11 +20,10 @@ export class MultiAssetVAnchorProxy {
 
   public static async create2MultiAssetVAnchorProxy(
     deployer: Deployer,
-    salt: string,
+    saltHex: string,
     hasher: string,
     signer: ethers.Signer
   ) {
-    const saltHex = ethers.utils.id(salt);
     const argTypes = ['address'];
     const args = [hasher];
     const { contract: proxy } = await deployer.deploy(
@@ -33,7 +32,7 @@ export class MultiAssetVAnchorProxy {
       signer,
       undefined,
       argTypes,
-      args,
+      args
     );
 
     return new MultiAssetVAnchorProxy(proxy);

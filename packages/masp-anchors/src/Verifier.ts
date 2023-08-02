@@ -21,8 +21,7 @@ export class MultiAssetVerifier extends VerifierBase {
     this.contract = contract;
   }
 
-  public static async create2Verifier(deployer: Deployer, salt: string, signer: ethers.Signer) {
-    const saltHex = ethers.utils.id(salt);
+  public static async create2Verifier(deployer: Deployer, saltHex: string, signer: ethers.Signer) {
     const verifiers = await this.create2Verifiers(
       deployer,
       saltHex,

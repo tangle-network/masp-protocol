@@ -38,6 +38,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       allowUnlimitedContractSize: true,
       accounts: HARDHAT_ACCOUNTS,
+      blockGasLimit: 1_000_000_000_429_720
     },
   },
   solidity: {

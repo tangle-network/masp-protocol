@@ -12,7 +12,7 @@ import { Deployer } from '@webb-tools/create2-utils';
 export class MultiAssetVAnchorTree extends MultiAssetVAnchor {
   public static async create2MultiAssetVAnchorTree(
     deployer: Deployer,
-    salt: string,
+    saltHex: string,
     registry: string,
     transactVerifierAddr: string,
     swapVerifierAddr: string,
@@ -26,7 +26,6 @@ export class MultiAssetVAnchorTree extends MultiAssetVAnchor {
     swapCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const saltHex = ethers.utils.id(salt);
     const { contract: encodeLibrary } = await deployer.deploy(
       MASPVAnchorEncodeInputs__factory,
       saltHex,

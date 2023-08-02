@@ -97,6 +97,7 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		}
 		for (uint256 i = 0; i < _leaves.length; i++) {
 			bytes32 leafHash = bytes32(uint256(_leaves[i]) % SNARK_FIELD);
+			require(leafHash == queue[offset + i], "Incorrect deposit");
 			assembly {
 				let itemOffset := add(data, mul(ITEM_SIZE, i))
 				mstore(add(itemOffset, 0x64), leafHash)

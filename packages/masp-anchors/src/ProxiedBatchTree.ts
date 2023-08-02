@@ -65,11 +65,11 @@ export class ProxiedBatchTree {
   ) {
     const argTypes = ['uint8', 'address', 'address', 'address'];
     const args = [levels, hasherAddr, verifierAddr, proxyAddr];
-    const { contract: proxyTree } = await deployer.deploy(
+    const { contract: proxyTree, receipt } = await deployer.deploy(
       ProxiedBatchTree__factory,
       saltHex,
       signer,
-      {},
+      undefined,
       argTypes,
       args
     );
@@ -83,7 +83,7 @@ export class ProxiedBatchTree {
       zkComponents_16,
       zkComponents_32
     );
-    createdProxiedBatchTree.latestSyncedBlock = proxyTree.deployTransaction.blockNumber!;
+    createdProxiedBatchTree.latestSyncedBlock = receipt.blockNumber!;
     return createdProxiedBatchTree;
   }
 

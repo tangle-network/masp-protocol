@@ -33,10 +33,9 @@ export class SwapProofVerifier {
 
   public static async create2Verifiers(
     deployer: Deployer,
-    salt: string,
+    saltHex: string,
     signer: Signer
   ): Promise<{ v2: SwapProofVerifierContract; v8: SwapProofVerifierContract }> {
-    const saltHex = ethers.utils.id(salt);
     const { contract: v2 } = await deployer.deploy(v2__factory, saltHex, signer);
     const { contract: v8 } = await deployer.deploy(v8__factory, saltHex, signer);
 
@@ -45,12 +44,11 @@ export class SwapProofVerifier {
 
   public static async create2SwapProofVerifier(
     deployer: Deployer,
-    salt: string,
+    saltHex: string,
     signer: Signer,
     v2: SwapProofVerifierContract,
     v8: SwapProofVerifierContract
   ): Promise<SwapProofVerifier> {
-    const saltHex = ethers.utils.id(salt);
     const argTypes = ['address', 'address'];
     const args = [v2.address, v8.address];
 
