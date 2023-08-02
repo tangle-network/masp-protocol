@@ -59,10 +59,9 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     swapCircuitZkComponents: ZkComponents,
-    zkComponents_4: ZkComponents,
-    zkComponents_8: ZkComponents,
-    zkComponents_16: ZkComponents,
-    zkComponents_32: ZkComponents,
+    depositTree: ProxiedBatchTree,
+    unspentTree: ProxiedBatchTree,
+    spentTree: ProxiedBatchTree,
     signer: ethers.Signer
   ) {
     const { contract: encodeLibrary } = await deployer.deploy(
@@ -81,47 +80,6 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       ['contracts/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']: encodeLibrary.address,
       ['contracts/SwapEncodeInputs.sol:SwapEncodeInputs']: swapEncodeLibrary.address,
     };
-
-    const depositTree = await ProxiedBatchTree.create2ProxiedBatchTree(
-      deployer,
-      saltHex,
-      batchVerifierAddr,
-      levels,
-      hasherAddr,
-      proxyAddr,
-      zkComponents_4,
-      zkComponents_8,
-      zkComponents_16,
-      zkComponents_32,
-      signer
-    );
-    const unspentTree = await ProxiedBatchTree.create2ProxiedBatchTree(
-      deployer,
-      saltHex,
-      batchVerifierAddr,
-      levels,
-      hasherAddr,
-      proxyAddr,
-      zkComponents_4,
-      zkComponents_8,
-      zkComponents_16,
-      zkComponents_32,
-      signer
-    );
-    const spentTree = await ProxiedBatchTree.create2ProxiedBatchTree(
-      deployer,
-      saltHex,
-      batchVerifierAddr,
-      levels,
-      hasherAddr,
-      proxyAddr,
-      zkComponents_4,
-      zkComponents_8,
-      zkComponents_16,
-      zkComponents_32,
-      signer
-    );
-    const proxy = proxyAddr;
 
     const argTypes = [
       'address',
@@ -143,13 +101,13 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       await depositTree.contract.treeUpdateVerifier(),
       handlerAddr,
       hasherAddr,
-      proxy,
+      proxyAddr,
       unspentTree.contract.address,
       spentTree.contract.address,
       levels,
       maxEdges,
     ];
-    console.log('here');
+
     const { contract: maspVAnchorBatchTree, receipt } = await deployer.deploy(
       MultiAssetVAnchorBatchTree__factory,
       saltHex,

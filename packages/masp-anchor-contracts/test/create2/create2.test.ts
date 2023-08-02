@@ -61,16 +61,26 @@ describe.only('Should deploy MASP contracts to the same address', () => {
   const saltHex = ethers.utils.id(salt);
 
   before('setup networks', async () => {
-    ganacheServer2 = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
+    ganacheServer2 = await startGanacheServer(
+      SECOND_CHAIN_ID,
+      SECOND_CHAIN_ID,
+      [
+        {
+          balance: '0x1000000000000000000000',
+          secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
+        },
+        {
+          balance: '0x1000000000000000000000',
+          secretKey: '0x' + HARDHAT_ACCOUNTS[1].privateKey,
+        },
+      ],
       {
-        balance: '0x1000000000000000000000',
-        secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
-      },
-      {
-        balance: '0x1000000000000000000000',
-        secretKey: '0x' + HARDHAT_ACCOUNTS[1].privateKey,
-      },
-    ]);
+        chain: {
+          allowUnlimitedContractSize: true,
+          allowUnlimitedInitCodeSize: true,
+        },
+      }
+    );
     const signers = await ethers.getSigners();
     const wallet = signers[1];
     let hardhatNonce = await wallet.provider.getTransactionCount(wallet.address, 'latest');
@@ -91,9 +101,6 @@ describe.only('Should deploy MASP contracts to the same address', () => {
       );
     }
     assert.strictEqual(ganacheNonce, hardhatNonce);
-    let b1 = await wallet.provider.getBalance(wallet.address);
-    let b2 = await ganacheWallet1.provider.getBalance(ganacheWallet1.address);
-    let b3 = await ganacheWallet2.provider.getBalance(ganacheWallet2.address);
     sender = wallet;
   });
 
@@ -194,6 +201,12 @@ describe.only('Should deploy MASP contracts to the same address', () => {
     let multiNftTokenManager2: MultiNftTokenManager;
     let batchTreeVerifier1: BatchTreeVerifier;
     let batchTreeVerifier2: BatchTreeVerifier;
+    let depositTree1: ProxiedBatchTree;
+    let depositTree2: ProxiedBatchTree;
+    let unspentTree1: ProxiedBatchTree;
+    let unspentTree2: ProxiedBatchTree;
+    let spentTree1: ProxiedBatchTree;
+    let spentTree2: ProxiedBatchTree;
     let maspProxy1: MultiAssetVAnchorProxy;
     let maspProxy2: MultiAssetVAnchorProxy;
 
@@ -321,7 +334,8 @@ describe.only('Should deploy MASP contracts to the same address', () => {
       let batchTreeZkComponents_8 = await batchTreeZkComponents[8]();
       let batchTreeZkComponents_16 = await batchTreeZkComponents[16]();
       let batchTreeZkComponents_32 = await batchTreeZkComponents[32]();
-      const tree1 = await ProxiedBatchTree.create2ProxiedBatchTree(
+
+      depositTree1 = await ProxiedBatchTree.create2ProxiedBatchTree(
         deployer1,
         saltHex,
         batchTreeVerifier1.contract.address,
@@ -334,7 +348,7 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         batchTreeZkComponents_32,
         sender
       );
-      const tree2 = await ProxiedBatchTree.create2ProxiedBatchTree(
+      depositTree2 = await ProxiedBatchTree.create2ProxiedBatchTree(
         deployer2,
         saltHex,
         batchTreeVerifier2.contract.address,
@@ -347,7 +361,65 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         batchTreeZkComponents_32,
         ganacheWallet2
       );
-      assert.strictEqual(tree1.contract.address, tree2.contract.address);
+      assert.strictEqual(depositTree1.contract.address, depositTree2.contract.address);
+
+      spentTree1 = await ProxiedBatchTree.create2ProxiedBatchTree(
+        deployer1,
+        ethers.utils.id('667'),
+        batchTreeVerifier1.contract.address,
+        levels,
+        poseidonHasher1.contract.address,
+        maspProxy1.contract.address,
+        batchTreeZkComponents_4,
+        batchTreeZkComponents_8,
+        batchTreeZkComponents_16,
+        batchTreeZkComponents_32,
+        sender
+      );
+
+      spentTree2 = await ProxiedBatchTree.create2ProxiedBatchTree(
+        deployer2,
+        ethers.utils.id('667'),
+        batchTreeVerifier2.contract.address,
+        levels,
+        poseidonHasher2.contract.address,
+        maspProxy2.contract.address,
+        batchTreeZkComponents_4,
+        batchTreeZkComponents_8,
+        batchTreeZkComponents_16,
+        batchTreeZkComponents_32,
+        ganacheWallet2
+      );
+      assert.strictEqual(spentTree1.contract.address, spentTree2.contract.address);
+
+      unspentTree1 = await ProxiedBatchTree.create2ProxiedBatchTree(
+        deployer1,
+        ethers.utils.id('668'),
+        batchTreeVerifier1.contract.address,
+        levels,
+        poseidonHasher1.contract.address,
+        maspProxy1.contract.address,
+        batchTreeZkComponents_4,
+        batchTreeZkComponents_8,
+        batchTreeZkComponents_16,
+        batchTreeZkComponents_32,
+        sender
+      );
+
+      unspentTree2 = await ProxiedBatchTree.create2ProxiedBatchTree(
+        deployer2,
+        ethers.utils.id('668'),
+        batchTreeVerifier2.contract.address,
+        levels,
+        poseidonHasher2.contract.address,
+        maspProxy2.contract.address,
+        batchTreeZkComponents_4,
+        batchTreeZkComponents_8,
+        batchTreeZkComponents_16,
+        batchTreeZkComponents_32,
+        ganacheWallet2
+      );
+      assert.strictEqual(unspentTree1.contract.address, unspentTree2.contract.address);
     });
 
     it('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
@@ -363,10 +435,6 @@ describe.only('Should deploy MASP contracts to the same address', () => {
       let zkComponents2_2 = await maspVAnchorZkComponents[22]();
       let zkComponents16_2 = await maspVAnchorZkComponents[162]();
       let swapCircuitZkComponents = await maspSwapZkComponents[220]();
-      let batchTreeZkComponents_4 = await batchTreeZkComponents[4]();
-      let batchTreeZkComponents_8 = await batchTreeZkComponents[8]();
-      let batchTreeZkComponents_16 = await batchTreeZkComponents[16]();
-      let batchTreeZkComponents_32 = await batchTreeZkComponents[32]();
 
       const vanchor1 = await MultiAssetVAnchorBatchTree.create2MultiAssetVAnchorBatchTree(
         deployer1,
@@ -383,13 +451,13 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         zkComponents2_2,
         zkComponents16_2,
         swapCircuitZkComponents,
-        batchTreeZkComponents_4,
-        batchTreeZkComponents_8,
-        batchTreeZkComponents_16,
-        batchTreeZkComponents_32,
+        depositTree1,
+        spentTree1,
+        unspentTree1,
         sender
       );
-
+      console.log('here');
+      console.log((await ganacheWallet2.getBalance()).toString());
       const vanchor2 = await MultiAssetVAnchorBatchTree.create2MultiAssetVAnchorBatchTree(
         deployer2,
         saltHex,
@@ -405,12 +473,12 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         zkComponents2_2,
         zkComponents16_2,
         swapCircuitZkComponents,
-        batchTreeZkComponents_4,
-        batchTreeZkComponents_8,
-        batchTreeZkComponents_16,
-        batchTreeZkComponents_32,
+        depositTree2,
+        spentTree2,
+        unspentTree2,
         ganacheWallet2
       );
+      console.log('here');
       assert.strictEqual(vanchor1.contract.address, vanchor2.contract.address);
     });
   });
