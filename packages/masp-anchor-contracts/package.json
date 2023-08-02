@@ -23,7 +23,7 @@
   "repository": {
     "directory": "packages/masp-anchor-contracts",
     "type": "git",
-    "url": "git://github.com/webb-tools/protocol-solidity-extensions.git"
+    "url": "git://github.com/webb-tools/masp-protocol.git"
   },
   "version": "0.5.43",
   "devDependencies": {

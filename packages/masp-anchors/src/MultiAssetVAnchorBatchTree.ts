@@ -149,7 +149,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       levels,
       maxEdges,
     ];
-
+    console.log('here');
     const { contract: maspVAnchorBatchTree, receipt } = await deployer.deploy(
       MultiAssetVAnchorBatchTree__factory,
       saltHex,

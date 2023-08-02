@@ -15,7 +15,7 @@
   "repository": {
     "directory": "packages/masp-anchor",
     "type": "git",
-    "url": "git://github.com/webb-tools/protocol-solidity-extensions.git"
+    "url": "git://github.com/webb-tools/masp-protocol.git"
   },
   "dependencies": {
     "@webb-tools/anchors": "^1.0.7",

@@ -1,6 +1,6 @@
 {
-  "name": "protocol-solidity-extensions",
-  "repository": "git://github.com/webb-tools/protocol-solidity-extensions.git",
+  "name": "@webb-tools/masp-protocol",
+  "repository": "https://github.com/webb-tools/masp-protocol.git",
   "author": "Webb Developers <hello@webb.tools>",
   "license": "(MIT OR Apache-2.0)",
   "private": true,

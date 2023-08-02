@@ -351,7 +351,6 @@ describe.only('Should deploy MASP contracts to the same address', () => {
     });
 
     it('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
-      const saltHex = ethers.utils.id(salt);
       const levels = 30;
       assert.strictEqual(
         maspVanchorVerifier1.contract.address,
@@ -390,6 +389,7 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         batchTreeZkComponents_32,
         sender
       );
+
       const vanchor2 = await MultiAssetVAnchorBatchTree.create2MultiAssetVAnchorBatchTree(
         deployer2,
         saltHex,
