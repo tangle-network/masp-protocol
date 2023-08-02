@@ -7,7 +7,6 @@ import {
   VerifierBatch_8__factory as v8__factory,
   VerifierBatch_16__factory as v16__factory,
   VerifierBatch_32__factory as v32__factory,
-
 } from '@webb-tools/masp-anchor-contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 
@@ -58,9 +57,13 @@ export class BatchTreeVerifier {
   public static async create2BatchTreeVerifier(
     deployer: Deployer,
     saltHex: string,
-    signer: Signer,
+    signer: Signer
   ): Promise<BatchTreeVerifier> {
-    const { v4, v8, v16, v32 } = await BatchTreeVerifier.create2Verifiers(deployer, saltHex, signer);
+    const { v4, v8, v16, v32 } = await BatchTreeVerifier.create2Verifiers(
+      deployer,
+      saltHex,
+      signer
+    );
 
     const argTypes = ['address', 'address', 'address', 'address'];
     const args = [v4.address, v8.address, v16.address, v32.address];

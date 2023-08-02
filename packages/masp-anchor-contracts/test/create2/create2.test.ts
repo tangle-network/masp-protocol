@@ -288,7 +288,7 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         [],
         deployer1,
         saltHex,
-        sender,
+        sender
       );
       registryHandler2 = await RegistryHandler.create2RegistryHandler(
         dummyBridgeAddress,
@@ -302,12 +302,17 @@ describe.only('Should deploy MASP contracts to the same address', () => {
     });
 
     it('should deploy batch verifiers to the same address using different wallets', async () => {
-      batchTreeVerifier1 = await BatchTreeVerifier.create2BatchTreeVerifier(deployer1, saltHex, sender);
-      batchTreeVerifier2 = await BatchTreeVerifier.create2BatchTreeVerifier(deployer2, saltHex, ganacheWallet2);
-      assert.strictEqual(
-        batchTreeVerifier1.contract.address,
-        batchTreeVerifier2.contract.address
+      batchTreeVerifier1 = await BatchTreeVerifier.create2BatchTreeVerifier(
+        deployer1,
+        saltHex,
+        sender
       );
+      batchTreeVerifier2 = await BatchTreeVerifier.create2BatchTreeVerifier(
+        deployer2,
+        saltHex,
+        ganacheWallet2
+      );
+      assert.strictEqual(batchTreeVerifier1.contract.address, batchTreeVerifier2.contract.address);
     });
 
     it('should deploy the proxied batch tree to the same address using different wallets', async () => {
@@ -327,7 +332,7 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         batchTreeZkComponents_8,
         batchTreeZkComponents_16,
         batchTreeZkComponents_32,
-        sender,
+        sender
       );
       const tree2 = await ProxiedBatchTree.create2ProxiedBatchTree(
         deployer2,
