@@ -89,15 +89,10 @@ template Reward(levels, zeroLeaf, length) {
 	inputHasher.inputs[2] <== inputKeypair.publicKey;
 	inputHasher.inputs[3] <== inputBlinding;
 
-	component inputSignature = Signature();
-	inputSignature.privateKey <== inputPrivateKey;
-	inputSignature.commitment <== inputHasher.out;
-	inputSignature.merklePath <== inputPathIndices;
-
-	component inputNullifierHasher = Poseidon(3);
-	inputNullifierHasher.inputs[0] <== inputHasher.out;
-	inputNullifierHasher.inputs[1] <== inputPathIndices;
-	inputNullifierHasher.inputs[2] <== inputSignature.out;
+	component inputNullifierHasher = Nullifier();
+	inputNullifierHasher.ak_X <== ak_X;
+	inputNullifierHasher.ak_Y <== ak_Y;
+	inputNullifierHasher.record <== inputHasher.out;
 	inputNullifierHasher.out === inputNullifier;
 
 	component inputTree = MerkleTree(levels);
@@ -164,7 +159,7 @@ template Reward(levels, zeroLeaf, length) {
 	unspentTree.leaf <== unspentHasher.out;
 	unspentTree.pathIndices <== unspentPathIndices;
 	for (var i = 0; i < levels; i++) {
-	unspentTree.pathElements[i] <== unspentPathElements[i];
+		unspentTree.pathElements[i] <== unspentPathElements[i];
 	}
 
 	unspentTree.isEnabled <== 1;
@@ -182,7 +177,7 @@ template Reward(levels, zeroLeaf, length) {
 	spentTree.leaf <== spentHasher.out;
 	spentTree.pathIndices <== spentPathIndices;
 	for (var i = 0; i < levels; i++) {
-	spentTree.pathElements[i] <== spentPathElements[i];
+		spentTree.pathElements[i] <== spentPathElements[i];
 	}
 	spentTree.isEnabled <== 1;
 	for (var i = 0; i < length; i++) {

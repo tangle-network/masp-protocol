@@ -255,15 +255,16 @@ template Swap(levels, length) {
     bobReceiveRecordHasher.partialRecord <== bobReceivePartialRecordHasher.partialRecord;
     bobReceiveRecordHasher.record === bobReceiveRecord;
 
-
     // Check Alice and Bob Spend Nullifiers constructed correctly
     component aliceNullifierHasher = Nullifier();
+    aliceNullifierHasher.ak_X <== alice_ak_X;
+    aliceNullifierHasher.ak_Y <== alice_ak_Y;
     aliceNullifierHasher.record <== aliceSpendRecordHasher.record;
-    aliceNullifierHasher.pathIndices <== aliceSpendPathIndices;
     aliceNullifierHasher.nullifier === aliceSpendNullifier;
 
     component bobNullifierHasher = Nullifier();
+    bobNullifierHasher.ak_X <== bob_ak_X;
+    bobNullifierHasher.ak_Y <== bob_ak_Y;
     bobNullifierHasher.record <== bobSpendRecordHasher.record;
-    bobNullifierHasher.pathIndices <== bobSpendPathIndices;
     bobNullifierHasher.nullifier === bobSpendNullifier;
 }

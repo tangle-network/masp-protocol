@@ -37,7 +37,7 @@ InnerPartial UTXO structure:
 }
 
 commitment = hash(assetID, tokenID, amount, hash(chainID, pubKey, blinding))
-nullifier = hash(commitment, merklePath, sign(privKey, commitment, merklePath))
+nullifier = hash(ak_X, ak_Y, commitment)
 */
 
 // Universal JoinSplit transaction with nIns inputs and 2 outputs (2-2 & 16-2)
@@ -159,8 +159,9 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
         inPoseidonHasher.inputs[tx] <== inCommitmentHasher[tx].record;
 
         inNullifierHasher[tx] = Nullifier();
+        inNullifierHasher[tx].ak_X <== ak_X;
+        inNullifierHasher[tx].ak_Y <== ak_Y;
         inNullifierHasher[tx].record <== inCommitmentHasher[tx].record;
-        inNullifierHasher[tx].pathIndices <== inPathIndices[tx];
         inNullifierHasher[tx].nullifier === inputNullifier[tx];
 
         inTree[tx] = ManyMerkleProof(levels, length);
@@ -303,8 +304,9 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
         feeInPoseidonHasher.inputs[tx] <== feeInCommitmentHasher[tx].record;
 
         feeInNullifierHasher[tx] = Nullifier();
+        feeInNullifierHasher[tx].ak_X <== fee_ak_X;
+        feeInNullifierHasher[tx].ak_Y <== fee_ak_Y;
         feeInNullifierHasher[tx].record <== feeInCommitmentHasher[tx].record;
-        feeInNullifierHasher[tx].pathIndices <== feeInPathIndices[tx];
         feeInNullifierHasher[tx].nullifier === feeInputNullifier[tx];
 
         feeInTree[tx] = ManyMerkleProof(levels, length);
