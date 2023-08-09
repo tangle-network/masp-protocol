@@ -14,12 +14,12 @@ compile () {
 
 copy_to_fixtures () {
     local outdir="$1" circuit="$2" size="$3" anchorType="$4" 
-    mkdir -p packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType
-    mkdir -p packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size
-    cp artifacts/circuits/$outdir/$circuit.sym packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.sym
-    cp artifacts/circuits/$outdir/$circuit.r1cs packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.r1cs
-    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.wasm
-    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/witness_calculator.cjs
+    mkdir -p solidity-fixtures/solidity-fixtures/$anchorType
+    mkdir -p solidity-fixtures/solidity-fixtures/$anchorType/$size
+    cp artifacts/circuits/$outdir/$circuit.sym solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.sym
+    cp artifacts/circuits/$outdir/$circuit.r1cs solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.r1cs
+    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.wasm
+    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js solidity-fixtures/solidity-fixtures/$anchorType/$size/witness_calculator.cjs
 }
 
 ###

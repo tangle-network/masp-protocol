@@ -1,5 +1,6 @@
 pragma circom 2.0.0;
 
+include "../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../set/membership.circom";
@@ -7,7 +8,6 @@ include "../merkle-tree/manyMerkleProof.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
-include "../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 
 /*
 Goal is to support:
@@ -18,29 +18,10 @@ Goal is to support:
 Goal is to differentiate between
 - Collections of NFTs without taking over too much of the address space
 
-UTXO structure:
-// If this is an NFT, this becomes hash(contract address, tokenId)g
-// If this is a fungible token, this is selected deterministically on all chains
-{
-    assetID,
-    amount,
-    InnerpartialUtxoCommitment,
-}
-
-For NFTs: hash(contract_address, token_id)
-
-InnerPartial UTXO structure:
-{
-    chainID, // destination chain identifier
-    pubkey,
-    blinding, // random number
-}
-
 commitment = hash(assetID, tokenID, amount, hash(chainID, pubKey, blinding))
 nullifier = hash(ak_X, ak_Y, commitment)
 */
 
-// Universal JoinSplit transaction with nIns inputs and 2 outputs (2-2 & 16-2)
 template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeTokens) {
     // extAmount = external amount used for deposits and withdrawals
     // correct extAmount range is enforced on the smart contract

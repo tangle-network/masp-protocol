@@ -20,8 +20,8 @@ compile_phase2 () {
 
 move_verifiers_and_metadata_masp_vanchor () {
     local indir="$1" size="$2" anchorType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
+    cp $indir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
 
-    mkdir -p packages/contracts/contracts/verifiers/$anchorType
-    cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
+    mkdir -p packages/masp-anchor-contracts/contracts/verifiers/$anchorType
+    cp $indir/verifier.sol packages/masp-anchor-contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
 }

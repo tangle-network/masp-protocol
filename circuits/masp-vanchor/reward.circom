@@ -26,7 +26,7 @@ template Reward(levels, zeroLeaf, length) {
 	signal input noteBlinding;
 	signal input notePathIndices;
 
-	// inputs prefixed with input correspond to the vanchor utxos
+	// inputs prefixed with input correspond to the anonymity points vanchor utxos
 	signal input inputChainID;
 	signal input inputAmount;
 	signal input inputPrivateKey;
@@ -36,7 +36,7 @@ template Reward(levels, zeroLeaf, length) {
 	signal input inputPathElements[levels];
 	signal input inputPathIndices;
 
-	// inputs prefixed with output correspond to the anonymity points vanchor
+	// inputs prefixed with output correspond to the anonymity points vanchor utxos
 	signal input outputChainID;
 	signal input outputAmount;
 	signal input outputPrivateKey;
@@ -77,6 +77,7 @@ template Reward(levels, zeroLeaf, length) {
 	inputAmountCheck.in <== inputAmount;
 	outputAmountCheck.in <== outputAmount;
 	blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
+	// TODO: Constrain block range to be less than 2^32
 
 	component inputKeypair = BaseKeypair();
 	inputKeypair.privateKey <== inputPrivateKey;
@@ -92,7 +93,7 @@ template Reward(levels, zeroLeaf, length) {
 	inputNullifierHasher.ak_X <== note_ak_X;
 	inputNullifierHasher.ak_Y <== note_ak_Y;
 	inputNullifierHasher.record <== inputHasher.out;
-	inputNullifierHasher.out === inputNullifier;
+	inputNullifierHasher.nullifier === inputNullifier;
 
 	component inputTree = MerkleTree(levels);
 	inputTree.leaf <== inputHasher.out;
@@ -119,7 +120,7 @@ template Reward(levels, zeroLeaf, length) {
 	outputHasher.out === outputCommitment;
 
 	// === check deposit and withdrawal ===
-	// Compute tornado.cash commitment and nullifier
+	// Compute commitment and nullifier
 
 	component noteKeyComputer = Key();
 	noteKeyComputer.ak_X <== note_ak_X;
@@ -129,6 +130,7 @@ template Reward(levels, zeroLeaf, length) {
 	// MASP Inner Partial Commitment
 	component noteInnerPartialCommitmentHasher = InnerPartialRecord();
 	noteInnerPartialCommitmentHasher.blinding <== noteBlinding;
+
 	// MASP Partial Commitment
 	component notePartialCommitmentHasher = PartialRecord();
 	notePartialCommitmentHasher.chainID <== noteChainID;
@@ -145,8 +147,9 @@ template Reward(levels, zeroLeaf, length) {
 
 	// MASP Nullifier
 	component noteNullifierHasher = Nullifier();
+	noteNullifierHasher.ak_X <== note_ak_X;
+	noteNullifierHasher.ak_Y <== note_ak_Y;
 	noteNullifierHasher.record <== noteRecordHasher.record;
-	noteNullifierHasher.pathIndices <== notePathIndices;
 
 	// Compute deposit commitment
 	component unspentHasher = Poseidon(2);
