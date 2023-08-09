@@ -68,69 +68,32 @@ To compile contracts and build typescript interfaces
 yarn build
 ```
 
-To run the test suite:
+To run test suite:
+
 ```
 yarn test
 ```
-To fix the formatting:
-```
-yarn format
-```
 
-To run TypeScript checks:
-```
-yarn ts-check
-```
-
-<h2 id="fixtures"> Generating Fixtures </h2>
-
-First install and configure `rustup`:
-
-```bash
-# Install
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-# Configure
-source ~/.cargo/env
-```
-
-Configure the Rust toolchain to default to the latest nightly version, and add the nightly wasm target:
-
-```bash
-rustup default nightly
-rustup update
-rustup update nightly
-rustup target add wasm32-unknown-unknown
-```
-
-To generate fixtures you will need Circom 2.0 and snarkjs installed. To install from source, clone the circom repository:
-
-```
-git clone https://github.com/iden3/circom.git
-```
-
-Enter the circom directory and use the cargo build to compile:
-```
-cargo build --release
-```
+To fix the formatting, please run:
 
 The installation takes around 3 minutes to be completed. When the command successfully finishes, it generates the circom binary in the directory `target/release`. You can install this binary as follows:
 ```
-cargo install --path circom
+yarn format
 ```
 The previous command will install the circom binary in the directory `$HOME/.cargo/bin`.
 
-#### Installing snarkjs
+**Note:** If you push new fixtures to remote storage
 
 snarkjs is a npm package that contains code to generate and validate ZK proofs from the artifacts produced by circom.
 
 You can install snarkjs with the following command:
 ```
-npm install -g snarkjs
+cd solidity-fixtures
+dvc add solidity-fixtures
+dvc push --remote aws
 ```
 
 <h2 id="contribute"> Contributing </h2>
-
-Interested in contributing to the Webb Relayer Network? Thank you so much for your interest! We are always appreciative for contributions from the open-source community!
 
 If you have a contribution in mind, please check out our [Contribution Guide](./.github/CONTRIBUTING.md) for information on how to do so. We are excited for your first contribution!
 
