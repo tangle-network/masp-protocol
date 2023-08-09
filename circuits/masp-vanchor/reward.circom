@@ -5,7 +5,6 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../merkle-tree/manyMerkleProof.circom";
 include "../merkle-tree/merkleTree.circom";
-include "../vanchor/keypair.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
@@ -79,7 +78,7 @@ template Reward(levels, zeroLeaf, length) {
 	outputAmountCheck.in <== outputAmount;
 	blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
 
-	component inputKeypair = Keypair();
+	component inputKeypair = BaseKeypair();
 	inputKeypair.privateKey <== inputPrivateKey;
 
 	// Compute input commitment
@@ -90,8 +89,8 @@ template Reward(levels, zeroLeaf, length) {
 	inputHasher.inputs[3] <== inputBlinding;
 
 	component inputNullifierHasher = Nullifier();
-	inputNullifierHasher.ak_X <== ak_X;
-	inputNullifierHasher.ak_Y <== ak_Y;
+	inputNullifierHasher.ak_X <== note_ak_X;
+	inputNullifierHasher.ak_Y <== note_ak_Y;
 	inputNullifierHasher.record <== inputHasher.out;
 	inputNullifierHasher.out === inputNullifier;
 
@@ -109,7 +108,7 @@ template Reward(levels, zeroLeaf, length) {
 	checkRoot.enabled <== inputAmount;
 
 	// Compute and verify output commitment
-	component outputKeypair = Keypair();
+	component outputKeypair = BaseKeypair();
 	outputKeypair.privateKey <== outputPrivateKey;
 
 	component outputHasher = Poseidon(4);

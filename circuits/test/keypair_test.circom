@@ -1,5 +1,5 @@
 pragma circom 2.0.0;
 
-include "../vanchor/keypair.circom";
+include "./key.circom";
 
-component main = Keypair();
+component main = BaseKeypair();
