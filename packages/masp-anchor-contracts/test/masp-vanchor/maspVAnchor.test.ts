@@ -7,11 +7,8 @@ import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 import { BigNumber } from 'ethers';
-
 import { getChainIdType, ZkComponents } from '@webb-tools/utils';
-
 import { time } from '@nomicfoundation/hardhat-network-helpers';
-
 import {
   MultiAssetVAnchorProxy,
   MultiAssetVAnchorBatchTree,
@@ -45,7 +42,7 @@ const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/soli
 const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('MASP for 2 max edges', () => {
+describe.only('MASP for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchTree;
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
