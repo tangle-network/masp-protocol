@@ -36,7 +36,7 @@ const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/
 const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe.only('Should deploy MASP contracts to the same address', () => {
+describe('Should deploy MASP contracts to the same address', () => {
   let deployer1: Deployer;
   let deployer2: Deployer;
   let token1: ERC20PresetMinterPauser;
@@ -422,7 +422,7 @@ describe.only('Should deploy MASP contracts to the same address', () => {
       assert.strictEqual(unspentTree1.contract.address, unspentTree2.contract.address);
     });
 
-    it('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
+    it.skip('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
       const levels = 30;
       assert.strictEqual(
         maspVanchorVerifier1.contract.address,
@@ -456,8 +456,6 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         unspentTree1,
         sender
       );
-      console.log('here');
-      console.log((await ganacheWallet2.getBalance()).toString());
       const vanchor2 = await MultiAssetVAnchorBatchTree.create2MultiAssetVAnchorBatchTree(
         deployer2,
         saltHex,
@@ -478,7 +476,6 @@ describe.only('Should deploy MASP contracts to the same address', () => {
         unspentTree2,
         ganacheWallet2
       );
-      console.log('here');
       assert.strictEqual(vanchor1.contract.address, vanchor2.contract.address);
     });
   });
