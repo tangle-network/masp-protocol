@@ -42,7 +42,7 @@ const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/soli
 const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe.only('MASP for 2 max edges', () => {
+describe('MASP for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchTree;
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
