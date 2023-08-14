@@ -2,7 +2,6 @@ pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 
-// Poseidon(PublicKey_X, PublicKey_Y, blinding)
 template InnerPartialRecord() {
     signal input blinding;
     signal output innerPartialRecord;

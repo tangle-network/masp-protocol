@@ -1,4 +1,4 @@
-import { randomBN } from '@webb-tools/sdk-core';
+import { randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { poseidon, babyjub } from 'circomlibjs';
 import { MaspKey } from './MaspKey';
@@ -135,10 +135,9 @@ export class MaspUtxo {
       throw new Error('Cannot compute nullifier, UTXO has not been inserted into tree');
     }
 
-    // nullifier = Poseidon(commitment, merklePath, Poseidon(privKey, commitment, merklePath))
+    // nullifier = Poseidon(ak_X, ak_Y, commitment)
     const commitment = this.getCommitment();
-    const merklePath = this.index;
-    return BigNumber.from(poseidon([commitment, merklePath]));
+    return BigNumber.from(poseidon([this.maspKey.ak[0], this.maspKey.ak[1], commitment]));
   }
 
   public forceSetIndex(index: BigNumber) {

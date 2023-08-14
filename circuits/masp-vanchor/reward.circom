@@ -5,7 +5,6 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../merkle-tree/manyMerkleProof.circom";
 include "../merkle-tree/merkleTree.circom";
-include "../vanchor/keypair.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
@@ -27,7 +26,7 @@ template Reward(levels, zeroLeaf, length) {
 	signal input noteBlinding;
 	signal input notePathIndices;
 
-	// inputs prefixed with input correspond to the vanchor utxos
+	// inputs prefixed with input correspond to the anonymity points vanchor utxos
 	signal input inputChainID;
 	signal input inputAmount;
 	signal input inputPrivateKey;
@@ -37,7 +36,7 @@ template Reward(levels, zeroLeaf, length) {
 	signal input inputPathElements[levels];
 	signal input inputPathIndices;
 
-	// inputs prefixed with output correspond to the anonymity points vanchor
+	// inputs prefixed with output correspond to the anonymity points vanchor utxos
 	signal input outputChainID;
 	signal input outputAmount;
 	signal input outputPrivateKey;
@@ -78,8 +77,9 @@ template Reward(levels, zeroLeaf, length) {
 	inputAmountCheck.in <== inputAmount;
 	outputAmountCheck.in <== outputAmount;
 	blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
+	// TODO: Constrain block range to be less than 2^32
 
-	component inputKeypair = Keypair();
+	component inputKeypair = BaseKeypair();
 	inputKeypair.privateKey <== inputPrivateKey;
 
 	// Compute input commitment
@@ -89,16 +89,11 @@ template Reward(levels, zeroLeaf, length) {
 	inputHasher.inputs[2] <== inputKeypair.publicKey;
 	inputHasher.inputs[3] <== inputBlinding;
 
-	component inputSignature = Signature();
-	inputSignature.privateKey <== inputPrivateKey;
-	inputSignature.commitment <== inputHasher.out;
-	inputSignature.merklePath <== inputPathIndices;
-
-	component inputNullifierHasher = Poseidon(3);
-	inputNullifierHasher.inputs[0] <== inputHasher.out;
-	inputNullifierHasher.inputs[1] <== inputPathIndices;
-	inputNullifierHasher.inputs[2] <== inputSignature.out;
-	inputNullifierHasher.out === inputNullifier;
+	component inputNullifierHasher = Nullifier();
+	inputNullifierHasher.ak_X <== note_ak_X;
+	inputNullifierHasher.ak_Y <== note_ak_Y;
+	inputNullifierHasher.record <== inputHasher.out;
+	inputNullifierHasher.nullifier === inputNullifier;
 
 	component inputTree = MerkleTree(levels);
 	inputTree.leaf <== inputHasher.out;
@@ -114,7 +109,7 @@ template Reward(levels, zeroLeaf, length) {
 	checkRoot.enabled <== inputAmount;
 
 	// Compute and verify output commitment
-	component outputKeypair = Keypair();
+	component outputKeypair = BaseKeypair();
 	outputKeypair.privateKey <== outputPrivateKey;
 
 	component outputHasher = Poseidon(4);
@@ -125,7 +120,7 @@ template Reward(levels, zeroLeaf, length) {
 	outputHasher.out === outputCommitment;
 
 	// === check deposit and withdrawal ===
-	// Compute tornado.cash commitment and nullifier
+	// Compute commitment and nullifier
 
 	component noteKeyComputer = Key();
 	noteKeyComputer.ak_X <== note_ak_X;
@@ -135,6 +130,7 @@ template Reward(levels, zeroLeaf, length) {
 	// MASP Inner Partial Commitment
 	component noteInnerPartialCommitmentHasher = InnerPartialRecord();
 	noteInnerPartialCommitmentHasher.blinding <== noteBlinding;
+
 	// MASP Partial Commitment
 	component notePartialCommitmentHasher = PartialRecord();
 	notePartialCommitmentHasher.chainID <== noteChainID;
@@ -151,8 +147,9 @@ template Reward(levels, zeroLeaf, length) {
 
 	// MASP Nullifier
 	component noteNullifierHasher = Nullifier();
+	noteNullifierHasher.ak_X <== note_ak_X;
+	noteNullifierHasher.ak_Y <== note_ak_Y;
 	noteNullifierHasher.record <== noteRecordHasher.record;
-	noteNullifierHasher.pathIndices <== notePathIndices;
 
 	// Compute deposit commitment
 	component unspentHasher = Poseidon(2);
@@ -164,7 +161,7 @@ template Reward(levels, zeroLeaf, length) {
 	unspentTree.leaf <== unspentHasher.out;
 	unspentTree.pathIndices <== unspentPathIndices;
 	for (var i = 0; i < levels; i++) {
-	unspentTree.pathElements[i] <== unspentPathElements[i];
+		unspentTree.pathElements[i] <== unspentPathElements[i];
 	}
 
 	unspentTree.isEnabled <== 1;
@@ -182,7 +179,7 @@ template Reward(levels, zeroLeaf, length) {
 	spentTree.leaf <== spentHasher.out;
 	spentTree.pathIndices <== spentPathIndices;
 	for (var i = 0; i < levels; i++) {
-	spentTree.pathElements[i] <== spentPathElements[i];
+		spentTree.pathElements[i] <== spentPathElements[i];
 	}
 	spentTree.isEnabled <== 1;
 	for (var i = 0; i < length; i++) {

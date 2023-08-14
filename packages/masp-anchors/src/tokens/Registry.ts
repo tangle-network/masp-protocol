@@ -1,7 +1,8 @@
 import { BigNumberish, ethers } from 'ethers';
 import { Registry as RegistryContract, Registry__factory } from '@webb-tools/masp-anchor-contracts';
-import { generateFunctionSigHash, toHex } from '@webb-tools/sdk-core';
+import { generateFunctionSigHash, toHex } from '@webb-tools/utils';
 import { getChainIdType } from '@webb-tools/utils';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class Registry {
   contract: RegistryContract;
@@ -14,6 +15,12 @@ export class Registry {
   constructor(contract: RegistryContract, signer: ethers.Signer) {
     this.contract = contract;
     this.signer = signer;
+  }
+
+  public static async create2Registry(deployer: Deployer, saltHex: string, signer: ethers.Signer) {
+    const { contract: registry } = await deployer.deploy(Registry__factory, saltHex, signer);
+
+    return new Registry(registry, signer);
   }
 
   public static async createRegistry(deployer: ethers.Signer) {
@@ -55,7 +62,7 @@ export class Registry {
     assetIdentifier: number,
     wrappedTokenName: string,
     wrappedTokenSymbol: string,
-    salt: string,
+    saltHex: string,
     limit: BigNumberish,
     feePercentage: number,
     isNativeAllowed: boolean
@@ -66,7 +73,7 @@ export class Registry {
       assetIdentifier,
       wrappedTokenName,
       wrappedTokenSymbol,
-      salt,
+      saltHex,
       limit,
       feePercentage,
       isNativeAllowed,
@@ -82,7 +89,7 @@ export class Registry {
     unwrappedNftAddress: string,
     name: string,
     symbol: string,
-    salt: string
+    saltHex: string
   ) {
     const tx = await this.contract.registerNftToken(
       nonce,
@@ -91,7 +98,7 @@ export class Registry {
       unwrappedNftAddress,
       name,
       symbol,
-      salt,
+      saltHex,
       { gasLimit: '0x5B8D80' }
     );
 
@@ -110,7 +117,7 @@ export class Registry {
     assetIdentifier: number,
     wrappedTokenName: string,
     wrappedTokenSymbol: string,
-    salt: string,
+    saltHex: string,
     limit: string,
     feePercentage: number,
     isNativeAllowed: boolean
@@ -127,7 +134,7 @@ export class Registry {
       toHex(assetIdentifier, 32).slice(2) +
       toHex(wrappedTokenName, 32).slice(2) +
       toHex(wrappedTokenSymbol, 32).slice(2) +
-      toHex(salt, 32).slice(2) +
+      toHex(saltHex, 32).slice(2) +
       toHex(limit, 32).slice(2) +
       toHex(feePercentage, 2).slice(2) +
       toHex(isNativeAllowed ? 1 : 0, 1).slice(2)
@@ -138,7 +145,7 @@ export class Registry {
     tokenHandler: string,
     assetIdentifier: number,
     unwrappedNftAddress: string,
-    salt: string,
+    saltHex: string,
     name: string,
     symbol: string
   ) {
@@ -153,7 +160,7 @@ export class Registry {
       toHex(tokenHandler, 20).slice(2) +
       toHex(assetIdentifier, 32).slice(2) +
       toHex(unwrappedNftAddress, 20).slice(2) +
-      toHex(salt, 32).slice(2) +
+      toHex(saltHex, 32).slice(2) +
       toHex(name, 32).slice(2) +
       toHex(symbol, 32).slice(2)
     );

@@ -2,7 +2,7 @@ import {
   BatchMerkleTree as BatchMerkleTreeContract,
   BatchMerkleTree__factory,
 } from '@webb-tools/masp-anchor-contracts';
-import { MerkleTree, toBuffer, toFixedHex } from '@webb-tools/sdk-core';
+import { MerkleTree, toBuffer, toFixedHex } from '@webb-tools/utils';
 import { BigNumber, ethers } from 'ethers';
 import jsSHA from 'jssha';
 const assert = require('assert');

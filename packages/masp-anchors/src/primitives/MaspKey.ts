@@ -1,4 +1,4 @@
-import { randomBN } from '@webb-tools/sdk-core';
+import { randomBN } from '@webb-tools/utils';
 import { BigNumber, BigNumberish } from 'ethers';
 const { poseidon, babyjub } = require('circomlibjs');
 const { Scalar } = require('ffjavascript');

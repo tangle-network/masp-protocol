@@ -44,10 +44,6 @@ export class BatchTreeVerifier {
   public static async create2Verifiers(
     deployer: Deployer,
     saltHex: string,
-    v4__factory: any,
-    v8__factory: any,
-    v16__factory: any,
-    v32__factory: any,
     signer: Signer
   ): Promise<{ v4: any; v8: any; v16: any; v32: any }> {
     const { contract: v4 } = await deployer.deploy(v4__factory, saltHex, signer);
@@ -61,25 +57,27 @@ export class BatchTreeVerifier {
   public static async create2BatchTreeVerifier(
     deployer: Deployer,
     saltHex: string,
-    verifier__factory: any,
-    signer: Signer,
-    v4: any,
-    v8: any,
-    v16: any,
-    v32: any
-  ): Promise<BatchTreeVerifierSelectorContract> {
+    signer: Signer
+  ): Promise<BatchTreeVerifier> {
+    const { v4, v8, v16, v32 } = await BatchTreeVerifier.create2Verifiers(
+      deployer,
+      saltHex,
+      signer
+    );
+
     const argTypes = ['address', 'address', 'address', 'address'];
     const args = [v4.address, v8.address, v16.address, v32.address];
 
     const { contract: verifier } = await deployer.deploy(
-      verifier__factory,
+      BatchTreeVerifierSelector__factory,
       saltHex,
       signer,
       undefined,
       argTypes,
       args
     );
-    return verifier;
+
+    return new BatchTreeVerifier(verifier, signer);
   }
 }
 

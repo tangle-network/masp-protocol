@@ -2,10 +2,11 @@ import {
   ProxiedBatchTree as ProxiedBatchTreeContract,
   ProxiedBatchTree__factory,
 } from '@webb-tools/masp-anchor-contracts';
-import { FIELD_SIZE, MerkleTree, toBuffer } from '@webb-tools/sdk-core';
+import { FIELD_SIZE, MerkleTree, toBuffer } from '@webb-tools/utils';
 import { BigNumber, ethers } from 'ethers';
 import { ZkComponents } from '@webb-tools/utils';
 import jsSHA from 'jssha';
+import { Deployer } from '@webb-tools/create2-utils';
 
 const assert = require('assert');
 const snarkjs = require('snarkjs');
@@ -47,6 +48,43 @@ export class ProxiedBatchTree {
     this.zkComponents_8 = zkComponents_8;
     this.zkComponents_16 = zkComponents_16;
     this.zkComponents_32 = zkComponents_32;
+  }
+
+  public static async create2ProxiedBatchTree(
+    deployer: Deployer,
+    saltHex: string,
+    verifierAddr: string,
+    levels: number,
+    hasherAddr: string,
+    proxyAddr: string,
+    zkComponents_4: ZkComponents,
+    zkComponents_8: ZkComponents,
+    zkComponents_16: ZkComponents,
+    zkComponents_32: ZkComponents,
+    signer: ethers.Signer
+  ) {
+    const argTypes = ['uint8', 'address', 'address', 'address'];
+    const args = [levels, hasherAddr, verifierAddr, proxyAddr];
+    const { contract: proxyTree, receipt } = await deployer.deploy(
+      ProxiedBatchTree__factory,
+      saltHex,
+      signer,
+      undefined,
+      argTypes,
+      args
+    );
+
+    const createdProxiedBatchTree = new ProxiedBatchTree(
+      proxyTree,
+      signer,
+      levels,
+      zkComponents_4,
+      zkComponents_8,
+      zkComponents_16,
+      zkComponents_32
+    );
+    createdProxiedBatchTree.latestSyncedBlock = receipt.blockNumber!;
+    return createdProxiedBatchTree;
   }
 
   public static async createProxiedBatchTree(

@@ -30,8 +30,6 @@ jobs:
       - name: clean
         run: yarn clean
 
-      - name: Compile @webb-tools/identity-anchor-contracts
-        run: lerna run compile --scope @webb-tools/identity-anchor-contracts
       - name: Compile @webb-tools/masp-anchor-contracts
         run: lerna run compile --scope @webb-tools/masp-anchor-contracts
 
@@ -45,42 +43,6 @@ jobs:
           path: |
             packages/**/dist
             !packages/**/node_modules
-  
-  identity-tests:
-    needs: setup-build
-    concurrency:
-      group: identity-test-${{ github.ref }}
-      cancel-in-progress: true
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.15.0]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifacts
-          path: packages
-      
-      - uses: actions/setup-node@v3
-        with: 
-          node-version: ${{ matrix.node-version }}
-
-      - name: Setup DVC
-        uses: iterative/setup-dvc@v1
-          
-      - name: Fetch submodules
-        run: git submodule update --init --recursive
-
-      - name: Install dependencies 
-        run: yarn install --production=false
-
-      - name: Populate fixtures
-        run: yarn fetch:fixtures
-
-      - name: ts-check
-        run: yarn test:identity
 
   masp-tests:
     needs: setup-build

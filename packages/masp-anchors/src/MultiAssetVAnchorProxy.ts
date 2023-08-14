@@ -6,8 +6,9 @@ import {
 } from '@webb-tools/masp-anchor-contracts';
 
 import { MultiAssetVAnchorBatchTree } from './MultiAssetVAnchorBatchTree';
-import { toFixedHex } from '@webb-tools/sdk-core';
+import { toFixedHex } from '@webb-tools/utils';
 import { QueueDepositInfo } from './interfaces';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class MultiAssetVAnchorProxy {
   contract: MultiAssetVAnchorProxyContract;
@@ -15,6 +16,26 @@ export class MultiAssetVAnchorProxy {
   // Constructor
   constructor(contract: MultiAssetVAnchorProxyContract) {
     this.contract = contract;
+  }
+
+  public static async create2MultiAssetVAnchorProxy(
+    deployer: Deployer,
+    saltHex: string,
+    hasher: string,
+    signer: ethers.Signer
+  ) {
+    const argTypes = ['address'];
+    const args = [hasher];
+    const { contract: proxy } = await deployer.deploy(
+      MultiAssetVAnchorProxy__factory,
+      saltHex,
+      signer,
+      undefined,
+      argTypes,
+      args
+    );
+
+    return new MultiAssetVAnchorProxy(proxy);
   }
 
   // Deploy a new MultiAssetVAnchorProxy
