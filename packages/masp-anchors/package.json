@@ -3,7 +3,7 @@
   "main": "./dist/index.js",
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
     "clean": "rimraf -rf ./dist",
@@ -21,8 +21,8 @@
     "@webb-tools/anchors": "^1.0.7",
     "@webb-tools/contracts": "^1.0.7",
     "@webb-tools/create2-utils": "^1.0.7",
-    "@webb-tools/masp-anchor-contracts": "^1.0.0",
     "@webb-tools/interfaces": "^1.0.7",
+    "@webb-tools/masp-anchor-contracts": "^1.0.1",
     "@webb-tools/utils": "^1.0.7",
     "chacha20": "^0.1.4",
     "ethers": "5.7.0",
