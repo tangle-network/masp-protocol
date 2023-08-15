@@ -16,7 +16,7 @@ import "../interfaces/IMultiAssetVAnchorBatchTree.sol";
 import "../interfaces/INftTokenWrapper.sol";
 import "../interfaces/IMASPProxy.sol";
 
-/// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
+/// @dev This contract holds a merkle tree of all MASP deposit and withdrawal events
 contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 	using SafeERC20 for IERC20;
 
