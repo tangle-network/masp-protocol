@@ -93,6 +93,16 @@ dvc add solidity-fixtures
 dvc push --remote aws
 ```
 
+## Troubleshooting
+
+[1] You may get following error while building on macBook if `gnu-sed` is not installed. Install it and add to your path as discussed [here](https://stackoverflow.com/questions/43696304/how-do-i-fix-sed-illegal-option-r-in-macos-sierra-android-build).
+```bash
+sed: 1: "packages/masp-anchor-co ...": extra characters at the end of p command
+sed: 1: "packages/masp-anchor-co ...": extra characters at the end of p command
+error Command failed with exit code 1.
+```
+
+
 <h2 id="contribute"> Contributing </h2>
 
 If you have a contribution in mind, please check out our [Contribution Guide](./.github/CONTRIBUTING.md) for information on how to do so. We are excited for your first contribution!
