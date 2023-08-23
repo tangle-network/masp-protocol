@@ -84,15 +84,6 @@ export const maspVAnchorFixtures = (prefix) => ({
 });
 
 export const maspSwapFixtures = (prefix) => ({
-  prove_2_20: async (witness) =>
-    snarkjs.groth16.prove(pr(`${prefix}/${MASP_SWAP_DIR(2)}/20/${ZKEY_NAME}`), witness),
-  vkey_2_20: async () => await expVkey(pr(`${prefix}/${MASP_SWAP_DIR(2)}/20/${ZKEY_NAME}`)),
-  2_20: async () =>
-    await fetchComponentsFromFilePaths(
-      pr(`${prefix}/${MASP_SWAP_DIR(2)}/20/${MASP_SWAP_WASM(2, 20)}`),
-      pr(`${prefix}/${MASP_SWAP_DIR(2)}/20/${WITNESS_CALCULATOR_NAME}`),
-      pr(`${prefix}/${MASP_SWAP_DIR(2)}/20/${ZKEY_NAME}`)
-    ),
   prove_2_30: async (witness) =>
     snarkjs.groth16.prove(pr(`${prefix}/${MASP_SWAP_DIR(2)}/30/${ZKEY_NAME}`), witness),
   vkey_2_30: async () => await expVkey(pr(`${prefix}/${MASP_SWAP_DIR(2)}/30/${ZKEY_NAME}`)),

@@ -32,7 +32,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   // dummy
   const instance = '0x1111000000000000000000000000000000001111';
 
-  const levels = 20;
+  const levels = 30;
   let initialRoot: BigNumber;
 
   beforeEach(async () => {
