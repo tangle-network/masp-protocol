@@ -27,7 +27,7 @@ describe('swap snarkjs local proof', () => {
     const wallet = signers[0];
     sender = wallet;
 
-    zkComponent = await maspSwapZkComponents[220]();
+    zkComponent = await maspSwapZkComponents[230]();
 
     create2InputWitness = async (data: any) => {
       const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(data, 0);
@@ -35,7 +35,7 @@ describe('swap snarkjs local proof', () => {
     };
   });
 
-  it('should work', async () => {
+  it.only('should work', async () => {
     const webbETHAssetID = 1;
     const webbETHTokenID = 0;
     const webbBTCAssetID = 2;
@@ -88,7 +88,7 @@ describe('swap snarkjs local proof', () => {
       BigNumber.from(1e7)
     );
 
-    const levels = 20;
+    const levels = 30;
 
     const maspMerkleTree = new MerkleTree(levels);
 
@@ -195,10 +195,10 @@ describe('swap snarkjs local proof', () => {
     };
 
     const wtns = await create2InputWitness(circuitInput);
-    let res = await maspSwapZkComponents.prove_2_20(wtns);
+    let res = await maspSwapZkComponents.prove_2_30(wtns);
     const proof = res.proof;
     let publicSignals = res.publicSignals;
-    const vKey = await maspSwapZkComponents.vkey_2_20();
+    const vKey = await maspSwapZkComponents.vkey_2_30();
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
   });
