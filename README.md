@@ -90,7 +90,7 @@ You can install snarkjs with the following command:
 ```
 cd solidity-fixtures
 dvc add solidity-fixtures
-dvc push --remote aws
+dvc push --remote s3-read-write
 ```
 
 ## Troubleshooting
