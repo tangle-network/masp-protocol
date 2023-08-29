@@ -9,7 +9,6 @@ import "@webb-tools/protocol-solidity/trees/MerkleTreeWithHistory.sol";
 import "@webb-tools/protocol-solidity/utils/ProofUtils.sol";
 import "../interfaces/IBatchVerifier.sol";
 import "../interfaces/IMASPProxy.sol";
-import "hardhat/console.sol";
 
 contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 	bytes32 public currentRoot;
@@ -82,9 +81,6 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		uint32 _batchHeight
 	) public onlyProxy {
 		uint256 offset = nextIndex;
-		console.log("=========================");
-		console.log("offset ", offset);
-		console.log("_leaves.length ", _leaves.length);
 
 		require(_currentRoot == currentRoot, "Initial deposit root is invalid");
 		require(_pathIndices == offset >> _batchHeight, "Incorrect deposit insert index");
