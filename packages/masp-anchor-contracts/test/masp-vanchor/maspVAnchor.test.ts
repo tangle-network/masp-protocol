@@ -1134,6 +1134,16 @@ describe('MASP for 2 max edges', () => {
         sender
       );
 
+      // Check reward unspent and spent tree is queued
+      const queuedRewardSpentCommsAfterTransfer =
+        await maspProxy.getQueuedRewardSpentCommitments(
+          maspVAnchor.contract.address,
+          BigNumber.from(0),
+          BigNumber.from(4)
+        );
+
+      assert.strictEqual(queuedRewardSpentCommsAfterTransfer.length, 4);
+
       // Batch Insert into Reward Spent Tree
       await maspProxy.batchInsertRewardSpentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
     });

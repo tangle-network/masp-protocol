@@ -9,6 +9,7 @@ import "@webb-tools/protocol-solidity/trees/MerkleTreeWithHistory.sol";
 import "@webb-tools/protocol-solidity/utils/ProofUtils.sol";
 import "../interfaces/IBatchVerifier.sol";
 import "../interfaces/IMASPProxy.sol";
+import "hardhat/console.sol";
 
 contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 	bytes32 public currentRoot;
@@ -46,9 +47,9 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		maspProxy = address(_maspProxy);
 	}
 
-	function _registerInsertion(address _instance, bytes32 _commitment) internal {
+	function registerInsertion(bytes32 _commitment) public onlyProxy {
 		queue[queueLength] = _commitment;
-		emit DepositData(_instance, _commitment, block.number, queueLength);
+		emit DepositData(maspProxy, _commitment, block.number, queueLength);
 		queueLength = queueLength + 1;
 	}
 
@@ -81,6 +82,9 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		uint32 _batchHeight
 	) public onlyProxy {
 		uint256 offset = nextIndex;
+		console.log("=========================");
+		console.log("offset ", offset);
+		console.log("_leaves.length ", _leaves.length);
 
 		require(_currentRoot == currentRoot, "Initial deposit root is invalid");
 		require(_pathIndices == offset >> _batchHeight, "Incorrect deposit insert index");
@@ -97,6 +101,7 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		}
 		for (uint256 i = 0; i < _leaves.length; i++) {
 			bytes32 leafHash = bytes32(uint256(_leaves[i]) % SNARK_FIELD);
+			require(leafHash == queue[offset + i], "Incorrect deposit");
 			assembly {
 				let itemOffset := add(data, mul(ITEM_SIZE, i))
 				mstore(add(itemOffset, 0x64), leafHash)

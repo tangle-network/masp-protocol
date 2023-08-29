@@ -6,6 +6,8 @@
 pragma solidity ^0.8.18;
 
 interface IBatchTree {
+	function registerInsertion(bytes32 _commitment) external;
+
 	function batchInsert(
 		bytes calldata _proof,
 		bytes32 _argsHash,
