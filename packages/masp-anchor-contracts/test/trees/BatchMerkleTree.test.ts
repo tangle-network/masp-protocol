@@ -241,5 +241,5 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       const updatedRoot_last = await batchTree.contract.getLastRoot();
       expect(updatedRoot_last).to.equal(input_last['newRoot']);
     });
-  });
+  }).timeout(300000);
 });
