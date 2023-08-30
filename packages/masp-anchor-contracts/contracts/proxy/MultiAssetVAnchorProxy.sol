@@ -286,7 +286,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		RewardSpentTreeCommitmentMap[proxiedMASP][
 			nextRewardSpentTreeCommitmentIndex[proxiedMASP]
 		] = rewardSpentTreeCommitment;
-		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardUnspentTree()).registerInsertion(
+		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardSpentTree()).registerInsertion(
 			rewardSpentTreeCommitment
 		);
 		// Emit Event
