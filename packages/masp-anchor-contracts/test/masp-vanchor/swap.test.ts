@@ -111,8 +111,9 @@ describe('swap snarkjs local proof', () => {
     let currentTimestamp = new Date();
     let tPrime = new Date();
 
-    currentTimestamp.setMonth(3);
-    tPrime.setMonth(5);
+    t.setHours(1);
+    currentTimestamp.setHours(3);
+    tPrime.setHours(5);
 
     const swapMessageHash = poseidon([
       aliceChangeRecord.getCommitment(),

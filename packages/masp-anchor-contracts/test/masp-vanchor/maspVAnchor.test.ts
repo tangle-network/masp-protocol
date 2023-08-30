@@ -51,7 +51,7 @@ describe('MASP for 2 max edges', () => {
   let batchTreeZkComponents_8: ZkComponents;
   let batchTreeZkComponents_16: ZkComponents;
   let batchTreeZkComponents_32: ZkComponents;
-  const levels = 20;
+  const levels = 30;
   let sender;
   const maxEdges = 1;
   let registry;
@@ -78,7 +78,7 @@ describe('MASP for 2 max edges', () => {
   before('instantiate zkcomponents and user keypairs', async () => {
     zkComponents2_2 = await maspVAnchorZkComponents[22]();
     zkComponents16_2 = await maspVAnchorZkComponents[162]();
-    swapCircuitZkComponents = await maspSwapZkComponents[220]();
+    swapCircuitZkComponents = await maspSwapZkComponents[230]();
     batchTreeZkComponents_4 = await batchTreeZkComponents[4]();
     batchTreeZkComponents_8 = await batchTreeZkComponents[8]();
     batchTreeZkComponents_16 = await batchTreeZkComponents[16]();
@@ -1133,6 +1133,16 @@ describe('MASP for 2 max edges', () => {
         sender.address,
         sender
       );
+
+      // Check reward unspent and spent tree is queued
+      const queuedRewardSpentCommsAfterTransfer =
+        await maspProxy.getQueuedRewardSpentCommitments(
+          maspVAnchor.contract.address,
+          BigNumber.from(0),
+          BigNumber.from(4)
+        );
+
+      assert.strictEqual(queuedRewardSpentCommsAfterTransfer.length, 4);
 
       // Batch Insert into Reward Spent Tree
       await maspProxy.batchInsertRewardSpentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));

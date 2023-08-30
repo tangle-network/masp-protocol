@@ -90,8 +90,18 @@ You can install snarkjs with the following command:
 ```
 cd solidity-fixtures
 dvc add solidity-fixtures
-dvc push --remote aws
+dvc push --remote s3-read-write
 ```
+
+## Troubleshooting
+
+[1] You may get following error while building on macBook if `gnu-sed` is not installed. Install it and add to your path as discussed [here](https://stackoverflow.com/questions/43696304/how-do-i-fix-sed-illegal-option-r-in-macos-sierra-android-build).
+```bash
+sed: 1: "packages/masp-anchor-co ...": extra characters at the end of p command
+sed: 1: "packages/masp-anchor-co ...": extra characters at the end of p command
+error Command failed with exit code 1.
+```
+
 
 <h2 id="contribute"> Contributing </h2>
 

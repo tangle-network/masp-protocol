@@ -46,9 +46,9 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		maspProxy = address(_maspProxy);
 	}
 
-	function _registerInsertion(address _instance, bytes32 _commitment) internal {
+	function registerInsertion(bytes32 _commitment) public onlyProxy {
 		queue[queueLength] = _commitment;
-		emit DepositData(_instance, _commitment, block.number, queueLength);
+		emit DepositData(maspProxy, _commitment, block.number, queueLength);
 		queueLength = queueLength + 1;
 	}
 

@@ -4,13 +4,13 @@
  */
 
 const assert = require('assert');
-import { Keypair, Utxo, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
+import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { getChainIdType, hexToU8a, ZkComponents } from '@webb-tools/utils';
-import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
+import { MaspUtxo, MaspKey, RewardUtxo } from '@webb-tools/masp-anchors';
 import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 const snarkjs = require('snarkjs');
 
@@ -35,11 +35,8 @@ describe('Reward snarkjs local proof', () => {
     const randomKeypair = new Keypair();
     const amountString = amount ? amount.toString() : '0';
 
-    return Utxo.generateUtxo({
-      curve: 'Bn254',
-      backend: 'Circom',
+    return RewardUtxo.generateUtxo({
       chainId: chainId.toString(),
-      originChainId: chainId.toString(),
       amount: amountString,
       blinding: hexToU8a(randomBN(31).toHexString()),
       keypair: randomKeypair,
@@ -72,6 +69,9 @@ describe('Reward snarkjs local proof', () => {
     const assetID = 1;
     const tokenID = 0;
 
+    const rate = 1000;
+    const fee = 0;
+
     // Create MASP Utxo
     const maspAmount = BigNumber.from(1e7);
     const maspUtxo = new MaspUtxo(
@@ -89,6 +89,7 @@ describe('Reward snarkjs local proof', () => {
     const maspPath = maspMerkleTree.path(0);
     const maspPathIndices = MerkleTree.calculateIndexFromPathIndices(maspPath.pathIndices);
     maspUtxo.forceSetIndex(BigNumber.from(0));
+    const maspNullifier = maspUtxo.getNullifier();
 
     // Update depositTree with vanchor UTXO commitment
     const unspentTimestamp = Date.now();
@@ -97,14 +98,20 @@ describe('Reward snarkjs local proof', () => {
     assert.strictEqual(unspentTree.number_of_elements(), 1);
 
     const spentTimestamp = Date.now() + 1000;
-
-    const maspNullifier = maspUtxo.getNullifier();
     const spentLeaf = poseidon([maspNullifier, spentTimestamp]);
     await spentTree.insert(spentLeaf);
     assert.strictEqual(spentTree.number_of_elements(), 1);
+    const spentRoots = [spentTree.root().toString(), emptyTreeRoot.toString()];
+    const spentPath = spentTree.path(0);
+    const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString());
+    const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
 
-    const rate = 1000;
-    const fee = 0;
+    const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()];
+    const unspentPath = unspentTree.path(0);
+    const unspentPathElements = unspentPath.pathElements.map((bignum: BigNumber) =>
+      bignum.toString()
+    );
+    const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
 
     // empty/dummy input AP-VAnchor UTXO
     const inputAmount = 0;
@@ -115,22 +122,11 @@ describe('Reward snarkjs local proof', () => {
     const inputPathIndices = MerkleTree.calculateIndexFromPathIndices(
       new Array(rewardMerkleTree.levels).fill(0)
     );
+    const rewardInputNullifier = rewardInputUtxo.nullifier(maspKey.getProofAuthorizingKey()[0], maspKey.getProofAuthorizingKey()[1]);
 
     const outputAmount = rate * (spentTimestamp - unspentTimestamp) * maspAmount.toNumber();
     const rewardOutputUtxo = await generateUTXOForTest(chainID, outputAmount);
     const outputPrivateKey = rewardOutputUtxo.getKeypair().privkey;
-    const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()];
-    const unspentPath = unspentTree.path(0);
-    const unspentPathElements = unspentPath.pathElements.map((bignum: BigNumber) =>
-      bignum.toString()
-    );
-    const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
-
-    assert.strictEqual(spentTree.number_of_elements(), 1);
-    const spentRoots = [spentTree.root().toString(), emptyTreeRoot.toString()];
-    const spentPath = spentTree.path(0);
-    const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString());
-    const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
 
     const rewardNullifier = poseidon([maspNullifier, maspPathIndices]);
 
@@ -156,7 +152,7 @@ describe('Reward snarkjs local proof', () => {
       inputAmount: rewardInputUtxo.amount,
       inputPrivateKey: inputPrivateKey,
       inputBlinding: '0x' + rewardInputUtxo.blinding,
-      inputNullifier: '0x' + rewardInputUtxo.nullifier,
+      inputNullifier: '0x' + rewardInputNullifier,
       inputRoot,
       inputPathElements,
       inputPathIndices,
@@ -166,10 +162,12 @@ describe('Reward snarkjs local proof', () => {
       outputPrivateKey: outputPrivateKey,
       outputBlinding: '0x' + rewardOutputUtxo.blinding,
       outputCommitment: toFixedHex(rewardOutputUtxo.commitment),
+
       unspentTimestamp: unspentTimestamp,
       unspentRoots: unspentRoots,
       unspentPathIndices: unspentPathIndices,
       unspentPathElements: unspentPathElements,
+
       spentTimestamp: spentTimestamp,
       spentRoots: spentRoots,
       spentPathIndices: spentPathIndices,

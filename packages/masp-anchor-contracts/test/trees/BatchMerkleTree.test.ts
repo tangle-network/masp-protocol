@@ -32,7 +32,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   // dummy
   const instance = '0x1111000000000000000000000000000000001111';
 
-  const levels = 20;
+  const levels = 30;
   let initialRoot: BigNumber;
 
   beforeEach(async () => {
@@ -103,7 +103,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       }
     });
   });
-  describe.skip('#batchInsert_4', () => {
+  describe('#batchInsert_4', () => {
     const batchHeight = 2;
     const batchSize = 2 ** batchHeight;
     let leaves = [];
@@ -126,7 +126,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(updatedRoot).to.equal(input['newRoot']);
     });
   });
-  describe.skip('#batchInsert_8', () => {
+  describe('#batchInsert_8', () => {
     const batchHeight = 3;
     const batchSize = 2 ** batchHeight;
     let leaves = [];
@@ -149,7 +149,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(updatedRoot).to.equal(input['newRoot']);
     });
   });
-  describe.skip('#batchInsert_16', () => {
+  describe('#batchInsert_16', () => {
     const batchHeight = 4;
     const batchSize = 2 ** batchHeight;
     let leaves = [];
@@ -171,7 +171,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(updatedRoot).to.equal(input['newRoot']);
     });
   });
-  describe.skip('#batchInsert_32', () => {
+  describe('#batchInsert_32', () => {
     const batchHeight = 5;
     const batchSize = 2 ** batchHeight;
     let leaves = [];
@@ -214,7 +214,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(updatedRoot_4).to.equal(input_4['newRoot']);
     });
     // this takes way too long
-    it.skip('should do [16, 8, 8, 16] batchInsertions respectively', async () => {
+    it('should do [16, 8, 8, 16] batchInsertions respectively', async () => {
       const batchHeight_16 = 4;
       const batchSize_16 = 2 ** batchHeight_16;
       const batchHeight_8 = 3;
