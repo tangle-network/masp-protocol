@@ -1146,8 +1146,8 @@ describe('MASP for 2 max edges', () => {
 
       // Batch Insert into Reward Spent Tree
       await maspProxy.batchInsertRewardSpentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
-    })
-  }).timeout(300000);
+    });
+  });
 
   describe('MASP smart contract withdraw tests', () => {
     it('e2e should withdraw ERC20 with valid transact proof -> check token balances', async () => {
@@ -1858,5 +1858,5 @@ describe('MASP for 2 max edges', () => {
         sender
       );
     });
-  }).timeout(300000);
+  });
 });
