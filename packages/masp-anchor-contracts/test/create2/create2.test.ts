@@ -22,6 +22,7 @@ import {
   MultiNftTokenManager,
   MultiAssetVAnchorProxy,
   SwapProofVerifier,
+  RewardProofVerifier,
   ProxiedBatchTree,
   BatchTreeVerifier,
   MultiAssetVAnchorBatchTree,
@@ -29,11 +30,13 @@ import {
 import {
   maspSwapFixtures,
   maspVAnchorFixtures,
+  maspRewardFixtures,
   batchTreeFixtures,
 } from '@webb-tools/protocol-solidity-extension-utils';
 
 const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
+const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('Should deploy MASP contracts to the same address', () => {
@@ -191,6 +194,8 @@ describe('Should deploy MASP contracts to the same address', () => {
     let maspVanchorVerifier2: MultiAssetVerifier;
     let swapVerifier1: SwapProofVerifier;
     let swapVerifier2: SwapProofVerifier;
+    let rewardVerifier1: RewardProofVerifier;
+    let rewardVerifier2: RewardProofVerifier;
     let registry1: Registry;
     let registry2: Registry;
     let registryHandler1: RegistryHandler;
@@ -237,6 +242,30 @@ describe('Should deploy MASP contracts to the same address', () => {
 
       assert.strictEqual(swapVerifier1.contract.address, swapVerifier2.contract.address);
     });
+
+    it('should deploy Swap Verifiers to the same address using different wallets', async () => {
+      // deploy reward verifiers
+      let rv1 = await RewardProofVerifier.create2Verifiers(deployer1, saltHex, sender);
+      let rv2 = await RewardProofVerifier.create2Verifiers(deployer2, saltHex, ganacheWallet2);
+      rewardVerifier1 = await RewardProofVerifier.create2RewardProofVerifier(
+        deployer1,
+        saltHex,
+        sender,
+        rv1.v2_30,
+        rv1.v8_30
+      );
+      rewardVerifier2 = await RewardProofVerifier.create2RewardProofVerifier(
+        deployer2,
+        saltHex,
+        ganacheWallet2,
+        rv2.v2_30,
+        rv2.v8_30
+      );
+      assert.strictEqual(rewardVerifier1.contract.address, rewardVerifier2.contract.address);
+    });
+
+    it('deployment test for RewardManager');
+    it('deployment test for RewardSwap');
 
     it('should deploy MultiFungibleTokenManager to the same address using different wallets', async () => {
       multiFungibleTokenManager1 = await MultiFungibleTokenManager.create2MultiFungibleTokenManager(

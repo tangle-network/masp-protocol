@@ -10,7 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { getChainIdType, hexToU8a, ZkComponents } from '@webb-tools/utils';
-import { MaspUtxo, MaspKey, RewardUtxo } from '@webb-tools/masp-anchors';
+import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
 import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 const snarkjs = require('snarkjs');
 
@@ -31,18 +31,6 @@ describe('Reward snarkjs local proof', () => {
   const chainID = getChainIdType(31337);
   const levels = 30;
 
-  const generateUTXOForTest = async (chainId: number, amount?: number) => {
-    const randomKeypair = new Keypair();
-    const amountString = amount ? amount.toString() : '0';
-
-    return RewardUtxo.generateUtxo({
-      chainId: chainId.toString(),
-      amount: amountString,
-      blinding: hexToU8a(randomBN(31).toHexString()),
-      keypair: randomKeypair,
-    });
-  };
-
   before('should initialize trees and vanchor', async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
@@ -62,7 +50,7 @@ describe('Reward snarkjs local proof', () => {
     };
   });
 
-  it('should work', async () => {
+  it.only('should work for basic flow for reward', async () => {
     // Create MASP Key
     const maspKey = new MaspKey();
 
@@ -73,13 +61,13 @@ describe('Reward snarkjs local proof', () => {
     const fee = 0;
 
     // Create MASP Utxo
-    const maspAmount = BigNumber.from(1e7);
+    const maspAmount = 1;
     const maspUtxo = new MaspUtxo(
       BigNumber.from(chainID),
       maspKey,
       BigNumber.from(assetID),
       BigNumber.from(tokenID),
-      maspAmount
+      BigNumber.from(maspAmount)
     );
 
     // create deposit UTXO
@@ -113,26 +101,12 @@ describe('Reward snarkjs local proof', () => {
     );
     const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
 
-    // empty/dummy input AP-VAnchor UTXO
-    const inputAmount = 0;
-    const rewardInputUtxo = await generateUTXOForTest(chainID, inputAmount);
-    const inputPrivateKey = rewardInputUtxo.getKeypair().privkey;
-    const inputRoot = rewardMerkleTree.root().toString();
-    const inputPathElements = new Array(rewardMerkleTree.levels).fill(0);
-    const inputPathIndices = MerkleTree.calculateIndexFromPathIndices(
-      new Array(rewardMerkleTree.levels).fill(0)
-    );
-    const rewardInputNullifier = rewardInputUtxo.nullifier(maspKey.getProofAuthorizingKey()[0], maspKey.getProofAuthorizingKey()[1]);
-
-    const outputAmount = rate * (spentTimestamp - unspentTimestamp) * maspAmount.toNumber();
-    const rewardOutputUtxo = await generateUTXOForTest(chainID, outputAmount);
-    const outputPrivateKey = rewardOutputUtxo.getKeypair().privkey;
-
+    const rewardAmount = maspAmount * rate * (spentTimestamp - unspentTimestamp);
     const rewardNullifier = poseidon([maspNullifier, maspPathIndices]);
 
     const circuitInput = {
       rate: rate,
-      fee: fee,
+      rewardAmount: rewardAmount,
       rewardNullifier: rewardNullifier,
       // Dummy
       extDataHash: randomBN(31).toHexString(),
@@ -146,22 +120,6 @@ describe('Reward snarkjs local proof', () => {
       note_ak_Y: maspKey.getProofAuthorizingKey()[1],
       noteBlinding: maspUtxo.blinding,
       notePathIndices: maspPathIndices,
-
-      // inputs prefixed with input correspond to the vanchor utxos
-      inputChainID: chainID,
-      inputAmount: rewardInputUtxo.amount,
-      inputPrivateKey: inputPrivateKey,
-      inputBlinding: '0x' + rewardInputUtxo.blinding,
-      inputNullifier: '0x' + rewardInputNullifier,
-      inputRoot,
-      inputPathElements,
-      inputPathIndices,
-
-      outputChainID: chainID,
-      outputAmount: outputAmount,
-      outputPrivateKey: outputPrivateKey,
-      outputBlinding: '0x' + rewardOutputUtxo.blinding,
-      outputCommitment: toFixedHex(rewardOutputUtxo.commitment),
 
       unspentTimestamp: unspentTimestamp,
       unspentRoots: unspentRoots,

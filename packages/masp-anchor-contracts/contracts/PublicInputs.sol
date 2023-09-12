@@ -27,3 +27,19 @@ struct SwapPublicInputs {
 	uint256 aliceReceiveRecord;
 	uint256 bobReceiveRecord;
 }
+
+struct RewardExtData {
+	uint256 fee;
+	address recipient;
+	address relayer;
+}
+
+struct RewardPublicInputs {
+	uint256 rate;
+	uint256 rewardAmount;
+	uint256 rewardNullifier;
+	uint256 extDataHash;
+	bytes spentRoots;
+	bytes unspentRoots;
+	RewardExtData extData;
+}

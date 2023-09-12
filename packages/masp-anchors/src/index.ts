@@ -8,6 +8,7 @@ export * from './MultiAssetVAnchorBatchTree';
 export * from './MultiAssetVAnchorProxy';
 export * from './ProxiedBatchTree';
 export * from './SwapVerifier';
+export * from './RewardVerifier';
 export * from './Verifier';
 export * from './primitives';
 export * from './tokens';
