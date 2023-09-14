@@ -39,6 +39,7 @@ struct RewardPublicInputs {
 	uint256 rewardAmount;
 	uint256 rewardNullifier;
 	uint256 extDataHash;
+	bytes whitelistedAssetIDs;
 	bytes spentRoots;
 	bytes unspentRoots;
 	RewardExtData extData;
