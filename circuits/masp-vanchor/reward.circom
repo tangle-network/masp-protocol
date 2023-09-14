@@ -10,13 +10,15 @@ include "./nullifier.circom";
 include "./record.circom";
 include "./babypow.circom";
 
-template Reward(levels, zeroLeaf, length) {
+template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	signal input rate;
 	// fee is subtracted from "rewardAmount" while paying the relayer
 	signal input rewardAmount;
 	signal input rewardNullifier;
 	// fee and recipient is included in extData
 	signal input extDataHash;
+
+	signal input whitelistedAssetIDs[sizeWhitelistedAssetIDList];
 
 	// MASP Spent Note for which reward points are being claimed
 	signal input noteChainID;
@@ -54,6 +56,13 @@ template Reward(levels, zeroLeaf, length) {
 	// TODO: Check how many bits we should use here
 	component blockRangeCheck = Num2Bits(32);
 	blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
+
+    // Check if the note AssetID is allowable
+    component membership = SetMembership(sizeWhitelistedAssetIDList);
+    membership.element <== noteAssetID;
+    for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
+        membership.set[i] <== whitelistedAssetIDs[i];
+    }
 
 	// === check deposit and withdrawal ===
 	// Compute commitment and nullifier
