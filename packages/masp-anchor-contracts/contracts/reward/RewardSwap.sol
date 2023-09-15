@@ -60,14 +60,14 @@ contract RewardSwap is IRewardSwap {
 	}
 
 	function getExpectedReturn(uint256 _amount) public view returns (uint256) {
-		uint256 oldBalance = tornVirtualBalance();
+		uint256 oldBalance = tntVirtualBalance();
 		int128 pow = ABDKMath64x64.neg(ABDKMath64x64.divu(_amount, poolWeight));
 		int128 exp = ABDKMath64x64.exp(pow);
 		uint256 newBalance = ABDKMath64x64.mulu(exp, oldBalance);
 		return (oldBalance - newBalance);
 	}
 
-	function tornVirtualBalance() public view returns (uint256) {
+	function tntVirtualBalance() public view returns (uint256) {
 		uint256 passedTime = getTimestamp() - startTimestamp;
 		if (passedTime < DURATION) {
 			return initialLiquidity + ((liquidity * passedTime) / DURATION) - tokensSold;
