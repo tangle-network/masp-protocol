@@ -5,13 +5,14 @@
 
 pragma solidity ^0.8.18;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "../interfaces/IRewardSwap.sol";
 import "./RewardManager.sol";
-//import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract RewardSwap is IRewardSwap {
-	//using SafeERC20 for IERC20;
+	using SafeERC20 for IERC20;
 
 	uint256 public constant DURATION = 365 days;
 
@@ -58,19 +59,12 @@ contract RewardSwap is IRewardSwap {
 		return tokens;
 	}
 
-	function setPoolWeight(uint256 _newWeight) external onlyManager {
-		poolWeight = _newWeight;
-		emit PoolWeightUpdated(_newWeight);
-	}
-
 	function getExpectedReturn(uint256 _amount) public view returns (uint256) {
-		// #TODO FloatMath library import
-		// uint256 oldBalance = tornVirtualBalance();
-		//int128 pow = FloatMath.neg(FloatMath.divu(_amount, poolWeight));
-		//int128 exp = FloatMath.exp(pow);
-		//uint256 newBalance = FloatMath.mulu(exp, oldBalance);
-		//return oldBalance.sub(newBalance);
-		return 1;
+		uint256 oldBalance = tornVirtualBalance();
+		int128 pow = ABDKMath64x64.neg(ABDKMath64x64.divu(_amount, poolWeight));
+		int128 exp = ABDKMath64x64.exp(pow);
+		uint256 newBalance = ABDKMath64x64.mulu(exp, oldBalance);
+		return (oldBalance - newBalance);
 	}
 
 	function tornVirtualBalance() public view returns (uint256) {
@@ -80,6 +74,11 @@ contract RewardSwap is IRewardSwap {
 		} else {
 			return tangle.balanceOf(address(this));
 		}
+	}
+
+	function setPoolWeight(uint256 _newWeight) external onlyManager {
+		poolWeight = _newWeight;
+		emit PoolWeightUpdated(_newWeight);
 	}
 
 	function getTimestamp() public view virtual returns (uint256) {

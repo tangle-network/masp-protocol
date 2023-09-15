@@ -39,7 +39,7 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToSpentList(uint256 indexed chainId, uint256 root);
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
-	event RateChanged(uint256 assetId, uint256 rate);
+	event RateUpdated(uint256 newRate);
 	// Event to log changes in whiteListedAssetIds.
 	event WhiteListUpdated(uint256[WHITELISTED_ASSET_ID_LIST_SIZE] newWhiteListedAssetIds);
 
@@ -102,6 +102,15 @@ contract RewardManager is ReentrancyGuard {
 		if (_publicInputs.extData.fee > 0) {
 			rewardSwap.swap(_publicInputs.extData.relayer, _publicInputs.extData.fee);
 		}
+	}
+
+	function setRates(uint256 _rate) external onlyGovernance nonReentrant {
+		rate = _rate;
+		emit RateUpdated(rate);
+	}
+
+	function setPoolWeight(uint256 _newWeight) external onlyGovernance nonReentrant {
+		rewardSwap.setPoolWeight(_newWeight);
 	}
 
 	// Function to modify the whiteListedAssetIds.
