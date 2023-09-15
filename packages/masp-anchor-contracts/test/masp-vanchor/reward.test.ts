@@ -30,6 +30,7 @@ describe('Reward snarkjs local proof', () => {
 
   const chainID = getChainIdType(31337);
   const levels = 30;
+  const whitelistedAssetIDs = [1, 2, 2, 2, 2, 2, 2, 2, 2, 2];
 
   before('should initialize trees and vanchor', async () => {
     const signers = await ethers.getSigners();
@@ -110,6 +111,7 @@ describe('Reward snarkjs local proof', () => {
       rewardNullifier: rewardNullifier,
       // Dummy
       extDataHash: randomBN(31).toHexString(),
+      whitelistedAssetIDs: whitelistedAssetIDs,
 
       // MASP Spent Note for which anonymity points are being claimed
       noteChainID: chainID,

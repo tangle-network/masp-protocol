@@ -5,6 +5,7 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../merkle-tree/manyMerkleProof.circom";
 include "../merkle-tree/merkleTree.circom";
+include "../set/membership.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";

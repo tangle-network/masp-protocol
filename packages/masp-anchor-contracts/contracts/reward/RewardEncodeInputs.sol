@@ -3,7 +3,24 @@
 pragma solidity ^0.8.18;
 pragma experimental ABIEncoderV2;
 
-import "./PublicInputs.sol";
+uint8 constant WHITELISTED_ASSET_ID_LIST_SIZE = 10;
+
+struct RewardExtData {
+	uint256 fee;
+	address recipient;
+	address relayer;
+}
+
+struct RewardPublicInputs {
+	uint256 rate;
+	uint256 rewardAmount;
+	uint256 rewardNullifier;
+	uint256 extDataHash;
+	uint256[WHITELISTED_ASSET_ID_LIST_SIZE] whitelistedAssetIDs;
+	bytes spentRoots;
+	bytes unspentRoots;
+	RewardExtData extData;
+}
 
 /**
 RewardEncodeInputs library is used to encode the public inputs for the Reward circuit
