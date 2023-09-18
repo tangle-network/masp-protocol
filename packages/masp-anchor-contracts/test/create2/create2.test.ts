@@ -22,11 +22,13 @@ import {
   MultiNftTokenManager,
   MultiAssetVAnchorProxy,
   SwapProofVerifier,
-  RewardProofVerifier,
   ProxiedBatchTree,
   BatchTreeVerifier,
   MultiAssetVAnchorBatchTree,
 } from '@webb-tools/masp-anchors';
+import {
+  RewardProofVerifier
+} from '@webb-tools/masp-reward';
 import {
   maspSwapFixtures,
   maspVAnchorFixtures,

@@ -1,0 +1,27 @@
+{
+  "name": "@webb-tools/masp-reward",
+  "description": "MASP Anonymity Mining Rewards",
+  "main": "./dist/index.js",
+  "license": "(MIT OR Apache-2.0)",
+  "author": "Webb Developers",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./dist",
+    "compile": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@webb-tools/utils": "^1.0.7",
+    "babyjubjub": "^1.0.4",
+    "ethers": "5.7.0",
+    "snarkjs": "^0.6.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/masp-reward",
+    "type": "git",
+    "url": "git://github.com/webb-tools/masp-protocol.git"
+  },
+  "version": "1.0.0"
+}

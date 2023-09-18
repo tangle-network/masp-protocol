@@ -4,7 +4,6 @@ import {
     RewardManager__factory,
 } from '@webb-tools/masp-anchor-contracts';
 import { getChainIdType, ZkComponents, toFixedHex } from '@webb-tools/utils';
-import { QueueDepositInfo } from './interfaces';
 import { Deployer } from '@webb-tools/create2-utils';
 
 export class RewardManager {
