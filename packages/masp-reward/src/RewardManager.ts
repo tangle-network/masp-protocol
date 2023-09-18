@@ -45,4 +45,61 @@ export class RewardManager {
         return new RewardManager(manager, signer, zkComponents, maxEdges);
     }
 
+    // Get the current rate
+    public async getRate(): Promise<BigNumber> {
+        return await this.contract.rate();
+    }
+
+    // Set the rate (only callable by the governance)
+    public async setRate(newRate: BigNumber): Promise<void> {
+        const tx = await this.contract.setRates(newRate);
+        await tx.wait();
+    }
+
+    // Set the pool weight (only callable by the governance)
+    public async setPoolWeight(newWeight: BigNumber): Promise<void> {
+        const tx = await this.contract.setPoolWeight(newWeight);
+        await tx.wait();
+    }
+
+    // Update the whiteListedAssetIds (only callable by the governance)
+    public async updateWhiteListedAssetIds(newAssetIds: BigNumber[]): Promise<void> {
+        const tx = await this.contract.updateWhiteListedAssetIds(newAssetIds);
+        await tx.wait();
+    }
+
+    // Get the latest spent roots
+    public async getLatestSpentRoots(): Promise<BigNumber[]> {
+        return await this.contract.getLatestSpentRoots();
+    }
+
+    // Get the latest unspent roots
+    public async getLatestUnspentRoots(): Promise<BigNumber[]> {
+        return await this.contract.getLatestUnspentRoots();
+    }
+
+    // Add a new edge (only callable by the governance)
+    public async addEdge(chainId: number): Promise<void> {
+        const tx = await this.contract.addEdge(chainId);
+        await tx.wait();
+    }
+
+    // Update an existing edge with a new chainId (only callable by the governance)
+    public async updateEdge(oldChainId: number, newChainId: number): Promise<void> {
+        const tx = await this.contract.updateEdge(oldChainId, newChainId);
+        await tx.wait();
+    }
+
+    // Add a root to the spent list of an existing edge (only callable by the governance)
+    public async addRootToSpentList(chainId: number, root: BigNumber): Promise<void> {
+        const tx = await this.contract.addRootToSpentList(chainId, root);
+        await tx.wait();
+    }
+
+    // Add a root to the unspent list of an existing edge (only callable by the governance)
+    public async addRootToUnspentList(chainId: number, root: BigNumber): Promise<void> {
+        const tx = await this.contract.addRootToUnspentList(chainId, root);
+        await tx.wait();
+    }
+
 }
