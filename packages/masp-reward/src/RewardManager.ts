@@ -5,6 +5,9 @@ import {
 } from '@webb-tools/masp-anchor-contracts';
 import { getChainIdType, ZkComponents, toFixedHex } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
+import { FullProof, IMASPRewardAllInputs } from './interfaces';
+const assert = require('assert');
+const snarkjs = require('snarkjs');
 
 export class RewardManager {
     contract: RewardManagerContract;
@@ -100,6 +103,18 @@ export class RewardManager {
     public async addRootToUnspentList(chainId: number, root: BigNumber): Promise<void> {
         const tx = await this.contract.addRootToUnspentList(chainId, root);
         await tx.wait();
+    }
+
+    public async generateSwapProof(rewardAllInputs: IMASPRewardAllInputs): Promise<FullProof> {
+        const wtns = await this.zkComponents.witnessCalculator.calculateWTNSBin(
+            rewardAllInputs,
+            0
+        );
+        let res = await snarkjs.groth16.prove(this.zkComponents.zkey, wtns);
+        const vKey = await snarkjs.zKey.exportVerificationKey(this.zkComponents.zkey);
+        const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
+        assert.strictEqual(verified, true);
+        return res;
     }
 
 }

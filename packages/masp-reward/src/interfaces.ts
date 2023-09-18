@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish } from 'ethers';
+import { BigNumberish } from 'ethers';
 
 export type IMASPRewardExtData = {
   fee: BigNumberish;
@@ -44,4 +44,24 @@ export type IMASPRewardAllInputs = {
   unspentRoots: BigNumberish[];
   unspentPathIndices: BigNumberish;
   unspentPathElements: BigNumberish[];
+};
+
+export type RawPublicSignals = string[11];
+
+export type FullProof = {
+  proof: Proof;
+  publicSignals: RawPublicSignals;
+};
+
+export type Proof = {
+  pi_a: string[3];
+  pi_b: Array<string[2]>;
+  pi_c: string[3];
+  protocol: string;
+  curve: string;
+};
+
+export type MASPVAnchorInputs = {
+  allInputs: IMASPRewardAllInputs;
+  publicInputs: IMASPRewardPublicInputs;
 };
