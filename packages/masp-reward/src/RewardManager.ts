@@ -1,6 +1,7 @@
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ContractReceipt, ethers } from 'ethers';
 const assert = require('assert');
 const snarkjs = require('snarkjs');
+import { poseidon } from 'circomlibjs';
 import {
     RewardManager as RewardManagerContract,
     RewardManager__factory,
@@ -113,7 +114,7 @@ export class RewardManager {
             rewardAllInputs,
             0
         );
-        let res = await snarkjs.groth16.prove(this.zkComponents.zkey, wtns);
+        let res = await snarkjs.groth16.fullProve(this.zkComponents.zkey, wtns);
         const vKey = await snarkjs.zKey.exportVerificationKey(this.zkComponents.zkey);
         const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
         assert.strictEqual(verified, true);
@@ -144,12 +145,20 @@ export class RewardManager {
         return BigNumber.from(hash).mod(FIELD_SIZE);
     }
 
+    // Helper function to compte rewardNullifier
+    public computeRewardNullifier(
+        maspNoteNullifier: BigNumber,
+        maspNotePathIndices: BigNumber,
+    ): BigNumber {
+        return poseidon([maspNoteNullifier, maspNotePathIndices]);
+    }
+
     // Generate MASP Reward Inputs
     public generateMASPRewardInputs(
         maspNote: MaspUtxo,
-        maspNotePathIndices: BigNumberish,
+        maspNotePathIndices: BigNumber,
         rate: number,
-        rewardNullifier: BigNumberish,
+        rewardNullifier: BigNumber,
         spentTimestamp: EpochTimeStamp,
         spentRoots: BigNumberish[],
         spentPathIndices: BigNumberish,
@@ -187,5 +196,61 @@ export class RewardManager {
             unspentPathIndices: unspentPathIndices,
             unspentPathElements: unspentPathElements,
         };
+    }
+
+    // This function is called by the relayer to claim the reward.
+    // The relayer will receive the reward amount and the fee.
+    // The recipient will receive the remaining amount.
+
+    public async reward(
+        maspNote: MaspUtxo,
+        maspNotePathIndices: BigNumber,
+        rate: number,
+        spentTimestamp: EpochTimeStamp,
+        spentRoots: BigNumberish[],
+        spentPathIndices: BigNumberish,
+        spentPathElements: BigNumberish[],
+        unspentTimestamp: EpochTimeStamp,
+        unspentRoots: BigNumberish[],
+        unspentPathIndices: BigNumberish,
+        unspentPathElements: BigNumberish[],
+        fee: BigNumberish,
+        recipient: string,
+        relayer: string): Promise<ContractReceipt> {
+
+        const rewardNullifier = this.computeRewardNullifier(
+            maspNote.getNullifier(),
+            maspNotePathIndices);
+
+        const rewardAllInputs = this.generateMASPRewardInputs(
+            maspNote,
+            maspNotePathIndices,
+            rate,
+            rewardNullifier,
+            spentTimestamp,
+            spentRoots,
+            spentPathIndices,
+            spentPathElements,
+            unspentTimestamp,
+            unspentRoots,
+            unspentPathIndices,
+            unspentPathElements,
+            fee,
+            recipient,
+            relayer
+        );
+
+        const proof = await this.generateRewardProof(rewardAllInputs);
+
+        const tx = await this.contract.reward(
+            proof.proof,
+            proof.publicSignals
+        );
+        const receipt = await tx.wait();
+        const event = receipt.events?.find((event) => event.event === 'RewardSwapped');
+        if (!event) {
+            throw new Error('RewardSwapped event not found');
+        }
+        return receipt;
     }
 }

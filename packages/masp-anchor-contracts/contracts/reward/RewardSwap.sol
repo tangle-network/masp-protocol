@@ -7,7 +7,7 @@ pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@abdk-libraries-solidity/ABDKMath64x64.sol";
+import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "../interfaces/IRewardSwap.sol";
 import "./RewardManager.sol";
 
@@ -24,7 +24,7 @@ contract RewardSwap is IRewardSwap {
 	uint256 public tokensSold;
 	uint256 public poolWeight;
 
-	event Swap(address indexed recipient, uint256 AP, uint256 TNT);
+	event RewardSwapped(address indexed recipient, uint256 AP, uint256 TNT);
 	event PoolWeightUpdated(uint256 newWeight);
 
 	modifier onlyManager() {
@@ -55,7 +55,7 @@ contract RewardSwap is IRewardSwap {
 		uint256 tokens = getExpectedReturn(_amount);
 		tokensSold += tokens;
 		require(tangle.transfer(_recipient, tokens), "transfer failed");
-		emit Swap(_recipient, _amount, tokens);
+		emit RewardSwapped(_recipient, _amount, tokens);
 		return tokens;
 	}
 
