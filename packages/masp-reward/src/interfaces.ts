@@ -46,13 +46,6 @@ export type IMASPRewardAllInputs = {
   unspentPathElements: BigNumberish[];
 };
 
-export type RawPublicSignals = string[11];
-
-export type FullProof = {
-  proof: Proof;
-  publicSignals: RawPublicSignals;
-};
-
 export type Proof = {
   pi_a: string[3];
   pi_b: Array<string[2]>;

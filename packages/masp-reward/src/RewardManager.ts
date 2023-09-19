@@ -1,13 +1,15 @@
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
+const assert = require('assert');
+const snarkjs = require('snarkjs');
 import {
     RewardManager as RewardManagerContract,
     RewardManager__factory,
 } from '@webb-tools/masp-anchor-contracts';
-import { getChainIdType, ZkComponents, toFixedHex } from '@webb-tools/utils';
+import { getChainIdType, ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
-import { FullProof, IMASPRewardAllInputs } from './interfaces';
-const assert = require('assert');
-const snarkjs = require('snarkjs');
+import { MaspUtxo } from '@webb-tools/masp-anchors';
+
+import { IMASPRewardAllInputs } from './interfaces';
 
 export class RewardManager {
     contract: RewardManagerContract;
@@ -105,7 +107,8 @@ export class RewardManager {
         await tx.wait();
     }
 
-    public async generateSwapProof(rewardAllInputs: IMASPRewardAllInputs): Promise<FullProof> {
+    // Generate a reward proof
+    public async generateRewardProof(rewardAllInputs: IMASPRewardAllInputs): Promise<any> {
         const wtns = await this.zkComponents.witnessCalculator.calculateWTNSBin(
             rewardAllInputs,
             0
@@ -117,4 +120,72 @@ export class RewardManager {
         return res;
     }
 
+    // Helper function to hash `IMASPRewardExtData` to a field element
+    public toRewardExtDataHash(
+        fee: BigNumberish,
+        recipient: string,
+        relayer: string
+    ): BigNumberish {
+        const abi = new ethers.utils.AbiCoder();
+        const encodedData = abi.encode(
+            [
+                'tuple(uint256 fee,address recipient,address relayer)',
+            ],
+            [
+                {
+                    fee: toFixedHex(fee),
+                    recipient: toFixedHex(recipient, 20),
+                    relayer: toFixedHex(relayer, 20),
+                },
+            ]
+        );
+
+        const hash = ethers.utils.keccak256(encodedData);
+        return BigNumber.from(hash).mod(FIELD_SIZE);
+    }
+
+    // Generate MASP Reward Inputs
+    public generateMASPRewardInputs(
+        maspNote: MaspUtxo,
+        maspNotePathIndices: BigNumberish,
+        rate: number,
+        rewardNullifier: BigNumberish,
+        spentTimestamp: EpochTimeStamp,
+        spentRoots: BigNumberish[],
+        spentPathIndices: BigNumberish,
+        spentPathElements: BigNumberish[],
+        unspentTimestamp: EpochTimeStamp,
+        unspentRoots: BigNumberish[],
+        unspentPathIndices: BigNumberish,
+        unspentPathElements: BigNumberish[],
+        fee: BigNumberish,
+        recipient: string,
+        relayer: string): IMASPRewardAllInputs {
+
+        const rewardAmount = maspNote.amount.mul(rate).mul(spentTimestamp - unspentTimestamp);
+        const extDataHash = this.toRewardExtDataHash(fee, recipient, relayer);
+
+        return {
+            rate: rate,
+            rewardAmount: rewardAmount,
+            rewardNullifier: rewardNullifier,
+            extDataHash: extDataHash,
+            noteChainID: maspNote.chainID,
+            noteAmount: maspNote.amount,
+            noteAssetID: maspNote.assetID,
+            noteTokenID: maspNote.tokenID,
+            note_ak_X: maspNote.maspKey.getProofAuthorizingKey()[0],
+            note_ak_Y: maspNote.maspKey.getProofAuthorizingKey()[1],
+            noteBlinding: maspNote.blinding,
+            notePathIndices: maspNotePathIndices,
+            spentTimestamp: spentTimestamp,
+            spentRoots: spentRoots,
+            spentPathIndices: spentPathIndices,
+            spentPathElements: spentPathElements,
+            unspentTimestamp: unspentTimestamp,
+            unspentRoots: unspentRoots,
+            unspentPathIndices: unspentPathIndices,
+            unspentPathElements: unspentPathElements,
+        };
+    }
 }

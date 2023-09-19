@@ -8,7 +8,6 @@ pragma solidity ^0.8.18;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
-import "../interfaces/IMASPProxy.sol";
 import "./RewardEncodeInputs.sol";
 
 contract RewardManager is ReentrancyGuard {
