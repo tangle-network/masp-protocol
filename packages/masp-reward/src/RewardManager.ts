@@ -32,23 +32,24 @@ export class RewardManager {
     // Deploy a new RewardManager
     public static async create2RewardManager(
         deployer: Deployer,
+        signer: ethers.Signer,
         saltHex: string,
         rewardSwapContractAddr: string,
         rewardVerifierContract: RewardProofVerifier,
-        signer: ethers.Signer,
+        governanceAddr: string,
         zkComponents: ZkComponents,
         maxEdges: number,
         rate: number,
         initialWhitelistedAssetIds: number[]
     ) {
         const argTypes = ['address', 'address', 'address', 'uint256', 'uint256', 'uint256[]'];
-        const args = [rewardSwapContractAddr, rewardVerifierContract.contract.address, signer, maxEdges, rate, initialWhitelistedAssetIds];
+        const args = [rewardSwapContractAddr, rewardVerifierContract.contract.address, governanceAddr, maxEdges, rate, initialWhitelistedAssetIds];
         const { contract: rewardEncodeLibrary } = await deployer.deploy(
             RewardEncodeInputs__factory,
             saltHex,
             signer
         );
-        let libraryAddresses = {
+        const libraryAddresses = {
             ['contracts/reward/RewardEncodeInputs.sol:RewardEncodeInputs']: rewardEncodeLibrary.address,
         };
         const { contract: manager } = await deployer.deploy(

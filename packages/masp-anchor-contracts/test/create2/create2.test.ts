@@ -496,7 +496,7 @@ describe('Should deploy MASP contracts to the same address', () => {
       );
       assert.strictEqual(rewardVerifier1.contract.address, rewardVerifier2.contract.address);
     });
-    it.only('should deploy RewardManager to the same address', async () => {
+    it('should deploy RewardManager to the same address', async () => {
       rewardVerifier1 = await RewardProofVerifier.create2RewardProofVerifier(
         deployer1,
         saltHex,
@@ -512,10 +512,11 @@ describe('Should deploy MASP contracts to the same address', () => {
       // create a new reward manager
       const rewardManager1 = await RewardManager.create2RewardManager(
         deployer1,
+        sender,
         saltHex,
         rewardSwapContractExpectedAddress,
         rewardVerifier1,
-        sender,
+        sender.address,
         rewardCircuitZkComponents,
         maxEdges,
         rate,
@@ -524,11 +525,12 @@ describe('Should deploy MASP contracts to the same address', () => {
 
       // create another reward manager
       const rewardManager2 = await RewardManager.create2RewardManager(
-        deployer1,
+        deployer2,
+        sender,
         saltHex,
         rewardSwapContractExpectedAddress,
         rewardVerifier1,
-        ganacheWallet1,
+        sender.address,
         rewardCircuitZkComponents,
         maxEdges,
         rate,
