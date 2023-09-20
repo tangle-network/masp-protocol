@@ -1,52 +1,45 @@
 import { BigNumber, ethers } from 'ethers';
 import { RewardSwap as RewardSwapContract, RewardSwap__factory } from '@webb-tools/masp-anchor-contracts';
-import { RewardManager } from './RewardManager';
 import { Deployer } from '@webb-tools/create2-utils';
 
 export class RewardSwap {
     contract: RewardSwapContract;
-    signer: ethers.Signer;
-    rewardManager: RewardManager;
 
     // Constructor
-    public constructor(contract: RewardSwapContract, signer: ethers.Signer, rewardManager: RewardManager) {
+    public constructor(contract: RewardSwapContract) {
         this.contract = contract;
-        this.signer = signer;
-        this.rewardManager = rewardManager;
-    }
-
-    // Get expected CREATE2 address
-    public static async getExpectedCreate2Address(deployerAddress: string, salt: string): Promise<string> {
-        const initCodeHash = ethers.utils.keccak256(RewardSwap__factory.bytecode);
-        const create2Address = ethers.utils.getCreate2Address(
-            deployerAddress,
-            salt,
-            initCodeHash
-        );
-        return create2Address;
     }
 
     // Deploy a new RewardSwap contract
     public static async create2RewardSwap(
         deployer: Deployer,
+        signer: ethers.Signer,
+        saltHex: string,
+        governance: string,
         tangleAddr: string,
-        manager: RewardManager,
-        miningCap: BigNumber,
-        initialLiquidity: BigNumber,
-        poolWeight: BigNumber
+        miningCap: number,
+        initialLiquidity: number,
+        poolWeight: number
     ) {
         const argTypes = ['address', 'address', 'uint256', 'uint256', 'uint256'];
-        const args = [tangleAddr, manager.contract.address, miningCap, initialLiquidity, poolWeight];
-        const { contract: swap } = await deployer.deploy(
+        const args = [governance, tangleAddr, miningCap, initialLiquidity, poolWeight];
+        const { contract: rewardSwapContract } = await deployer.deploy(
             RewardSwap__factory,
-            undefined,
-            manager.signer,
+            saltHex,
+            signer,
             undefined,
             argTypes,
             args
         );
 
-        return new RewardSwap(swap, manager.signer, manager);
+        return new RewardSwap(rewardSwapContract);
+    }
+
+    // Initialize the RewardSwap contract
+    public async initialize(
+        rewardManagerAddress: string) {
+        const tx = await this.contract.initialize(rewardManagerAddress);
+        await tx.wait();
     }
 
     // Swap tokens and return the amount of TNT received
@@ -77,12 +70,6 @@ export class RewardSwap {
     // Get the virtual TNT balance
     public async getVirtualTntBalance(): Promise<BigNumber> {
         return await this.contract.tntVirtualBalance();
-    }
-
-    // Set the pool weight (only callable by the RewardManager)
-    public async setPoolWeight(newWeight: BigNumber): Promise<void> {
-        const tx = await this.contract.setPoolWeight(newWeight);
-        await tx.wait();
     }
 
     // Get the current pool weight

@@ -5,18 +5,20 @@
 
 pragma solidity ^0.8.18;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "../interfaces/IRewardSwap.sol";
 
-contract RewardSwap is IRewardSwap {
+contract RewardSwap is IRewardSwap, ReentrancyGuard {
 	using SafeERC20 for IERC20;
 
 	uint256 public constant DURATION = 365 days;
 
+	address public immutable governance;
 	IERC20 public immutable tangle;
-	address public immutable manager;
+	address public manager;
 	uint256 public immutable startTimestamp;
 	uint256 public immutable initialLiquidity;
 	uint256 public immutable liquidity;
@@ -26,14 +28,19 @@ contract RewardSwap is IRewardSwap {
 	event RewardSwapped(address indexed recipient, uint256 AP, uint256 TNT);
 	event PoolWeightUpdated(uint256 newWeight);
 
+	modifier onlyGovernance() {
+		require(msg.sender == governance, "Only governance can perform this action");
+		_;
+	}
+
 	modifier onlyManager() {
 		require(msg.sender == address(manager), "Only Miner contract can call");
 		_;
 	}
 
 	constructor(
+		address _governance,
 		address _tangle,
-		address _manager,
 		uint256 _miningCap,
 		uint256 _initialLiquidity,
 		uint256 _poolWeight
@@ -42,15 +49,24 @@ contract RewardSwap is IRewardSwap {
 			_initialLiquidity <= _miningCap,
 			"Initial liquidity should be lower than mining cap"
 		);
+		governance = _governance;
 		tangle = IERC20(_tangle);
-		manager = _manager;
+		manager = address(0);
 		initialLiquidity = _initialLiquidity;
 		liquidity = _miningCap - _initialLiquidity;
 		poolWeight = _poolWeight;
 		startTimestamp = getTimestamp();
 	}
 
-	function swap(address _recipient, uint256 _amount) external onlyManager returns (uint256) {
+	function initialize(address _manager) external onlyGovernance nonReentrant {
+		require(manager == address(0), "Already initialized");
+		manager = _manager;
+	}
+
+	function swap(
+		address _recipient,
+		uint256 _amount
+	) external onlyManager nonReentrant returns (uint256) {
 		uint256 tokens = getExpectedReturn(_amount);
 		tokensSold += tokens;
 		require(tangle.transfer(_recipient, tokens), "transfer failed");
@@ -75,7 +91,7 @@ contract RewardSwap is IRewardSwap {
 		}
 	}
 
-	function setPoolWeight(uint256 _newWeight) external onlyManager {
+	function setPoolWeight(uint256 _newWeight) external onlyManager nonReentrant {
 		poolWeight = _newWeight;
 		emit PoolWeightUpdated(_newWeight);
 	}

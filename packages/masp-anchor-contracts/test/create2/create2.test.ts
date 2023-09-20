@@ -507,14 +507,23 @@ describe('Should deploy MASP contracts to the same address', () => {
       let rate = 1;
       let initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8];
 
-      let rewardSwapContractExpectedAddress = await RewardSwap.getExpectedCreate2Address(deployer1.address, saltHex);
+      let rewardSwap = await RewardSwap.create2RewardSwap(
+        deployer1,
+        sender,
+        saltHex,
+        sender.address,
+        sender.address, // dummy address #TODO: replace with actual TNTMock address
+        100000,
+        100,
+        10
+      );
 
       // create a new reward manager
       const rewardManager1 = await RewardManager.create2RewardManager(
         deployer1,
         sender,
         saltHex,
-        rewardSwapContractExpectedAddress,
+        rewardSwap.contract.address,
         rewardVerifier1,
         sender.address,
         rewardCircuitZkComponents,
@@ -523,12 +532,13 @@ describe('Should deploy MASP contracts to the same address', () => {
         initialWhitelistedAssetIds
       );
 
+
       // create another reward manager
       const rewardManager2 = await RewardManager.create2RewardManager(
         deployer2,
         sender,
         saltHex,
-        rewardSwapContractExpectedAddress,
+        rewardSwap.contract.address,
         rewardVerifier1,
         sender.address,
         rewardCircuitZkComponents,
