@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "../interfaces/IRewardSwap.sol";
-import "./RewardManager.sol";
 
 contract RewardSwap is IRewardSwap {
 	using SafeERC20 for IERC20;
@@ -17,7 +16,7 @@ contract RewardSwap is IRewardSwap {
 	uint256 public constant DURATION = 365 days;
 
 	IERC20 public immutable tangle;
-	RewardManager public immutable manager;
+	address public immutable manager;
 	uint256 public immutable startTimestamp;
 	uint256 public immutable initialLiquidity;
 	uint256 public immutable liquidity;
@@ -44,7 +43,7 @@ contract RewardSwap is IRewardSwap {
 			"Initial liquidity should be lower than mining cap"
 		);
 		tangle = IERC20(_tangle);
-		manager = RewardManager(_manager);
+		manager = _manager;
 		initialLiquidity = _initialLiquidity;
 		liquidity = _miningCap - _initialLiquidity;
 		poolWeight = _poolWeight;

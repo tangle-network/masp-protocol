@@ -5,12 +5,14 @@ import { poseidon } from 'circomlibjs';
 import {
     RewardManager as RewardManagerContract,
     RewardManager__factory,
+    RewardEncodeInputs__factory
 } from '@webb-tools/masp-anchor-contracts';
 import { getChainIdType, ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
 import { MaspUtxo } from '@webb-tools/masp-anchors';
 
 import { IMASPRewardAllInputs } from './interfaces';
+import RewardProofVerifier from './RewardVerifier';
 
 export class RewardManager {
     contract: RewardManagerContract;
@@ -31,19 +33,29 @@ export class RewardManager {
     public static async create2RewardManager(
         deployer: Deployer,
         saltHex: string,
-        maspProxyAddr: string,
-        verifierAddr: string,
+        rewardSwapContractAddr: string,
+        rewardVerifierContract: RewardProofVerifier,
         signer: ethers.Signer,
         zkComponents: ZkComponents,
-        maxEdges: number
+        maxEdges: number,
+        rate: number,
+        initialWhitelistedAssetIds: number[]
     ) {
-        const argTypes = ['address'];
-        const args = [verifierAddr];
+        const argTypes = ['address', 'address', 'address', 'uint256', 'uint256', 'uint256[]'];
+        const args = [rewardSwapContractAddr, rewardVerifierContract.contract.address, signer, maxEdges, rate, initialWhitelistedAssetIds];
+        const { contract: rewardEncodeLibrary } = await deployer.deploy(
+            RewardEncodeInputs__factory,
+            saltHex,
+            signer
+        );
+        let libraryAddresses = {
+            ['contracts/reward/RewardEncodeInputs.sol:RewardEncodeInputs']: rewardEncodeLibrary.address,
+        };
         const { contract: manager } = await deployer.deploy(
             RewardManager__factory,
             saltHex,
             signer,
-            undefined,
+            libraryAddresses,
             argTypes,
             args
         );

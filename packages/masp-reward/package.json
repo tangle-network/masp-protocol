@@ -10,8 +10,12 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
+    "@webb-tools/masp-anchors": "^1.0.7",
+    "@webb-tools/contracts": "^1.0.7",
+    "@webb-tools/create2-utils": "^1.0.7",
+    "@webb-tools/interfaces": "^1.0.7",
+    "@webb-tools/masp-anchor-contracts": "^1.0.2",
     "@webb-tools/utils": "^1.0.7",
-    "babyjubjub": "^1.0.4",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"
   },

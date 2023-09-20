@@ -45,10 +45,12 @@ export class RewardProofVerifier {
     public static async create2RewardProofVerifier(
         deployer: Deployer,
         saltHex: string,
-        signer: Signer,
-        v2_30: RewardProofVerifierContract,
-        v8_30: RewardProofVerifierContract
+        signer: Signer
     ): Promise<RewardProofVerifier> {
+
+        const { contract: v2_30 } = await deployer.deploy(v2_30__factory, saltHex, signer);
+        const { contract: v8_30 } = await deployer.deploy(v8_30__factory, saltHex, signer);
+
         const argTypes = ['address', 'address'];
         const args = [v2_30.address, v8_30.address];
 

@@ -53,13 +53,13 @@ contract RewardManager is ReentrancyGuard {
 		address _governance,
 		uint8 _maxEdges,
 		uint256 _rate,
-		uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialWhiteListedAssetIds
+		uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialWhitelistedAssetIds
 	) {
 		rewardSwap = IRewardSwap(_rewardSwap);
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
 		governance = _governance;
 		rate = _rate;
-		whiteListedAssetIds = _initialWhiteListedAssetIds;
+		whiteListedAssetIds = _initialWhitelistedAssetIds;
 		maxEdges = _maxEdges;
 	}
 

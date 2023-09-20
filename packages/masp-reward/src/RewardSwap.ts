@@ -15,6 +15,17 @@ export class RewardSwap {
         this.rewardManager = rewardManager;
     }
 
+    // Get expected CREATE2 address
+    public static async getExpectedCreate2Address(deployerAddress: string, salt: string): Promise<string> {
+        const initCodeHash = ethers.utils.keccak256(RewardSwap__factory.bytecode);
+        const create2Address = ethers.utils.getCreate2Address(
+            deployerAddress,
+            salt,
+            initCodeHash
+        );
+        return create2Address;
+    }
+
     // Deploy a new RewardSwap contract
     public static async create2RewardSwap(
         deployer: Deployer,
