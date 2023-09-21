@@ -37,7 +37,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   const maxEdges = 2;
   const chainID = getChainIdType(31337);
   const levels = 30;
-  const whitelistedAssetIDs = [1, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+  const whitelistedAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   before('should initialize trees', async () => {
     const signers = await ethers.getSigners();

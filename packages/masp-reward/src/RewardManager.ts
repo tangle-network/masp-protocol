@@ -11,7 +11,7 @@ import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-util
 import { getChainIdType, ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
 import { MaspUtxo } from '@webb-tools/masp-anchors';
-import { IMASPRewardAllInputs } from './interfaces';
+import { IMASPRewardExtData, IMASPRewardAllInputs } from './interfaces';
 import RewardProofVerifier from './RewardVerifier';
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
@@ -21,14 +21,16 @@ export class RewardManager {
     signer: ethers.Signer;
     zkComponents: ZkComponents;
     maxEdges: number;
+    whitelistedAssetIDs: number[];
 
     // Constructor
-    public constructor(contract: RewardManagerContract, signer: ethers.Signer, zkComponents: ZkComponents, maxEdges: number
+    public constructor(contract: RewardManagerContract, signer: ethers.Signer, zkComponents: ZkComponents, maxEdges: number, whitelistedAssetIDs: number[]
     ) {
         this.contract = contract;
         this.signer = signer;
         this.zkComponents = zkComponents;
         this.maxEdges = maxEdges;
+        this.whitelistedAssetIDs = whitelistedAssetIDs;
     }
 
     // Deploy a new RewardManager
@@ -72,7 +74,7 @@ export class RewardManager {
             args
         );
 
-        return new RewardManager(manager, signer, zkComponents, maxEdges);
+        return new RewardManager(manager, signer, zkComponents, maxEdges, initialWhitelistedAssetIds);
     }
 
     // Get the current rate
@@ -92,7 +94,7 @@ export class RewardManager {
         await tx.wait();
     }
 
-    // Update the whiteListedAssetIds (only callable by the governance)
+    // Update the whitelistedAssetIds (only callable by the governance)
     public async updateWhiteListedAssetIds(newAssetIds: BigNumber[]): Promise<void> {
         const tx = await this.contract.updateWhiteListedAssetIds(newAssetIds);
         await tx.wait();
@@ -142,14 +144,35 @@ export class RewardManager {
         const vKey = await snarkjs.zKey.exportVerificationKey(this.zkComponents.zkey);
         const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
         assert.strictEqual(verified, true);
-        return res;
+
+
+        // Generate encoded reward proof
+        const calldata = await snarkjs.groth16.exportSolidityCallData(res.proof, res.publicSignals);
+        const proofJson = JSON.parse('[' + calldata + ']');
+        const pi_a = proofJson[0];
+        const pi_b = proofJson[1];
+        const pi_c = proofJson[2];
+
+        let proofEncoded = [
+            pi_a[0],
+            pi_a[1],
+            pi_b[0][0],
+            pi_b[0][1],
+            pi_b[1][0],
+            pi_b[1][1],
+            pi_c[0],
+            pi_c[1],
+        ]
+            .map((elt) => elt.substr(2))
+            .join('');
+
+        proofEncoded = `0x${proofEncoded}`;
+        return { proofEncoded: proofEncoded, publicSignals: res.publicSignals };
     }
 
     // Helper function to hash `IMASPRewardExtData` to a field element
     public toRewardExtDataHash(
-        fee: BigNumberish,
-        recipient: string,
-        relayer: string
+        extData: IMASPRewardExtData
     ): BigNumberish {
         const abi = new ethers.utils.AbiCoder();
         const encodedData = abi.encode(
@@ -158,9 +181,9 @@ export class RewardManager {
             ],
             [
                 {
-                    fee: toFixedHex(fee),
-                    recipient: toFixedHex(recipient, 20),
-                    relayer: toFixedHex(relayer, 20),
+                    fee: toFixedHex(extData.fee),
+                    recipient: toFixedHex(extData.recipient, 20),
+                    relayer: toFixedHex(extData.relayer, 20),
                 },
             ]
         );
@@ -191,18 +214,17 @@ export class RewardManager {
         unspentRoots: BigNumberish[],
         unspentPathIndices: BigNumberish,
         unspentPathElements: BigNumberish[],
-        fee: BigNumberish,
-        recipient: string,
-        relayer: string): IMASPRewardAllInputs {
+        extData: IMASPRewardExtData): IMASPRewardAllInputs {
 
         const rewardAmount = maspNote.amount.mul(rate).mul(spentTimestamp - unspentTimestamp);
-        const extDataHash = this.toRewardExtDataHash(fee, recipient, relayer);
+        const extDataHash = this.toRewardExtDataHash(extData);
 
         return {
             rate: rate,
             rewardAmount: rewardAmount,
             rewardNullifier: rewardNullifier,
             extDataHash: extDataHash,
+            whitelistedAssetIDs: this.whitelistedAssetIDs,
             noteChainID: maspNote.chainID,
             noteAmount: maspNote.amount,
             noteAssetID: maspNote.assetID,
@@ -242,6 +264,12 @@ export class RewardManager {
         recipient: string,
         relayer: string): Promise<ContractReceipt> {
 
+        const extData: IMASPRewardExtData = {
+            fee: fee,
+            recipient: recipient,
+            relayer: relayer,
+        };
+
         const rewardNullifier = this.computeRewardNullifier(
             maspNote.getNullifier(),
             maspNotePathIndices);
@@ -259,16 +287,23 @@ export class RewardManager {
             unspentRoots,
             unspentPathIndices,
             unspentPathElements,
-            fee,
-            recipient,
-            relayer
+            extData
         );
 
-        const proof = await this.generateRewardProof(rewardAllInputs);
+        const { proofEncoded, publicSignals } = await this.generateRewardProof(rewardAllInputs);
 
         const tx = await this.contract.reward(
-            proof.proof,
-            proof.publicSignals
+            proofEncoded,
+            {
+                rate: publicSignals[0],
+                rewardAmount: publicSignals[1],
+                rewardNullifier: publicSignals[2],
+                extDataHash: publicSignals[3],
+                whitelistedAssetIDs: RewardManager.createBNArrayToBytes(this.whitelistedAssetIDs),
+                spentRoots: RewardManager.createBNArrayToBytes(spentRoots),
+                unspentRoots: RewardManager.createBNArrayToBytes(unspentRoots),
+            },
+            extData
         );
         const receipt = await tx.wait();
         const event = receipt.events?.find((event) => event.event === 'RewardSwapped');
@@ -276,5 +311,13 @@ export class RewardManager {
             throw new Error('RewardSwapped event not found');
         }
         return receipt;
+    }
+
+    public static createBNArrayToBytes(arr: BigNumberish[]) {
+        let result = '0x';
+        for (let i = 0; i < arr.length; i++) {
+            result += toFixedHex(arr[i]).substr(2);
+        }
+        return result; // root byte string (32 * array.length bytes)
     }
 }

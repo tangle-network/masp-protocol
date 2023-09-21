@@ -25,10 +25,10 @@ contract RewardProofVerifier is IRewardVerifier, ProofUtils {
 		uint256[8] memory p = abi.decode(_proof, (uint256[8]));
 		(uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(p);
 		if (maxEdges == 1) {
-			uint256[8] memory _inputs = abi.decode(input, (uint256[8]));
+			uint256[18] memory _inputs = abi.decode(input, (uint256[18]));
 			return v2_30.verifyProof(a, b, c, _inputs);
 		} else if (maxEdges == 7) {
-			uint256[20] memory _inputs = abi.decode(input, (uint256[20]));
+			uint256[30] memory _inputs = abi.decode(input, (uint256[30]));
 			return v8_30.verifyProof(a, b, c, _inputs);
 		} else {
 			return false;

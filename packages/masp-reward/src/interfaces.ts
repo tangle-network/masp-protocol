@@ -12,6 +12,7 @@ export type IMASPRewardPublicInputs = {
   rewardAmount: BigNumberish;
   rewardNullifier: BigNumberish;
   extDataHash: BigNumberish;
+  whitelistedAssetIDs: BigNumberish[];
   spentRoots: BigNumberish[];
   unspentRoots: BigNumberish[];
   extData: IMASPRewardExtData;
@@ -22,6 +23,8 @@ export type IMASPRewardAllInputs = {
   rewardAmount: BigNumberish;
   rewardNullifier: BigNumberish;
   extDataHash: BigNumberish;
+
+  whitelistedAssetIDs: BigNumberish[];
 
   // MASP Spent Note for which anonymity points are being claimed
   noteChainID: BigNumberish;
@@ -46,15 +49,3 @@ export type IMASPRewardAllInputs = {
   unspentPathElements: BigNumberish[];
 };
 
-export type Proof = {
-  pi_a: string[3];
-  pi_b: Array<string[2]>;
-  pi_c: string[3];
-  protocol: string;
-  curve: string;
-};
-
-export type MASPVAnchorInputs = {
-  allInputs: IMASPRewardAllInputs;
-  publicInputs: IMASPRewardPublicInputs;
-};

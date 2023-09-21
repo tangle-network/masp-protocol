@@ -20,7 +20,7 @@ contract RewardManager is ReentrancyGuard {
 	mapping(bytes32 => bool) public rewardNullifiers;
 	uint256 public rate;
 
-	uint256[WHITELISTED_ASSET_ID_LIST_SIZE] public whiteListedAssetIds;
+	uint256[WHITELISTED_ASSET_ID_LIST_SIZE] public whitelistedAssetIds;
 
 	struct Edge {
 		uint256[ROOT_HISTORY_SIZE] spentRootList;
@@ -39,7 +39,7 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
 	event RateUpdated(uint256 newRate);
-	// Event to log changes in whiteListedAssetIds.
+	// Event to log changes in whitelistedAssetIds.
 	event WhiteListUpdated(uint256[WHITELISTED_ASSET_ID_LIST_SIZE] newWhiteListedAssetIds);
 
 	modifier onlyGovernance() {
@@ -59,13 +59,18 @@ contract RewardManager is ReentrancyGuard {
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
 		governance = _governance;
 		rate = _rate;
-		whiteListedAssetIds = _initialWhitelistedAssetIds;
+		whitelistedAssetIds = _initialWhitelistedAssetIds;
 		maxEdges = _maxEdges;
 	}
 
-	function reward(bytes memory _proof, RewardPublicInputs memory _publicInputs) public {
+	function reward(
+		bytes memory _proof,
+		RewardPublicInputs memory _publicInputs,
+		RewardExtData memory _extData
+	) public {
 		(
 			bytes memory encodedInputs,
+			uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory whitelistedAssetIDs,
 			uint256[] memory spentRoots,
 			uint256[] memory unspentRoots
 		) = RewardEncodeInputs._encodeInputs(_publicInputs, maxEdges);
@@ -76,10 +81,10 @@ contract RewardManager is ReentrancyGuard {
 			"Reward has been already spent"
 		);
 		require(
-			bytes32(_publicInputs.extDataHash) == keccak256(abi.encode(_publicInputs.extData)),
+			bytes32(_publicInputs.extDataHash) == keccak256(abi.encode(_extData)),
 			"Incorrect external data hash"
 		);
-		require(_isValidWhitelistedIds(_publicInputs.whitelistedAssetIDs), "Invalid asset IDs");
+		require(_isValidWhitelistedIds(whitelistedAssetIDs), "Invalid asset IDs");
 		require(_isValidSpentRoots(spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(unspentRoots), "Invalid spent roots");
 
@@ -93,13 +98,13 @@ contract RewardManager is ReentrancyGuard {
 		rewardNullifiers[bytes32(_publicInputs.rewardNullifier)] = true;
 
 		// Transfer to the recipient
-		uint256 rewardAmountMinusFee = _publicInputs.rewardAmount - _publicInputs.extData.fee;
+		uint256 rewardAmountMinusFee = _publicInputs.rewardAmount - _extData.fee;
 		if (rewardAmountMinusFee > 0) {
-			rewardSwap.swap(_publicInputs.extData.recipient, rewardAmountMinusFee);
+			rewardSwap.swap(_extData.recipient, rewardAmountMinusFee);
 		}
 		// Transfer to the relayer
-		if (_publicInputs.extData.fee > 0) {
-			rewardSwap.swap(_publicInputs.extData.relayer, _publicInputs.extData.fee);
+		if (_extData.fee > 0) {
+			rewardSwap.swap(_extData.relayer, _extData.fee);
 		}
 	}
 
@@ -112,30 +117,30 @@ contract RewardManager is ReentrancyGuard {
 		rewardSwap.setPoolWeight(_newWeight);
 	}
 
-	// Function to modify the whiteListedAssetIds.
+	// Function to modify the whitelistedAssetIds.
 	function updateWhiteListedAssetIds(
 		uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newWhiteListedAssetIds
 	) external onlyGovernance nonReentrant {
-		whiteListedAssetIds = _newWhiteListedAssetIds;
+		whitelistedAssetIds = _newWhiteListedAssetIds;
 		emit WhiteListUpdated(_newWhiteListedAssetIds);
 	}
 
-	// Getter function to retrieve whiteListedAssetIds.
+	// Getter function to retrieve whitelistedAssetIds.
 	function getWhiteListedAssetIds()
 		external
 		view
 		returns (uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory)
 	{
-		return whiteListedAssetIds;
+		return whitelistedAssetIds;
 	}
 
 	function _isValidWhitelistedIds(
 		uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory inputIds
 	) private view returns (bool) {
-		require(inputIds.length == whiteListedAssetIds.length, "Input list length does not match");
+		require(inputIds.length == whitelistedAssetIds.length, "Input list length does not match");
 
 		for (uint256 i = 0; i < inputIds.length; i++) {
-			if (inputIds[i] != whiteListedAssetIds[i]) {
+			if (inputIds[i] != whitelistedAssetIds[i]) {
 				return false;
 			}
 		}
