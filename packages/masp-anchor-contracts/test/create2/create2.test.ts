@@ -529,7 +529,6 @@ describe('Should deploy MASP contracts to the same address', () => {
         rewardSwap.contract.address,
         rewardVerifier1,
         sender.address,
-        rewardCircuitZkComponents,
         maxEdges,
         rate,
         initialWhitelistedAssetIds
@@ -544,7 +543,6 @@ describe('Should deploy MASP contracts to the same address', () => {
         rewardSwap.contract.address,
         rewardVerifier1,
         sender.address,
-        rewardCircuitZkComponents,
         maxEdges,
         rate,
         initialWhitelistedAssetIds

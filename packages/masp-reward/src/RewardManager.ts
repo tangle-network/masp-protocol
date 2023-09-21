@@ -7,12 +7,14 @@ import {
     RewardManager__factory,
     RewardEncodeInputs__factory
 } from '@webb-tools/masp-anchor-contracts';
+import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
 import { getChainIdType, ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
 import { MaspUtxo } from '@webb-tools/masp-anchors';
-
 import { IMASPRewardAllInputs } from './interfaces';
 import RewardProofVerifier from './RewardVerifier';
+
+const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 export class RewardManager {
     contract: RewardManagerContract;
@@ -37,11 +39,20 @@ export class RewardManager {
         rewardSwapContractAddr: string,
         rewardVerifierContract: RewardProofVerifier,
         governanceAddr: string,
-        zkComponents: ZkComponents,
         maxEdges: number,
         rate: number,
         initialWhitelistedAssetIds: number[]
     ) {
+        let zkComponents: ZkComponents;
+
+        if (maxEdges == 2) {
+            zkComponents = await maspRewardZkComponents[230]();
+        } else if (maxEdges == 8) {
+            zkComponents = await maspRewardZkComponents[830]();
+        } else {
+            throw new Error('maxEdges must be 2 or 8');
+        }
+
         const argTypes = ['address', 'address', 'address', 'uint256', 'uint256', 'uint256[]'];
         const args = [rewardSwapContractAddr, rewardVerifierContract.contract.address, governanceAddr, maxEdges, rate, initialWhitelistedAssetIds];
         const { contract: rewardEncodeLibrary } = await deployer.deploy(
@@ -127,7 +138,7 @@ export class RewardManager {
             rewardAllInputs,
             0
         );
-        let res = await snarkjs.groth16.fullProve(this.zkComponents.zkey, wtns);
+        let res = await snarkjs.groth16.prove(this.zkComponents.zkey, wtns);
         const vKey = await snarkjs.zKey.exportVerificationKey(this.zkComponents.zkey);
         const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
         assert.strictEqual(verified, true);
