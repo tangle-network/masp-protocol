@@ -161,7 +161,7 @@ export class RewardManager {
     // Helper function to compte rewardNullifier
     public computeRewardNullifier(
         maspNoteNullifier: BigNumber,
-        maspNotePathIndices: BigNumber,
+        maspNotePathIndices: number,
     ): BigNumber {
         return poseidon([maspNoteNullifier, maspNotePathIndices]);
     }
@@ -169,7 +169,7 @@ export class RewardManager {
     // Generate MASP Reward Inputs
     public generateMASPRewardInputs(
         maspNote: MaspUtxo,
-        maspNotePathIndices: BigNumber,
+        maspNotePathIndices: number,
         rate: number,
         rewardNullifier: BigNumber,
         spentTimestamp: EpochTimeStamp,
@@ -217,7 +217,7 @@ export class RewardManager {
 
     public async reward(
         maspNote: MaspUtxo,
-        maspNotePathIndices: BigNumber,
+        maspNotePathIndices: number,
         rate: number,
         spentTimestamp: EpochTimeStamp,
         spentRoots: BigNumberish[],

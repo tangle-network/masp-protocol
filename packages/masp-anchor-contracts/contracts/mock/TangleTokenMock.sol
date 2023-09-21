@@ -9,6 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract TangleTokenMockFixedSupply is ERC20 {
 	constructor() ERC20("Tangle Mock Token", "TNT-MOCK") {
-		_mint(msg.sender, 1000);
+		_mint(msg.sender, 1000000000);
 	}
 }

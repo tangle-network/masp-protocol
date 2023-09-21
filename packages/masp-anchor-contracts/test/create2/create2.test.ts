@@ -502,20 +502,23 @@ describe('Should deploy MASP contracts to the same address', () => {
         saltHex,
         sender,
       );
-      let rewardCircuitZkComponents = await maspRewardZkComponents[230]();
-      let maxEdges = 2;
-      let rate = 1;
-      let initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8];
+      const rewardCircuitZkComponents = await maspRewardZkComponents[230]();
+      const maxEdges = 2;
+      const rate = 1;
+      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8];
+      const miningCap = 100000;
+      const initialLiquidity = 10000;
+      const poolWeight = 1;
 
-      let rewardSwap = await RewardSwap.create2RewardSwap(
+      const rewardSwap = await RewardSwap.create2RewardSwap(
         deployer1,
         sender,
         saltHex,
         sender.address,
         sender.address, // dummy address #TODO: replace with actual TNTMock address
-        100000,
-        100,
-        10
+        miningCap,
+        initialLiquidity,
+        poolWeight
       );
 
       // create a new reward manager
