@@ -49,8 +49,8 @@ library RewardEncodeInputs {
 			_args.whitelistedAssetIDs,
 			(uint32[10])
 		);
-		uint256[] memory spentRootsResult = new uint256[](_maxEdges + 1);
-		uint256[] memory unspentRootsResult = new uint256[](_maxEdges + 1);
+		uint256[] memory spentRootsResult = new uint256[](_maxEdges);
+		uint256[] memory unspentRootsResult = new uint256[](_maxEdges);
 		bytes memory encodedInput;
 
 		if (_maxEdges == 2) {

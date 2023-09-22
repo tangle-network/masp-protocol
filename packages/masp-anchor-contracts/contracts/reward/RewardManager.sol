@@ -10,8 +10,6 @@ import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
 import "./RewardEncodeInputs.sol";
 
-import "hardhat/console.sol";
-
 contract RewardManager is ReentrancyGuard {
 	// this constant is taken from the Verifier.sol generated from circom library
 	uint256 SNARK_SCALAR_FIELD_SIZE =
@@ -151,8 +149,6 @@ contract RewardManager is ReentrancyGuard {
 		require(_inputIds.length == whitelistedAssetIDs.length, "Input list length does not match");
 
 		for (uint256 i = 0; i < _inputIds.length; i++) {
-			console.log("inputIds[i]: %s", _inputIds[i]);
-			console.log("whitelistedAssetIDs[i]: %s", whitelistedAssetIDs[i]);
 			if (_inputIds[i] != whitelistedAssetIDs[i]) {
 				return false;
 			}
@@ -268,7 +264,7 @@ contract RewardManager is ReentrancyGuard {
 	}
 
 	function _isValidSpentRoots(uint256[] memory spentRoots) private view returns (bool) {
-		require(spentRoots.length == maxEdges, "Invalid array size");
+		require(spentRoots.length == maxEdges, "_isValidSpentRoots:Invalid array size");
 
 		// Check for uniqueness of spentRoots
 		require(areUnique(spentRoots), "Duplicate spentRoots found");
@@ -299,7 +295,7 @@ contract RewardManager is ReentrancyGuard {
 	}
 
 	function _isValidUnspentRoots(uint256[] memory unspentRoots) private view returns (bool) {
-		require(unspentRoots.length == maxEdges, "Invalid array size");
+		require(unspentRoots.length == maxEdges, "_isValidUnspentRoots:Invalid array size");
 		require(areUnique(unspentRoots), "Duplicate unspentRoots found");
 
 		for (uint256 i = 0; i < unspentRoots.length; i++) {
