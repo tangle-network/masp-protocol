@@ -30,7 +30,7 @@ library RewardEncodeInputs {
         @notice Encodes the public inputs into ZKP verifier suitable format
         @param _args The proof arguments
         @param _maxEdges The maximum # of edges supported by the connected VAnchor
-        @return (bytes, uint256[10], uint256[], uint256[]) The public inputs and roots array separated
+        @return (bytes, uint32[10], uint256[], uint256[]) The public inputs and roots array separated
      */
 	function _encodeInputs(
 		RewardPublicInputs memory _args,
@@ -40,14 +40,14 @@ library RewardEncodeInputs {
 		pure
 		returns (
 			bytes memory,
-			uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory,
+			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory,
 			uint256[] memory,
 			uint256[] memory
 		)
 	{
-		uint256[10] memory whitelistedAssetIDsResult = abi.decode(
+		uint32[10] memory whitelistedAssetIDsResult = abi.decode(
 			_args.whitelistedAssetIDs,
-			(uint256[10])
+			(uint32[10])
 		);
 		uint256[] memory spentRootsResult = new uint256[](_maxEdges + 1);
 		uint256[] memory unspentRootsResult = new uint256[](_maxEdges + 1);

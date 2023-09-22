@@ -193,7 +193,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       );
 
       // create a new reward manager
-      const rewardManager = await RewardManager.create2RewardManager(
+      const rewardManager = await RewardManager.createRewardManager(
         deployer,
         sender,
         saltHex,
@@ -235,7 +235,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await unspentTree.insert(unspentLeaf);
       assert.strictEqual(unspentTree.number_of_elements(), 1);
 
-      const spentTimestamp = Date.now() + 1000;
+      const spentTimestamp = unspentTimestamp + 1000;
       const spentLeaf = poseidon([maspNullifier, spentTimestamp]);
       await spentTree.insert(spentLeaf);
       assert.strictEqual(spentTree.number_of_elements(), 1);

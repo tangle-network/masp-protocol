@@ -10,7 +10,13 @@ import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
 import "./RewardEncodeInputs.sol";
 
+import "hardhat/console.sol";
+
 contract RewardManager is ReentrancyGuard {
+	// this constant is taken from the Verifier.sol generated from circom library
+	uint256 SNARK_SCALAR_FIELD_SIZE =
+		21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
 	uint8 public constant ROOT_HISTORY_SIZE = 30;
 
 	IRewardSwap public immutable rewardSwap;
@@ -20,7 +26,7 @@ contract RewardManager is ReentrancyGuard {
 	mapping(bytes32 => bool) public rewardNullifiers;
 	uint256 public rate;
 
-	uint256[WHITELISTED_ASSET_ID_LIST_SIZE] public whitelistedAssetIds;
+	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public whitelistedAssetIDs;
 
 	struct Edge {
 		uint256[ROOT_HISTORY_SIZE] spentRootList;
@@ -39,8 +45,8 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
 	event RateUpdated(uint256 newRate);
-	// Event to log changes in whitelistedAssetIds.
-	event WhiteListUpdated(uint256[WHITELISTED_ASSET_ID_LIST_SIZE] newWhiteListedAssetIds);
+	// Event to log changes in whitelistedAssetIDs.
+	event whitelistedAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newwhitelistedAssetIDs);
 
 	modifier onlyGovernance() {
 		require(msg.sender == governance, "Only governance can perform this action");
@@ -53,13 +59,13 @@ contract RewardManager is ReentrancyGuard {
 		address _governance,
 		uint8 _maxEdges,
 		uint256 _rate,
-		uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialWhitelistedAssetIds
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialwhitelistedAssetIDs
 	) {
 		rewardSwap = IRewardSwap(_rewardSwap);
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
 		governance = _governance;
 		rate = _rate;
-		whitelistedAssetIds = _initialWhitelistedAssetIds;
+		whitelistedAssetIDs = _initialwhitelistedAssetIDs;
 		maxEdges = _maxEdges;
 	}
 
@@ -69,10 +75,10 @@ contract RewardManager is ReentrancyGuard {
 		RewardExtData memory _extData
 	) public {
 		(
-			bytes memory encodedInputs,
-			uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory whitelistedAssetIDs,
-			uint256[] memory spentRoots,
-			uint256[] memory unspentRoots
+			bytes memory _encodedInputs,
+			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
+			uint256[] memory _spentRoots,
+			uint256[] memory _unspentRoots
 		) = RewardEncodeInputs._encodeInputs(_publicInputs, maxEdges);
 
 		require(_publicInputs.rate == rate && _publicInputs.rate > 0, "Invalid reward rate");
@@ -81,16 +87,17 @@ contract RewardManager is ReentrancyGuard {
 			"Reward has been already spent"
 		);
 		require(
-			bytes32(_publicInputs.extDataHash) == keccak256(abi.encode(_extData)),
+			_publicInputs.extDataHash ==
+				uint256(_getExtDataHash(_extData)) % SNARK_SCALAR_FIELD_SIZE,
 			"Incorrect external data hash"
 		);
-		require(_isValidWhitelistedIds(whitelistedAssetIDs), "Invalid asset IDs");
-		require(_isValidSpentRoots(spentRoots), "Invalid spent roots");
-		require(_isValidUnspentRoots(unspentRoots), "Invalid spent roots");
+		require(_isValidWhitelistedIds(_whitelistedAssetIDs), "Invalid asset IDs");
+		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
+		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
 
 		// Verify the proof
 		require(
-			IRewardVerifier(rewardVerifier).verifyProof(_proof, encodedInputs, maxEdges),
+			IRewardVerifier(rewardVerifier).verifyProof(_proof, _encodedInputs, maxEdges),
 			"Invalid reward proof"
 		);
 
@@ -117,30 +124,36 @@ contract RewardManager is ReentrancyGuard {
 		rewardSwap.setPoolWeight(_newWeight);
 	}
 
-	// Function to modify the whitelistedAssetIds.
-	function updateWhiteListedAssetIds(
-		uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newWhiteListedAssetIds
+	// Function to modify the whitelistedAssetIDs.
+	function updatewhitelistedAssetIDs(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newwhitelistedAssetIDs
 	) external onlyGovernance nonReentrant {
-		whitelistedAssetIds = _newWhiteListedAssetIds;
-		emit WhiteListUpdated(_newWhiteListedAssetIds);
+		whitelistedAssetIDs = _newwhitelistedAssetIDs;
+		emit whitelistedAssetIDsUpdated(_newwhitelistedAssetIDs);
 	}
 
-	// Getter function to retrieve whitelistedAssetIds.
-	function getWhiteListedAssetIds()
+	// Getter function to retrieve whitelistedAssetIDs.
+	function getwhitelistedAssetIDs()
 		external
 		view
-		returns (uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory)
+		returns (uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory)
 	{
-		return whitelistedAssetIds;
+		return whitelistedAssetIDs;
+	}
+
+	function _getExtDataHash(RewardExtData memory _extData) private pure returns (bytes32) {
+		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
 	}
 
 	function _isValidWhitelistedIds(
-		uint256[WHITELISTED_ASSET_ID_LIST_SIZE] memory inputIds
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
 	) private view returns (bool) {
-		require(inputIds.length == whitelistedAssetIds.length, "Input list length does not match");
+		require(_inputIds.length == whitelistedAssetIDs.length, "Input list length does not match");
 
-		for (uint256 i = 0; i < inputIds.length; i++) {
-			if (inputIds[i] != whitelistedAssetIds[i]) {
+		for (uint256 i = 0; i < _inputIds.length; i++) {
+			console.log("inputIds[i]: %s", _inputIds[i]);
+			console.log("whitelistedAssetIDs[i]: %s", whitelistedAssetIDs[i]);
+			if (_inputIds[i] != whitelistedAssetIDs[i]) {
 				return false;
 			}
 		}

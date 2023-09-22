@@ -34,6 +34,44 @@ export class RewardManager {
     }
 
     // Deploy a new RewardManager
+    public static async createRewardManager(
+        deployer: Deployer,
+        signer: ethers.Signer,
+        saltHex: string,
+        rewardSwapContractAddr: string,
+        rewardVerifierContract: RewardProofVerifier,
+        governanceAddr: string,
+        maxEdges: number,
+        rate: number,
+        initialWhitelistedAssetIds: number[]
+    ) {
+        let zkComponents: ZkComponents;
+
+        if (maxEdges == 2) {
+            zkComponents = await maspRewardZkComponents[230]();
+        } else if (maxEdges == 8) {
+            zkComponents = await maspRewardZkComponents[830]();
+        } else {
+            throw new Error('maxEdges must be 2 or 8');
+        }
+        const { contract: rewardEncodeLibrary } = await deployer.deploy(
+            RewardEncodeInputs__factory,
+            saltHex,
+            signer
+        );
+        const libraryAddresses = {
+            ['contracts/reward/RewardEncodeInputs.sol:RewardEncodeInputs']: rewardEncodeLibrary.address,
+        };
+
+        const factory = new RewardManager__factory(libraryAddresses, signer);
+        const manager = await factory.deploy(rewardSwapContractAddr, rewardVerifierContract.contract.address, governanceAddr, maxEdges, rate, initialWhitelistedAssetIds);
+        await manager.deployed();
+
+        return new RewardManager(manager, signer, zkComponents, maxEdges, initialWhitelistedAssetIds);
+    }
+
+    // Deploy a new RewardManager using CREATE2
+    // #TODO does not work yet, whitelistedAssetIds is not getting set correctly in RewardManager contract
     public static async create2RewardManager(
         deployer: Deployer,
         signer: ethers.Signer,
@@ -55,7 +93,7 @@ export class RewardManager {
             throw new Error('maxEdges must be 2 or 8');
         }
 
-        const argTypes = ['address', 'address', 'address', 'uint256', 'uint256', 'uint256[]'];
+        const argTypes = ['address', 'address', 'address', 'uint8', 'uint256', 'uint32[]'];
         const args = [rewardSwapContractAddr, rewardVerifierContract.contract.address, governanceAddr, maxEdges, rate, initialWhitelistedAssetIds];
         const { contract: rewardEncodeLibrary } = await deployer.deploy(
             RewardEncodeInputs__factory,
@@ -96,7 +134,7 @@ export class RewardManager {
 
     // Update the whitelistedAssetIds (only callable by the governance)
     public async updateWhiteListedAssetIds(newAssetIds: BigNumber[]): Promise<void> {
-        const tx = await this.contract.updateWhiteListedAssetIds(newAssetIds);
+        const tx = await this.contract.updatewhitelistedAssetIDs(newAssetIds);
         await tx.wait();
     }
 
@@ -177,14 +215,13 @@ export class RewardManager {
         const abi = new ethers.utils.AbiCoder();
         const encodedData = abi.encode(
             [
-                'tuple(uint256 fee,address recipient,address relayer)',
+                'uint256', 'address', 'address'
             ],
             [
-                {
-                    fee: toFixedHex(extData.fee),
-                    recipient: toFixedHex(extData.recipient, 20),
-                    relayer: toFixedHex(extData.relayer, 20),
-                },
+                extData.fee,
+                extData.recipient,
+                extData.relayer
+
             ]
         );
 
