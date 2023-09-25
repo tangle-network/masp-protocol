@@ -4,6 +4,8 @@
  */
 
 const assert = require('assert');
+const TruffleAssert = require('truffle-assertions');
+
 import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -127,12 +129,12 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       );
       const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
 
-      const rewardAmount = maspAmount * rate * (spentTimestamp - unspentTimestamp);
+      const anonymityRewardPoints = maspAmount * rate * (spentTimestamp - unspentTimestamp);
       const rewardNullifier = poseidon([maspNullifier, maspPathIndices]);
 
       const circuitInput = {
         rate: rate,
-        rewardAmount: rewardAmount,
+        anonymityRewardPoints: anonymityRewardPoints,
         rewardNullifier: rewardNullifier,
         // Dummy
         extDataHash: randomBN(31).toHexString(),
@@ -169,7 +171,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
   // Test for masp reward
   describe('MASP Reward contract test', () => {
-    it.only('should be able to claim reward', async () => {
+    it('should be able to claim reward', async () => {
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
@@ -264,6 +266,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
       await rewardManager.addRootToSpentList(chainID, spentTree.root());
       await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
+
       // reward
       await rewardManager.reward(
         maspUtxo,
@@ -281,11 +284,140 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         recipient.address,
         relayer.address);
 
-      console.log("sender balance", await sender.getBalance());
-      console.log("recipient balance", await recipient.getBalance());
-      console.log("relayer balance", await relayer.getBalance());
-      console.log("recipient TNT-MOCK balance", await tangleTokenMockContract.balanceOf(recipient.address));
-      console.log("relayer TNT-MOCK balance", await tangleTokenMockContract.balanceOf(relayer.address));
+    });
+
+    it('should reject reclaim(double spend) of reward', async () => {
+      const assetID = 1;
+      const tokenID = 0;
+      const rate = 10;
+      const fee = 10;
+
+      const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
+      const tangleTokenMockContract = await tangleTokenMockFactory.deploy();
+      await tangleTokenMockContract.deployed();
+
+      const rewardVerifier = await RewardProofVerifier.create2RewardProofVerifier(
+        deployer,
+        saltHex,
+        sender,
+      );
+
+      const rewardSwap = await RewardSwap.create2RewardSwap(
+        deployer,
+        sender,
+        saltHex,
+        sender.address,
+        tangleTokenMockContract.address,
+        rewardSwapMiningConfig.miningCap,
+        rewardSwapMiningConfig.initialLiquidity,
+        rewardSwapMiningConfig.poolWeight
+      );
+
+      // transfer TNT to rewardSwap
+      tangleTokenMockContract.transfer(rewardSwap.contract.address, rewardSwapMiningConfig.miningCap);
+
+      // create a new reward manager
+      const rewardManager = await RewardManager.createRewardManager(
+        deployer,
+        sender,
+        saltHex,
+        rewardSwap.contract.address,
+        rewardVerifier,
+        sender.address,
+        maxEdges,
+        rate,
+        whitelistedAssetIDs
+      );
+      // set manager
+      rewardSwap.initialize(rewardManager.contract.address);
+
+      // Add edges to different VAnchor Chains
+      await rewardManager.addEdge(chainID);
+      await rewardManager.addEdge(anotherChainID);
+
+      // Create MASP Key
+      const maspKey = new MaspKey();
+
+      // Create MASP Utxo
+      const maspAmount = 100;
+      const maspUtxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        maspKey,
+        BigNumber.from(assetID),
+        BigNumber.from(tokenID),
+        BigNumber.from(maspAmount)
+      );
+
+      // create deposit UTXO
+      const maspCommitment = maspUtxo.getCommitment();
+      await maspMerkleTree.insert(maspCommitment);
+      assert.strictEqual(maspMerkleTree.number_of_elements(), 1);
+      const maspPath = maspMerkleTree.path(0);
+      const maspPathIndices = MerkleTree.calculateIndexFromPathIndices(maspPath.pathIndices);
+      maspUtxo.forceSetIndex(BigNumber.from(0));
+      const maspNullifier = maspUtxo.getNullifier();
+
+      // Update depositTree with vanchor UTXO commitment
+      const unspentTimestamp = Date.now();
+      const unspentLeaf = poseidon([maspCommitment, unspentTimestamp]);
+      await unspentTree.insert(unspentLeaf);
+      assert.strictEqual(unspentTree.number_of_elements(), 1);
+      const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()];
+      const unspentPath = unspentTree.path(0);
+      const unspentPathElements = unspentPath.pathElements.map((bignum: BigNumber) =>
+        bignum.toString()
+      );
+      const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
+      await rewardManager.addRootToUnspentList(chainID, unspentTree.root());
+      await rewardManager.addRootToUnspentList(anotherChainID, emptyTreeRoot);
+
+      const spentTimestamp = unspentTimestamp + 10 * 60 * 24; // 10 days difference
+      const spentLeaf = poseidon([maspNullifier, spentTimestamp]);
+      await spentTree.insert(spentLeaf);
+      assert.strictEqual(spentTree.number_of_elements(), 1);
+      const spentRoots = [spentTree.root().toString(), emptyTreeRoot.toString()];
+      const spentPath = spentTree.path(0);
+      const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString());
+      const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
+      await rewardManager.addRootToSpentList(chainID, spentTree.root());
+      await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
+
+      // reward
+      await rewardManager.reward(
+        maspUtxo,
+        maspPathIndices,
+        rate,
+        spentTimestamp,
+        spentRoots,
+        spentPathIndices,
+        spentPathElements,
+        unspentTimestamp,
+        unspentRoots,
+        unspentPathIndices,
+        unspentPathElements,
+        fee,
+        recipient.address,
+        relayer.address);
+
+      // reclaim reward, this is rejected because rewrdNullifier is already claimed
+      await TruffleAssert.reverts(
+        rewardManager.reward(
+          maspUtxo,
+          maspPathIndices,
+          rate,
+          spentTimestamp,
+          spentRoots,
+          spentPathIndices,
+          spentPathElements,
+          unspentTimestamp,
+          unspentRoots,
+          unspentPathIndices,
+          unspentPathElements,
+          fee,
+          recipient.address,
+          relayer.address),
+        "Reward has been already spent"
+      );
 
     });
   });
