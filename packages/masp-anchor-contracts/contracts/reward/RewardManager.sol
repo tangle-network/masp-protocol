@@ -104,9 +104,9 @@ contract RewardManager is ReentrancyGuard {
 		rewardNullifiers[bytes32(_publicInputs.rewardNullifier)] = true;
 
 		// Transfer to the recipient
-		uint256 rewardAmountMinusFee = _publicInputs.rewardAmount - _extData.fee;
-		if (rewardAmountMinusFee > 0) {
-			rewardSwap.swap(_extData.recipient, rewardAmountMinusFee);
+		uint256 anonymityRewardPointsMinusFee = _publicInputs.anonymityRewardPoints - _extData.fee;
+		if (anonymityRewardPointsMinusFee > 0) {
+			rewardSwap.swap(_extData.recipient, anonymityRewardPointsMinusFee);
 		}
 		// Transfer to the relayer
 		if (_extData.fee > 0) {

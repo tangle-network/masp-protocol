@@ -253,12 +253,12 @@ export class RewardManager {
         unspentPathElements: BigNumberish[],
         extData: IMASPRewardExtData): IMASPRewardAllInputs {
 
-        const rewardAmount = maspNote.amount.mul(rate).mul(spentTimestamp - unspentTimestamp);
+        const anonymityRewardPoints = maspNote.amount.mul(rate).mul(spentTimestamp - unspentTimestamp);
         const extDataHash = this.toRewardExtDataHash(extData);
 
         return {
             rate: rate,
-            rewardAmount: rewardAmount,
+            anonymityRewardPoints: anonymityRewardPoints,
             rewardNullifier: rewardNullifier,
             extDataHash: extDataHash,
             whitelistedAssetIDs: this.whitelistedAssetIDs,
@@ -333,7 +333,7 @@ export class RewardManager {
             proofEncoded,
             {
                 rate: publicSignals[0],
-                rewardAmount: publicSignals[1],
+                anonymityRewardPoints: publicSignals[1],
                 rewardNullifier: publicSignals[2],
                 extDataHash: publicSignals[3],
                 whitelistedAssetIDs: RewardManager.createBNArrayToBytes(this.whitelistedAssetIDs),

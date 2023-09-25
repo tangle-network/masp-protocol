@@ -9,7 +9,7 @@ export type IMASPRewardExtData = {
 export type IMASPRewardPublicInputs = {
   proof: string;
   rate: BigNumberish;
-  rewardAmount: BigNumberish;
+  anonymityRewardPoints: BigNumberish;
   rewardNullifier: BigNumberish;
   extDataHash: BigNumberish;
   whitelistedAssetIDs: number[];
@@ -20,7 +20,7 @@ export type IMASPRewardPublicInputs = {
 
 export type IMASPRewardAllInputs = {
   rate: BigNumberish;
-  rewardAmount: BigNumberish;
+  anonymityRewardPoints: BigNumberish;
   rewardNullifier: BigNumberish;
   extDataHash: BigNumberish;
 

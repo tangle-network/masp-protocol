@@ -13,7 +13,7 @@ struct RewardExtData {
 
 struct RewardPublicInputs {
 	uint256 rate;
-	uint256 rewardAmount;
+	uint256 anonymityRewardPoints;
 	uint256 rewardNullifier;
 	uint256 extDataHash;
 	bytes whitelistedAssetIDs;
@@ -68,7 +68,7 @@ library RewardEncodeInputs {
 
 			// assign inputs
 			inputs[0] = uint256(_args.rate);
-			inputs[1] = uint256(_args.rewardAmount);
+			inputs[1] = uint256(_args.anonymityRewardPoints);
 			inputs[2] = uint256(_args.rewardNullifier);
 			inputs[3] = uint256(_args.extDataHash);
 			inputs[4] = uint256(whitelistedAssetIDsResult[0]);
@@ -114,7 +114,7 @@ library RewardEncodeInputs {
 
 			// assign inputs
 			inputs[0] = uint256(_args.rate);
-			inputs[1] = uint256(_args.rewardAmount);
+			inputs[1] = uint256(_args.anonymityRewardPoints);
 			inputs[2] = uint256(_args.rewardNullifier);
 			inputs[3] = uint256(_args.extDataHash);
 			inputs[4] = uint256(whitelistedAssetIDsResult[0]);

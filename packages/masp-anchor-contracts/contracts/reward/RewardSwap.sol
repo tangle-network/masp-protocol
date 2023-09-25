@@ -65,18 +65,18 @@ contract RewardSwap is IRewardSwap, ReentrancyGuard {
 
 	function swap(
 		address _recipient,
-		uint256 _amount
+		uint256 _anonymityPoints
 	) external onlyManager nonReentrant returns (uint256) {
-		uint256 tokens = getExpectedReturn(_amount);
+		uint256 tokens = getExpectedReturn(_anonymityPoints);
 		tokensSold += tokens;
 		require(tangle.transfer(_recipient, tokens), "transfer failed");
-		emit RewardSwapped(_recipient, _amount, tokens);
+		emit RewardSwapped(_recipient, _anonymityPoints, tokens);
 		return tokens;
 	}
 
-	function getExpectedReturn(uint256 _amount) public view returns (uint256) {
+	function getExpectedReturn(uint256 _anonymityPoints) public view returns (uint256) {
 		uint256 oldBalance = tntVirtualBalance();
-		int128 pow = ABDKMath64x64.neg(ABDKMath64x64.divu(_amount, poolWeight));
+		int128 pow = ABDKMath64x64.neg(ABDKMath64x64.divu(_anonymityPoints, poolWeight));
 		int128 exp = ABDKMath64x64.exp(pow);
 		uint256 newBalance = ABDKMath64x64.mulu(exp, oldBalance);
 		return (oldBalance - newBalance);

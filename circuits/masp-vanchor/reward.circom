@@ -13,8 +13,8 @@ include "./babypow.circom";
 
 template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	signal input rate;
-	// fee is subtracted from "rewardAmount" while paying the relayer
-	signal input rewardAmount;
+	// fee is subtracted from "anonymityRewardPoints" while paying the relayer
+	signal input anonymityRewardPoints;
 	signal input rewardNullifier;
 	// fee and recipient is included in extData
 	signal input extDataHash;
@@ -46,17 +46,18 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	// Check amount invariant
 	signal intermediateRewardValue;
 	intermediateRewardValue <== rate * (spentTimestamp - unspentTimestamp);
-	rewardAmount === intermediateRewardValue * noteAmount;
+	anonymityRewardPoints === intermediateRewardValue * noteAmount;
 
 	// Check that amounts fit into 248 bits to prevent overflow
 	// Fee range is checked by the smart contract
-	component rewardAmountCheck = Num2Bits(248);
-	rewardAmountCheck.in <== rewardAmount;
+	component anonymityRewardPointsCheck = Num2Bits(248);
+	anonymityRewardPointsCheck.in <== anonymityRewardPoints;
 
-	// TODO: Constrain block range to be less than 2^32
+	// TODO: Constrain time range to be less than 2^32
 	// TODO: Check how many bits we should use here
-	component blockRangeCheck = Num2Bits(32);
-	blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
+	// 32 bit value is enough for 136 years
+	component timeRangeCheck = Num2Bits(32);
+	timeRangeCheck.in <== spentTimestamp - unspentTimestamp;
 
     // Check if the note AssetID is allowable
     component membership = SetMembership(sizeWhitelistedAssetIDList);
