@@ -36,6 +36,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
   const maxEdges = 2;
   const chainID = getChainIdType(31337);
+  const anotherChainID = getChainIdType(30337);
   const levels = 30;
   const whitelistedAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -207,6 +208,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       // set manager
       rewardSwap.initialize(rewardManager.contract.address);
 
+      // Add edges to different VAnchor Chains
+      await rewardManager.addEdge(chainID);
+      await rewardManager.addEdge(anotherChainID);
+
       // Create MASP Key
       const maspKey = new MaspKey();
 
@@ -234,6 +239,14 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const unspentLeaf = poseidon([maspCommitment, unspentTimestamp]);
       await unspentTree.insert(unspentLeaf);
       assert.strictEqual(unspentTree.number_of_elements(), 1);
+      const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()];
+      const unspentPath = unspentTree.path(0);
+      const unspentPathElements = unspentPath.pathElements.map((bignum: BigNumber) =>
+        bignum.toString()
+      );
+      const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
+      await rewardManager.addRootToUnspentList(chainID, unspentTree.root());
+      await rewardManager.addRootToUnspentList(anotherChainID, emptyTreeRoot);
 
       const spentTimestamp = unspentTimestamp + 1000;
       const spentLeaf = poseidon([maspNullifier, spentTimestamp]);
@@ -243,14 +256,8 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const spentPath = spentTree.path(0);
       const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString());
       const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
-
-      const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()];
-      const unspentPath = unspentTree.path(0);
-      const unspentPathElements = unspentPath.pathElements.map((bignum: BigNumber) =>
-        bignum.toString()
-      );
-      const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
-
+      await rewardManager.addRootToSpentList(chainID, spentTree.root());
+      await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
       // reward
       await rewardManager.reward(
         maspUtxo,

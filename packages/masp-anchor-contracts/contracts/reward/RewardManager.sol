@@ -29,7 +29,8 @@ contract RewardManager is ReentrancyGuard {
 	struct Edge {
 		uint256[ROOT_HISTORY_SIZE] spentRootList;
 		uint256[ROOT_HISTORY_SIZE] unspentRootList;
-		uint8 currentIndex;
+		uint8 currentSpentRootListIndex;
+		uint8 currentUnspentRootListIndex;
 	}
 
 	uint8 public maxEdges;
@@ -163,7 +164,8 @@ contract RewardManager is ReentrancyGuard {
 		require(edgeList.length < maxEdges, "Maximum number of edges reached");
 
 		Edge memory newEdge;
-		newEdge.currentIndex = 0;
+		newEdge.currentSpentRootListIndex = 0;
+		newEdge.currentUnspentRootListIndex = 0;
 		edgeList.push(newEdge);
 
 		uint256 edgeIndex = edgeList.length - 1;
@@ -188,7 +190,9 @@ contract RewardManager is ReentrancyGuard {
 		// Clear the content of the old chain's spent and unspent root lists
 		Edge storage edge = edgeList[edgeIndex];
 		for (uint8 i = 0; i < ROOT_HISTORY_SIZE; i++) {
+			edge.currentSpentRootListIndex = 0;
 			edge.spentRootList[i] = 0;
+			edge.currentUnspentRootListIndex = 0;
 			edge.unspentRootList[i] = 0;
 		}
 
@@ -202,8 +206,8 @@ contract RewardManager is ReentrancyGuard {
 	) external onlyGovernance nonReentrant {
 		require(edgeExistsForChain[chainId], "Edge for this chainId does not exist");
 		Edge storage edge = edgeList[chainIdToEdgeListIndex[chainId]];
-		edge.spentRootList[edge.currentIndex] = root;
-		edge.currentIndex = (edge.currentIndex + 1) % ROOT_HISTORY_SIZE;
+		edge.spentRootList[edge.currentSpentRootListIndex] = root;
+		edge.currentSpentRootListIndex = (edge.currentSpentRootListIndex + 1) % ROOT_HISTORY_SIZE;
 		emit RootAddedToSpentList(chainId, root);
 	}
 
@@ -214,8 +218,10 @@ contract RewardManager is ReentrancyGuard {
 	) external onlyGovernance nonReentrant {
 		require(edgeExistsForChain[chainId], "Edge for this chainId does not exist");
 		Edge storage edge = edgeList[chainIdToEdgeListIndex[chainId]];
-		edge.unspentRootList[edge.currentIndex] = root;
-		edge.currentIndex = (edge.currentIndex + 1) % ROOT_HISTORY_SIZE;
+		edge.unspentRootList[edge.currentUnspentRootListIndex] = root;
+		edge.currentUnspentRootListIndex =
+			(edge.currentUnspentRootListIndex + 1) %
+			ROOT_HISTORY_SIZE;
 		emit RootAddedToUnspentList(chainId, root);
 	}
 
@@ -224,7 +230,7 @@ contract RewardManager is ReentrancyGuard {
 
 		for (uint256 i = 0; i < edgeList.length; i++) {
 			uint256 edgeIndex = i;
-			uint256 currentIndex = edgeList[edgeIndex].currentIndex;
+			uint256 currentIndex = edgeList[edgeIndex].currentSpentRootListIndex;
 
 			// If currentIndex is zero, it means the spentRootList is empty.
 			// In such cases, we use 0 as a placeholder.
@@ -246,7 +252,7 @@ contract RewardManager is ReentrancyGuard {
 
 		for (uint256 i = 0; i < edgeList.length; i++) {
 			uint256 edgeIndex = i;
-			uint256 currentIndex = edgeList[edgeIndex].currentIndex;
+			uint256 currentIndex = edgeList[edgeIndex].currentUnspentRootListIndex;
 
 			// If currentIndex is zero, it means the unspentRootList is empty.
 			// In such cases, we use 0 as a placeholder.
@@ -264,93 +270,92 @@ contract RewardManager is ReentrancyGuard {
 	}
 
 	function _isValidSpentRoots(uint256[] memory spentRoots) private view returns (bool) {
-		require(spentRoots.length == maxEdges, "_isValidSpentRoots:Invalid array size");
+		require(spentRoots.length == maxEdges, "Invalid array size");
 
-		// Check for uniqueness of spentRoots
-		require(areUnique(spentRoots), "Duplicate spentRoots found");
+		// Create an array to track visited edges.
+		bool[] memory visitedEdges = new bool[](edgeList.length);
 
 		for (uint256 i = 0; i < spentRoots.length; i++) {
 			uint256 spentRoot = spentRoots[i];
+
 			require(spentRoot != 0, "Spent root cannot be zero");
 
-			// Check if the spentRoot is valid for more than one edge
-			uint256 validEdgeCount = 0;
+			bool rootFound = false;
+			uint256 edgeIndex;
+
+			// Check if the spentRoot is valid for any edge.
 			for (uint256 j = 0; j < edgeList.length; j++) {
-				if (isSpentRootValid(j, spentRoot)) {
-					validEdgeCount++;
-					if (validEdgeCount > 1) {
-						// If the spentRoot is valid for more than one edge, it's a violation
-						return false;
+				if (!visitedEdges[j]) {
+					Edge storage edge = edgeList[j];
+
+					for (uint8 k = 0; k < ROOT_HISTORY_SIZE; k++) {
+						if (edge.spentRootList[k] == spentRoot) {
+							rootFound = true;
+							edgeIndex = j;
+							break;
+						}
 					}
 				}
 			}
 
-			// If the spentRoot is not valid for any edge, it's a violation
-			if (validEdgeCount == 0) {
+			// If the root is not found for any edge, return false.
+			if (!rootFound) {
 				return false;
 			}
+
+			// Mark the edge as visited.
+			visitedEdges[edgeIndex] = true;
 		}
 
 		return true;
+	}
+
+	function isValidSpentRoots(uint256[] memory unspentRoots) external view returns (bool) {
+		return _isValidSpentRoots(unspentRoots);
 	}
 
 	function _isValidUnspentRoots(uint256[] memory unspentRoots) private view returns (bool) {
-		require(unspentRoots.length == maxEdges, "_isValidUnspentRoots:Invalid array size");
-		require(areUnique(unspentRoots), "Duplicate unspentRoots found");
+		require(unspentRoots.length == maxEdges, "Invalid array size");
+
+		// Create an array to track visited edges.
+		bool[] memory visitedEdges = new bool[](edgeList.length);
 
 		for (uint256 i = 0; i < unspentRoots.length; i++) {
 			uint256 unspentRoot = unspentRoots[i];
+
 			require(unspentRoot != 0, "Unspent root cannot be zero");
 
-			bool isValid = false;
+			bool rootFound = false;
+			uint256 edgeIndex;
+
+			// Check if the unspentRoot is valid for any edge.
 			for (uint256 j = 0; j < edgeList.length; j++) {
-				if (isUnspentRootValid(j, unspentRoot)) {
-					isValid = true;
-					break;
+				if (!visitedEdges[j]) {
+					Edge storage edge = edgeList[j];
+
+					for (uint8 k = 0; k < ROOT_HISTORY_SIZE; k++) {
+						if (edge.unspentRootList[k] == unspentRoot) {
+							rootFound = true;
+							edgeIndex = j;
+							break;
+						}
+					}
 				}
 			}
 
-			if (!isValid) {
+			// If the root is not found for any edge, return false.
+			if (!rootFound) {
 				return false;
 			}
+
+			// Mark the edge as visited.
+			visitedEdges[edgeIndex] = true;
 		}
 
 		return true;
 	}
 
-	// Check if a spent root is valid for a specific edge.
-	function isSpentRootValid(uint256 chainId, uint256 spentRoot) internal view returns (bool) {
-		uint256 edgeIndex = chainIdToEdgeListIndex[chainId];
-		Edge storage edge = edgeList[edgeIndex];
-		for (uint8 i = 0; i < ROOT_HISTORY_SIZE; i++) {
-			if (edge.spentRootList[i] == spentRoot) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	// Check if an unspent root is valid for a specific edge.
-	function isUnspentRootValid(uint256 chainId, uint256 unspentRoot) internal view returns (bool) {
-		uint256 edgeIndex = chainIdToEdgeListIndex[chainId];
-		Edge storage edge = edgeList[edgeIndex];
-		for (uint8 i = 0; i < ROOT_HISTORY_SIZE; i++) {
-			if (edge.unspentRootList[i] == unspentRoot) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	// Check if an array contains unique elements.
-	function areUnique(uint256[] memory arr) internal pure returns (bool) {
-		for (uint256 i = 0; i < arr.length; i++) {
-			for (uint256 j = i + 1; j < arr.length; j++) {
-				if (arr[i] == arr[j]) {
-					return false;
-				}
-			}
-		}
-		return true;
+	function isValidUnspentRoots(uint256[] memory unspentRoots) external view returns (bool) {
+		return _isValidUnspentRoots(unspentRoots);
 	}
 }
