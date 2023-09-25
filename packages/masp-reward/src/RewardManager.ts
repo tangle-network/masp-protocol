@@ -343,10 +343,6 @@ export class RewardManager {
             extData
         );
         const receipt = await tx.wait();
-        const event = receipt.events?.find((event) => event.event === 'RewardSwapped');
-        if (!event) {
-            throw new Error('RewardSwapped event not found');
-        }
         return receipt;
     }
 

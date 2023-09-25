@@ -31,6 +31,12 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   let maspMerkleTree: MerkleTree;
   let emptyTreeRoot: BigNumber;
 
+  const rewardSwapMiningConfig = {
+    miningCap: 100000,
+    initialLiquidity: 10000,
+    poolWeight: 10,
+  };
+
   const salt = '666';
   const saltHex = ethers.utils.id(salt);
 
@@ -164,9 +170,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   // Test for masp reward
   describe('MASP Reward contract test', () => {
     it.only('should be able to claim reward', async () => {
-      const miningCap = 100000;
-      const initialLiquidity = 10000;
-      const poolWeight = 1;
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
@@ -188,10 +191,13 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         saltHex,
         sender.address,
         tangleTokenMockContract.address,
-        miningCap,
-        initialLiquidity,
-        poolWeight
+        rewardSwapMiningConfig.miningCap,
+        rewardSwapMiningConfig.initialLiquidity,
+        rewardSwapMiningConfig.poolWeight
       );
+
+      // transfer TNT to rewardSwap
+      tangleTokenMockContract.transfer(rewardSwap.contract.address, rewardSwapMiningConfig.miningCap);
 
       // create a new reward manager
       const rewardManager = await RewardManager.createRewardManager(
@@ -248,7 +254,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.addRootToUnspentList(chainID, unspentTree.root());
       await rewardManager.addRootToUnspentList(anotherChainID, emptyTreeRoot);
 
-      const spentTimestamp = unspentTimestamp + 1000;
+      const spentTimestamp = unspentTimestamp + 10 * 60 * 24; // 10 days difference
       const spentLeaf = poseidon([maspNullifier, spentTimestamp]);
       await spentTree.insert(spentLeaf);
       assert.strictEqual(spentTree.number_of_elements(), 1);
