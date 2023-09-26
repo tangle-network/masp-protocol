@@ -1,5 +1,6 @@
 import { ethers, assert } from 'hardhat';
 import { HARDHAT_ACCOUNTS } from '../../hardhatAccounts.js';
+const { toWei } = require('web3-utils')
 
 import {
   DeterministicDeployFactory__factory,
@@ -506,9 +507,12 @@ describe('Should deploy MASP contracts to the same address', () => {
       const maxEdges = 2;
       const rate = 1;
       const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8];
-      const miningCap = 100000;
-      const initialLiquidity = 10000;
-      const poolWeight = 1;
+
+      const rewardSwapMiningConfig = {
+        miningCap: toWei(1000000, 'ether'),
+        initialLiquidity: toWei(100000, 'ether'),
+        poolWeight: 24 * 60 * 60,
+      };
 
       const rewardSwap = await RewardSwap.create2RewardSwap(
         deployer1,
@@ -516,9 +520,9 @@ describe('Should deploy MASP contracts to the same address', () => {
         saltHex,
         sender.address,
         sender.address, // dummy address #TODO: replace with actual TNTMock address
-        miningCap,
-        initialLiquidity,
-        poolWeight
+        rewardSwapMiningConfig.miningCap,
+        rewardSwapMiningConfig.initialLiquidity,
+        rewardSwapMiningConfig.poolWeight
       );
 
       // create a new reward manager

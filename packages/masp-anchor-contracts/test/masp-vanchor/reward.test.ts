@@ -37,7 +37,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   const rewardSwapMiningConfig = {
     miningCap: toWei(1000000, 'ether'),
     initialLiquidity: toWei(100000, 'ether'),
-    poolWeight: 10,
+    poolWeight: 365 * 24 * 60 * 60, // 1 year
   };
 
   const salt = '666';
@@ -176,7 +176,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
-      const fee = 10;
+      const fee = 1000;
 
       const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
       const tangleTokenMockContract = await tangleTokenMockFactory.deploy();
@@ -257,7 +257,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.addRootToUnspentList(chainID, unspentTree.root());
       await rewardManager.addRootToUnspentList(anotherChainID, emptyTreeRoot);
 
-      const spentTimestamp = unspentTimestamp + 10 * 60 * 24; // 10 days difference
+      const spentTimestamp = unspentTimestamp + 10 * 24 * 60 * 60; // 10 days difference
       const spentLeaf = poseidon([maspNullifier, spentTimestamp]);
       await spentTree.insert(spentLeaf);
       assert.strictEqual(spentTree.number_of_elements(), 1);
@@ -267,6 +267,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
       await rewardManager.addRootToSpentList(chainID, spentTree.root());
       await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
+
+      const relayerTNTMockBalanceBefore = await tangleTokenMockContract.balanceOf(relayer.address);
+      const recipientTNTMockBalanceBefore = await tangleTokenMockContract.balanceOf(recipient.address);
 
       // reward
       await rewardManager.reward(
@@ -285,13 +288,19 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         recipient.address,
         relayer.address);
 
+      const relayerTNTMockBalanceAfter = await tangleTokenMockContract.balanceOf(relayer.address);
+      const recipientTNTMockBalanceAfter = await tangleTokenMockContract.balanceOf(recipient.address);
+
+      //assert(relayerTNTMockBalanceAfter.sub(relayerTNTMockBalanceBefore).eq(expectedFeeTNTMockRewardAmount));
+      //assert(recipientTNTMockBalanceAfter.sub(recipientTNTMockBalanceBefore).eq(expectedTNTMockRewardAmount));
+
     });
 
     it('should reject reclaim(double spend) of reward', async () => {
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
-      const fee = 10;
+      const fee = 1000;
 
       const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
       const tangleTokenMockContract = await tangleTokenMockFactory.deploy();

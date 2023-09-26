@@ -99,4 +99,6 @@ contract RewardSwap is IRewardSwap, ReentrancyGuard {
 	function getTimestamp() public view virtual returns (uint256) {
 		return block.timestamp;
 	}
+
+	// #TODO add a function to withdraw leftover tokens
 }
