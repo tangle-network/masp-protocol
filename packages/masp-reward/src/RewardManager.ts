@@ -299,7 +299,7 @@ export class RewardManager {
         unspentPathElements: BigNumberish[],
         fee: BigNumberish,
         recipient: string,
-        relayer: string): Promise<ContractReceipt> {
+        relayer: string): Promise<{ anonymityRewardPoints: BigNumberish, receipt: ContractReceipt }> {
 
         const extData: IMASPRewardExtData = {
             fee: fee,
@@ -343,7 +343,8 @@ export class RewardManager {
             extData
         );
         const receipt = await tx.wait();
-        return receipt;
+        const anonymityRewardPoints = rewardAllInputs.anonymityRewardPoints;
+        return { anonymityRewardPoints, receipt };
     }
 
     public static createBNArrayToBytes(arr: BigNumberish[]) {

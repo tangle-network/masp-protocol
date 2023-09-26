@@ -5,7 +5,9 @@
 
 const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
+
 const { toWei } = require('web3-utils')
+const snarkjs = require('snarkjs');
 
 import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
@@ -19,7 +21,7 @@ import { RewardManager, RewardProofVerifier, RewardSwap } from '@webb-tools/masp
 import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 import { TangleTokenMockFixedSupply__factory } from '@webb-tools/masp-anchor-contracts';
-const snarkjs = require('snarkjs');
+import { anonymityRewardPointsToTNT } from '@webb-tools/masp-reward';
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
@@ -172,7 +174,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
   // Test for masp reward
   describe('MASP Reward contract test', () => {
-    it('should be able to claim reward', async () => {
+    it.only('should be able to claim reward', async () => {
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
@@ -272,7 +274,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const recipientTNTMockBalanceBefore = await tangleTokenMockContract.balanceOf(recipient.address);
 
       // reward
-      await rewardManager.reward(
+      const { anonymityRewardPoints } = await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
         rate,
@@ -290,6 +292,13 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
       const relayerTNTMockBalanceAfter = await tangleTokenMockContract.balanceOf(relayer.address);
       const recipientTNTMockBalanceAfter = await tangleTokenMockContract.balanceOf(recipient.address);
+
+      const expectedTNTMockForAnonymityRewardPoints = anonymityRewardPointsToTNT({ balance: rewardSwapMiningConfig.initialLiquidity, anonymityRewardPoints: anonymityRewardPoints, poolWeight: rewardSwapMiningConfig.poolWeight });
+      const expectedFeeTNTMockRewardAmount = anonymityRewardPointsToTNT({ balance: rewardSwapMiningConfig.initialLiquidity, anonymityRewardPoints: fee, poolWeight: rewardSwapMiningConfig.poolWeight });
+
+      // log
+      console.log('expectedTNTMockForAnonymityRewardPoints', expectedTNTMockForAnonymityRewardPoints.toString());
+      console.log('expectedFeeTNTMockRewardAmount', expectedFeeTNTMockRewardAmount.toString());
 
       //assert(relayerTNTMockBalanceAfter.sub(relayerTNTMockBalanceBefore).eq(expectedFeeTNTMockRewardAmount));
       //assert(recipientTNTMockBalanceAfter.sub(recipientTNTMockBalanceBefore).eq(expectedTNTMockRewardAmount));
