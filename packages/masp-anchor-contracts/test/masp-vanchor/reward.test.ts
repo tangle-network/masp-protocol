@@ -5,6 +5,7 @@
 
 const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
+const { toWei } = require('web3-utils')
 
 import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
@@ -34,8 +35,8 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   let emptyTreeRoot: BigNumber;
 
   const rewardSwapMiningConfig = {
-    miningCap: 100000,
-    initialLiquidity: 10000,
+    miningCap: toWei(1000000, 'ether'),
+    initialLiquidity: toWei(100000, 'ether'),
     poolWeight: 10,
   };
 

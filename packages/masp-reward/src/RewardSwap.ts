@@ -17,8 +17,8 @@ export class RewardSwap {
         saltHex: string,
         governance: string,
         tangleAddr: string,
-        miningCap: number,
-        initialLiquidity: number,
+        miningCap: BigNumber,
+        initialLiquidity: BigNumber,
         poolWeight: number
     ) {
         const argTypes = ['address', 'address', 'uint256', 'uint256', 'uint256'];
