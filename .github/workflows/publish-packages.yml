@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 18.15.x
+          node-version: 18.16.x
 
       - name: Install Dependencies
         run: yarn
@@ -38,6 +38,6 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: 'Webb-Bot'
-          SLACK_CHANNEL: '#webb-protocol-solidity'
-          SLACK_MESSAGE: 'A new version of ${GITHUB_REPOSITORY} packages was published!'
+          SLACK_USERNAME: "Webb-Bot"
+          SLACK_CHANNEL: "#webb-protocol-solidity"
+          SLACK_MESSAGE: "A new version of ${GITHUB_REPOSITORY} packages was published!"
