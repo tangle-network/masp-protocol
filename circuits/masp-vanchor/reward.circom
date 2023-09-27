@@ -5,18 +5,23 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../merkle-tree/manyMerkleProof.circom";
 include "../merkle-tree/merkleTree.circom";
+include "../set/membership.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
 include "./babypow.circom";
 
-template Reward(levels, zeroLeaf, length) {
+template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	signal input rate;
-	signal input fee;
+	// fee is subtracted from "anonymityRewardPoints" while paying the relayer
+	signal input anonymityRewardPoints;
 	signal input rewardNullifier;
+	// fee and recipient is included in extData
 	signal input extDataHash;
 
-	// MASP Spent Note for which anonymity points are being claimed
+	signal input whitelistedAssetIDs[sizeWhitelistedAssetIDList];
+
+	// MASP Spent Note for which reward points are being claimed
 	signal input noteChainID;
 	signal input noteAmount;
 	signal input noteAssetID;
@@ -26,29 +31,13 @@ template Reward(levels, zeroLeaf, length) {
 	signal input noteBlinding;
 	signal input notePathIndices;
 
-	// inputs prefixed with input correspond to the anonymity points vanchor utxos
-	signal input inputChainID;
-	signal input inputAmount;
-	signal input inputPrivateKey;
-	signal input inputBlinding;
-	signal input inputNullifier;
-	signal input inputRoot;
-	signal input inputPathElements[levels];
-	signal input inputPathIndices;
-
-	// inputs prefixed with output correspond to the anonymity points vanchor utxos
-	signal input outputChainID;
-	signal input outputAmount;
-	signal input outputPrivateKey;
-	signal input outputBlinding;
-	signal input outputCommitment;
-
 	// inputs prefixed with spent correspond to the already spent UTXO
 	signal input spentTimestamp;
 	signal input spentRoots[length];
 	signal input spentPathIndices;
 	signal input spentPathElements[levels];
 
+	// inputs prefixed with spent correspond to the deposited UTXO
 	signal input unspentTimestamp;
 	signal input unspentRoots[length];
 	signal input unspentPathIndices;
@@ -56,68 +45,26 @@ template Reward(levels, zeroLeaf, length) {
 
 	// Check amount invariant
 	signal intermediateRewardValue;
-	signal rewardAmount;
 	intermediateRewardValue <== rate * (spentTimestamp - unspentTimestamp);
-	rewardAmount <== intermediateRewardValue * noteAmount;
+	anonymityRewardPoints === intermediateRewardValue * noteAmount;
 
-	inputAmount + rewardAmount === outputAmount + fee;
-	/* inputAmount + (rate * (spentTimestamp - unspentTimestamp)) === outputAmount + fee; */
-
-
-	// === check input and output accounts and block time ===
 	// Check that amounts fit into 248 bits to prevent overflow
 	// Fee range is checked by the smart contract
-	// Technically block range check could be skipped because it can't be large enough
-	// negative number that `outputAmount` fits into 248 bits
-	component inputAmountCheck = Num2Bits(248);
-	component outputAmountCheck = Num2Bits(248);
+	component anonymityRewardPointsCheck = Num2Bits(248);
+	anonymityRewardPointsCheck.in <== anonymityRewardPoints;
 
+	// TODO: Constrain time range to be less than 2^32
 	// TODO: Check how many bits we should use here
-	component blockRangeCheck = Num2Bits(32);
-	inputAmountCheck.in <== inputAmount;
-	outputAmountCheck.in <== outputAmount;
-	blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
-	// TODO: Constrain block range to be less than 2^32
+	// 32 bit value is enough for 136 years
+	component timeRangeCheck = Num2Bits(32);
+	timeRangeCheck.in <== spentTimestamp - unspentTimestamp;
 
-	component inputKeypair = BaseKeypair();
-	inputKeypair.privateKey <== inputPrivateKey;
-
-	// Compute input commitment
-	component inputHasher = Poseidon(4);
-	inputHasher.inputs[0] <== inputChainID;
-	inputHasher.inputs[1] <== inputAmount;
-	inputHasher.inputs[2] <== inputKeypair.publicKey;
-	inputHasher.inputs[3] <== inputBlinding;
-
-	component inputNullifierHasher = Nullifier();
-	inputNullifierHasher.ak_X <== note_ak_X;
-	inputNullifierHasher.ak_Y <== note_ak_Y;
-	inputNullifierHasher.record <== inputHasher.out;
-	inputNullifierHasher.nullifier === inputNullifier;
-
-	component inputTree = MerkleTree(levels);
-	inputTree.leaf <== inputHasher.out;
-	inputTree.pathIndices <== inputPathIndices;
-
-	for (var i = 0; i < levels; i++) {
-		inputTree.pathElements[i] <== inputPathElements[i];
-	}
-
-	component checkRoot = ForceEqualIfEnabled();
-	checkRoot.in[0] <== inputRoot;
-	checkRoot.in[1] <== inputTree.root;
-	checkRoot.enabled <== inputAmount;
-
-	// Compute and verify output commitment
-	component outputKeypair = BaseKeypair();
-	outputKeypair.privateKey <== outputPrivateKey;
-
-	component outputHasher = Poseidon(4);
-	outputHasher.inputs[0] <== outputChainID;
-	outputHasher.inputs[1] <== outputAmount;
-	outputHasher.inputs[2] <== outputKeypair.publicKey;
-	outputHasher.inputs[3] <== outputBlinding;
-	outputHasher.out === outputCommitment;
+    // Check if the note AssetID is allowable
+    component membership = SetMembership(sizeWhitelistedAssetIDList);
+    membership.element <== noteAssetID;
+    for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
+        membership.set[i] <== whitelistedAssetIDs[i];
+    }
 
 	// === check deposit and withdrawal ===
 	// Compute commitment and nullifier
@@ -130,21 +77,18 @@ template Reward(levels, zeroLeaf, length) {
 	// MASP Inner Partial Commitment
 	component noteInnerPartialCommitmentHasher = InnerPartialRecord();
 	noteInnerPartialCommitmentHasher.blinding <== noteBlinding;
-
 	// MASP Partial Commitment
 	component notePartialCommitmentHasher = PartialRecord();
 	notePartialCommitmentHasher.chainID <== noteChainID;
 	notePartialCommitmentHasher.pk_X <== noteKeyComputer.pk_X;
 	notePartialCommitmentHasher.pk_Y <== noteKeyComputer.pk_Y;
 	notePartialCommitmentHasher.innerPartialRecord <== noteInnerPartialCommitmentHasher.innerPartialRecord;
-
 	// MASP Full Commitment
 	component noteRecordHasher = Record();
 	noteRecordHasher.assetID <== noteAssetID;
 	noteRecordHasher.tokenID <== noteTokenID;
 	noteRecordHasher.amount <== noteAmount;
 	noteRecordHasher.partialRecord <== notePartialCommitmentHasher.partialRecord;
-
 	// MASP Nullifier
 	component noteNullifierHasher = Nullifier();
 	noteNullifierHasher.ak_X <== note_ak_X;
@@ -155,7 +99,6 @@ template Reward(levels, zeroLeaf, length) {
 	component unspentHasher = Poseidon(2);
 	unspentHasher.inputs[0] <== noteRecordHasher.record;
 	unspentHasher.inputs[1] <== unspentTimestamp;
-
 	// Verify that deposit commitment exists in the tree
 	component unspentTree = ManyMerkleProof(levels, length);
 	unspentTree.leaf <== unspentHasher.out;
@@ -163,7 +106,6 @@ template Reward(levels, zeroLeaf, length) {
 	for (var i = 0; i < levels; i++) {
 		unspentTree.pathElements[i] <== unspentPathElements[i];
 	}
-
 	unspentTree.isEnabled <== 1;
 	for (var i = 0; i < length; i++) {
 		unspentTree.roots[i] <== unspentRoots[i];
@@ -173,7 +115,6 @@ template Reward(levels, zeroLeaf, length) {
 	component spentHasher = Poseidon(2);
 	spentHasher.inputs[0] <== noteNullifierHasher.nullifier;
 	spentHasher.inputs[1] <== spentTimestamp;
-
 	// Verify that withdrawal commitment exists in the tree
 	component spentTree = ManyMerkleProof(levels, length);
 	spentTree.leaf <== spentHasher.out;

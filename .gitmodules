@@ -10,3 +10,6 @@
 [submodule "solidity-fixtures"]
 	path = solidity-fixtures
 	url = https://github.com/webb-tools/solidity-fixtures.git
+[submodule "packages/masp-anchor-contracts/lib/abdk-libraries-solidity"]
+	path = packages/masp-anchor-contracts/lib/abdk-libraries-solidity
+	url = https://github.com/abdk-consulting/abdk-libraries-solidity

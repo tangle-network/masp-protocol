@@ -12,7 +12,6 @@
       "@webb-tools/masp-protocol-solidity/*": [
         "packages/masp-anchor-contracts/contracts/*"
       ],
-
       /**
       *   MASP VAnchor TypeScript packages
       */
@@ -28,7 +27,15 @@
       "@webb-tools/masp-anchor-contracts/*": [
         "packages/masp-anchor-contracts/typechain-types/*"
       ],
-
+      /**
+      *   MASP Reward TypeScript packages
+      */
+      "@webb-tools/masp-reward": [
+        "packages/masp-reward/src"
+      ],
+      "@webb-tools/masp-reward/*": [
+        "packages/masp-reward/src/*"
+      ],
       /**
       *   Utils TypeScript packages
       */
