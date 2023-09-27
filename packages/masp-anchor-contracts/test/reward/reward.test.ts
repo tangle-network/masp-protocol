@@ -174,7 +174,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
   // Test for masp reward
   describe('MASP Reward contract test', () => {
-    it.only('should be able to claim reward', async () => {
+    it('should be able to claim reward', async () => {
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
@@ -297,8 +297,8 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const expectedFeeTNTMockRewardAmount = anonymityRewardPointsToTNT({ balance: rewardSwapMiningConfig.initialLiquidity, anonymityRewardPoints: fee, poolWeight: rewardSwapMiningConfig.poolWeight });
 
       // log
-      console.log('expectedTNTMockForAnonymityRewardPoints', expectedTNTMockForAnonymityRewardPoints.toString());
-      console.log('expectedFeeTNTMockRewardAmount', expectedFeeTNTMockRewardAmount.toString());
+      // console.log('expectedTNTMockForAnonymityRewardPoints', expectedTNTMockForAnonymityRewardPoints.toString());
+      // console.log('expectedFeeTNTMockRewardAmount', expectedFeeTNTMockRewardAmount.toString());
 
       //assert(relayerTNTMockBalanceAfter.sub(relayerTNTMockBalanceBefore).eq(expectedFeeTNTMockRewardAmount));
       //assert(recipientTNTMockBalanceAfter.sub(recipientTNTMockBalanceBefore).eq(expectedTNTMockRewardAmount));
