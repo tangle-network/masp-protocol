@@ -179,6 +179,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const tokenID = 0;
       const rate = 10;
       const fee = 1000;
+      const delta = 10000; // max floating point error
 
       const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
       const tangleTokenMockContract = await tangleTokenMockFactory.deploy();
@@ -270,11 +271,16 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.addRootToSpentList(chainID, spentTree.root());
       await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
 
-      const relayerTNTMockBalanceBefore = await tangleTokenMockContract.balanceOf(relayer.address);
-      const recipientTNTMockBalanceBefore = await tangleTokenMockContract.balanceOf(recipient.address);
+      const relayerTNTBalanceBefore = await tangleTokenMockContract.balanceOf(relayer.address);
+      const recipientTNTBalanceBefore = await tangleTokenMockContract.balanceOf(recipient.address);
+
+      let anonymityRewardPoints = maspAmount * rate * (spentTimestamp - unspentTimestamp);
+      let expectedRecipientTNT = await rewardSwap.getExpectedTntReturn(BigNumber.from(anonymityRewardPoints));
+      let expectedRelayerFeeTNT = await rewardSwap.getExpectedTntReturn(BigNumber.from(anonymityRewardPoints + fee));
+      expectedRelayerFeeTNT = expectedRelayerFeeTNT.sub(expectedRecipientTNT);
 
       // reward
-      const { anonymityRewardPoints } = await rewardManager.reward(
+      await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
         rate,
@@ -290,19 +296,12 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         recipient.address,
         relayer.address);
 
-      const relayerTNTMockBalanceAfter = await tangleTokenMockContract.balanceOf(relayer.address);
-      const recipientTNTMockBalanceAfter = await tangleTokenMockContract.balanceOf(recipient.address);
+      const relayerTNTBalanceAfter = await tangleTokenMockContract.balanceOf(relayer.address);
+      const recipientTNTBalanceAfter = await tangleTokenMockContract.balanceOf(recipient.address);
 
-      const expectedTNTMockForAnonymityRewardPoints = anonymityRewardPointsToTNT({ balance: rewardSwapMiningConfig.initialLiquidity, anonymityRewardPoints: anonymityRewardPoints, poolWeight: rewardSwapMiningConfig.poolWeight });
-      const expectedFeeTNTMockRewardAmount = anonymityRewardPointsToTNT({ balance: rewardSwapMiningConfig.initialLiquidity, anonymityRewardPoints: fee, poolWeight: rewardSwapMiningConfig.poolWeight });
-
-      // log
-      // console.log('expectedTNTMockForAnonymityRewardPoints', expectedTNTMockForAnonymityRewardPoints.toString());
-      // console.log('expectedFeeTNTMockRewardAmount', expectedFeeTNTMockRewardAmount.toString());
-
-      //assert(relayerTNTMockBalanceAfter.sub(relayerTNTMockBalanceBefore).eq(expectedFeeTNTMockRewardAmount));
-      //assert(recipientTNTMockBalanceAfter.sub(recipientTNTMockBalanceBefore).eq(expectedTNTMockRewardAmount));
-
+      assert(relayerTNTBalanceAfter.sub(relayerTNTBalanceBefore).sub(expectedRelayerFeeTNT).lt(BigNumber.from(delta)));
+      // to make following work, we need #TODO implement a function to reset blocktime
+      // assert(recipientTNTBalanceAfter.sub(recipientTNTBalanceBefore).eq(expectedRecipientTNT));
     });
 
     it('should reject reclaim(double spend) of reward', async () => {
@@ -437,7 +436,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
           relayer.address),
         "Reward has been already spent"
       );
-
     });
   });
 });
