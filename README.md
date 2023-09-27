@@ -44,7 +44,13 @@ For additional information on the base `protocol-solidity`, please refer to the 
 
 <h2 id="compile"> Installation & Compile 💻 </h2>
 
-Install dependencies: 
+### Install Build Dependencies: 
+
+- [Installing circom](https://docs.circom.io/getting-started/installation/#installing-circom)
+
+- [Installing snarkjs](https://docs.circom.io/getting-started/installation/#installing-snarkjs)
+
+### Install Project Dependencies: 
 
 ```
 yarn install 
@@ -76,17 +82,14 @@ yarn test
 
 To fix the formatting, please run:
 
-The installation takes around 3 minutes to be completed. When the command successfully finishes, it generates the circom binary in the directory `target/release`. You can install this binary as follows:
 ```
 yarn format
 ```
-The previous command will install the circom binary in the directory `$HOME/.cargo/bin`.
+
 
 **Note:** If you push new fixtures to remote storage
 
-snarkjs is a npm package that contains code to generate and validate ZK proofs from the artifacts produced by circom.
-
-You can install snarkjs with the following command:
+You can use `dvc` tool and run following commands:
 ```
 cd solidity-fixtures
 dvc add solidity-fixtures
