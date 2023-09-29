@@ -123,7 +123,7 @@ export class Registry {
     isNativeAllowed: boolean
   ) {
     const resourceID = await this.createResourceId();
-    const nonce = (await this.contract.proposalNonce()).add(1);
+    const nonce = (await this.contract.proposalNonce()) + 1 ;
     const functionSig = generateFunctionSigHash(this.REGISTER_FUNGIBLE_TOKEN_SIGNATURE);
     return (
       '0x' +
@@ -150,7 +150,7 @@ export class Registry {
     symbol: string
   ) {
     const resourceID = await this.createResourceId();
-    const nonce = (await this.contract.proposalNonce()).add(1);
+    const nonce = (await this.contract.proposalNonce()) + 1;
     const functionSig = generateFunctionSigHash(this.REGISTER_NFT_TOKEN_SIGNATURE);
     return (
       '0x' +
