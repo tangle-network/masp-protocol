@@ -11,15 +11,56 @@ include "./nullifier.circom";
 include "./record.circom";
 include "./babypow.circom";
 
+// circuit for the equality of 2 binary arrays of size N, 
+// also with the condition that 1 appears once in each array.
+template BinaryArrayEquality(N) {
+    signal input array1[N];
+    signal input array2[N];
+    signal output equal;
+
+    signal isDifferent[N];
+    signal onesArray1[N];
+    signal onesArray2[N];
+    signal equality[N];
+
+ // Ensure elements are binary and count the number of '1's in each array.
+    for (var i = 0; i < N; i++) {
+        array1[i] * (1 - array1[i]) === 0;
+        array2[i] * (1 - array2[i]) === 0;
+
+        // XOR equivalent for binary values
+        isDifferent[i] <== array1[i] + array2[i] - 2 * array1[i] * array2[i];
+
+        if (i == 0) {
+            onesArray1[i] <== array1[i];
+            onesArray2[i] <== array2[i];
+            equality[i] <== 1 - isDifferent[i];
+        } else {
+            onesArray1[i] <== onesArray1[i - 1] + array1[i];
+            onesArray2[i] <== onesArray2[i - 1] + array2[i];
+            equality[i] <== equality[i - 1] * (1 - isDifferent[i]);
+        }
+    }
+
+    // Ensure there is exactly one '1' in each array.
+    onesArray1[N - 1] === 1;
+    onesArray2[N - 1] === 1;
+
+    // The last element of the equality array represents the overall equality of the two arrays.
+    equal <== equality[N - 1];
+}
+
 template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
-	signal input rate;
+	// Public inputs
 	// fee is subtracted from "anonymityRewardPoints" while paying the relayer
 	signal input anonymityRewardPoints;
 	signal input rewardNullifier;
+	signal input whitelistedAssetIDs[sizeWhitelistedAssetIDList];
+    signal input rates[sizeWhitelistedAssetIDList];
 	// fee and recipient is included in extData
 	signal input extDataHash;
 
-	signal input whitelistedAssetIDs[sizeWhitelistedAssetIDList];
+	signal input rate;
 
 	// MASP Spent Note for which reward points are being claimed
 	signal input noteChainID;
@@ -33,15 +74,45 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 
 	// inputs prefixed with spent correspond to the already spent UTXO
 	signal input spentTimestamp;
-	signal input spentRoots[length];
+	signal input spentRoots[length]; // Public inputs
 	signal input spentPathIndices;
 	signal input spentPathElements[levels];
 
 	// inputs prefixed with spent correspond to the deposited UTXO
 	signal input unspentTimestamp;
-	signal input unspentRoots[length];
+	signal input unspentRoots[length]; // Public inputs
 	signal input unspentPathIndices;
 	signal input unspentPathElements[levels];
+
+	// TODO: Constrain time range to be less than 2^32
+	// TODO: Check how many bits we should use here
+	// 32 bit value is enough for 136 years
+	component timeRangeCheck = Num2Bits(32);
+	timeRangeCheck.in <== spentTimestamp - unspentTimestamp;
+
+	// Check if rate is present in the rates array
+	// Check if the note AssetID is present in the whitelistedAssetIDs array
+    component assetIDEquals[sizeWhitelistedAssetIDList];
+    component rateEquals[sizeWhitelistedAssetIDList];
+    signal assetIDEqualsResult[sizeWhitelistedAssetIDList];
+    signal rateEqualsResult[sizeWhitelistedAssetIDList];
+
+    for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
+        assetIDEquals[i] = IsEqual();
+        assetIDEquals[i].in[0] <== noteAssetID;
+        assetIDEquals[i].in[1] <== whitelistedAssetIDs[i];
+        assetIDEqualsResult[i] <== assetIDEquals[i].out;
+
+        rateEquals[i] = IsEqual();
+        rateEquals[i].in[0] <== rate;
+        rateEquals[i].in[1] <== rates[i];
+        rateEqualsResult[i] <== rateEquals[i].out;
+    }
+
+    component binaryArrayEquality = BinaryArrayEquality(sizeWhitelistedAssetIDList);
+    binaryArrayEquality.array1 <== assetIDEqualsResult;
+    binaryArrayEquality.array2 <== rateEqualsResult;
+    binaryArrayEquality.equal === 1;
 
 	// Check amount invariant
 	signal intermediateRewardValue;
@@ -52,19 +123,6 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	// Fee range is checked by the smart contract
 	component anonymityRewardPointsCheck = Num2Bits(248);
 	anonymityRewardPointsCheck.in <== anonymityRewardPoints;
-
-	// TODO: Constrain time range to be less than 2^32
-	// TODO: Check how many bits we should use here
-	// 32 bit value is enough for 136 years
-	component timeRangeCheck = Num2Bits(32);
-	timeRangeCheck.in <== spentTimestamp - unspentTimestamp;
-
-    // Check if the note AssetID is allowable
-    component membership = SetMembership(sizeWhitelistedAssetIDList);
-    membership.element <== noteAssetID;
-    for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
-        membership.set[i] <== whitelistedAssetIDs[i];
-    }
 
 	// === check deposit and withdrawal ===
 	// Compute commitment and nullifier
