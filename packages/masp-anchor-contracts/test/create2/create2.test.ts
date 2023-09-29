@@ -1,6 +1,6 @@
 import { ethers, assert } from 'hardhat';
 import { HARDHAT_ACCOUNTS } from '../../hardhatAccounts.js';
-const { toWei } = require('web3-utils')
+const { toWei } = require('web3-utils');
 
 import {
   DeterministicDeployFactory__factory,
@@ -27,11 +27,7 @@ import {
   BatchTreeVerifier,
   MultiAssetVAnchorBatchTree,
 } from '@webb-tools/masp-anchors';
-import {
-  RewardSwap,
-  RewardManager,
-  RewardProofVerifier
-} from '@webb-tools/masp-reward';
+import { RewardSwap, RewardManager, RewardProofVerifier } from '@webb-tools/masp-reward';
 import {
   maspSwapFixtures,
   maspVAnchorFixtures,
@@ -480,57 +476,79 @@ describe('Should deploy MASP contracts to the same address', () => {
       assert.strictEqual(vanchor1.contract.address, vanchor2.contract.address);
     });
   });
+
   describe('deploy MASP Reward', () => {
     let rewardVerifier1: RewardProofVerifier;
     let rewardVerifier2: RewardProofVerifier;
+    let rewardSwap1: RewardSwap;
+    let rewardSwap2: RewardSwap;
+
     it('should deploy Reward proof Verifiers to the same address using different wallets', async () => {
       // deploy reward verifiers
       rewardVerifier1 = await RewardProofVerifier.create2RewardProofVerifier(
         deployer1,
         saltHex,
-        sender,
+        sender
       );
       rewardVerifier2 = await RewardProofVerifier.create2RewardProofVerifier(
         deployer2,
         saltHex,
-        ganacheWallet2,
+        ganacheWallet2
       );
       assert.strictEqual(rewardVerifier1.contract.address, rewardVerifier2.contract.address);
     });
-    it('should deploy RewardManager to the same address', async () => {
-      rewardVerifier1 = await RewardProofVerifier.create2RewardProofVerifier(
-        deployer1,
-        saltHex,
-        sender,
-      );
-      const rewardCircuitZkComponents = await maspRewardZkComponents[230]();
-      const maxEdges = 2;
-      const rate = 1;
-      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8];
+
+    it('should deploy RewardSwap to the same address using different wallets', async () => {
+      const dummyGovernance = sender.address;
+      const dummyRewardToken = sender.address;
 
       const rewardSwapMiningConfig = {
         miningCap: toWei(1000000, 'ether'),
         initialLiquidity: toWei(100000, 'ether'),
         poolWeight: 24 * 60 * 60,
       };
-
-      const rewardSwap = await RewardSwap.create2RewardSwap(
+      rewardSwap1 = await RewardSwap.create2RewardSwap(
         deployer1,
         sender,
         saltHex,
-        sender.address,
-        sender.address, // dummy address #TODO: replace with actual TNTMock address
+        dummyGovernance,
+        dummyRewardToken,
         rewardSwapMiningConfig.miningCap,
         rewardSwapMiningConfig.initialLiquidity,
         rewardSwapMiningConfig.poolWeight
       );
+
+      rewardSwap2 = await RewardSwap.create2RewardSwap(
+        deployer2,
+        ganacheWallet2,
+        saltHex,
+        dummyGovernance,
+        dummyRewardToken,
+        rewardSwapMiningConfig.miningCap,
+        rewardSwapMiningConfig.initialLiquidity,
+        rewardSwapMiningConfig.poolWeight
+      );
+
+      assert.strictEqual(rewardSwap1.contract.address, rewardSwap2.contract.address);
+    });
+
+    it('should deploy RewardManager to the same address', async () => {
+      rewardVerifier1 = await RewardProofVerifier.create2RewardProofVerifier(
+        deployer1,
+        saltHex,
+        sender
+      );
+      const rewardCircuitZkComponents = await maspRewardZkComponents[230]();
+      const maxEdges = 2;
+      const rate = 1;
+      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8];
 
       // create a new reward manager
       const rewardManager1 = await RewardManager.create2RewardManager(
         deployer1,
         sender,
         saltHex,
-        rewardSwap.contract.address,
+        rewardSwap1.contract.address,
         rewardVerifier1,
         sender.address,
         maxEdges,
@@ -538,13 +556,12 @@ describe('Should deploy MASP contracts to the same address', () => {
         initialWhitelistedAssetIds
       );
 
-
       // create another reward manager
       const rewardManager2 = await RewardManager.create2RewardManager(
         deployer2,
-        sender,
+        ganacheWallet2,
         saltHex,
-        rewardSwap.contract.address,
+        rewardSwap2.contract.address,
         rewardVerifier1,
         sender.address,
         maxEdges,

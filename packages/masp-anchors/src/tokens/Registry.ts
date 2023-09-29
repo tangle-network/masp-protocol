@@ -1,4 +1,4 @@
-import { BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { Registry as RegistryContract, Registry__factory } from '@webb-tools/masp-anchor-contracts';
 import { generateFunctionSigHash, toHex } from '@webb-tools/utils';
 import { getChainIdType } from '@webb-tools/utils';
@@ -123,7 +123,7 @@ export class Registry {
     isNativeAllowed: boolean
   ) {
     const resourceID = await this.createResourceId();
-    const nonce = (await this.contract.proposalNonce()).add(1);
+    const nonce = BigNumber.from(await this.contract.proposalNonce()).add(1);
     const functionSig = generateFunctionSigHash(this.REGISTER_FUNGIBLE_TOKEN_SIGNATURE);
     return (
       '0x' +
@@ -150,7 +150,7 @@ export class Registry {
     symbol: string
   ) {
     const resourceID = await this.createResourceId();
-    const nonce = (await this.contract.proposalNonce()).add(1);
+    const nonce = BigNumber.from(await this.contract.proposalNonce()).add(1);
     const functionSig = generateFunctionSigHash(this.REGISTER_NFT_TOKEN_SIGNATURE);
     return (
       '0x' +
