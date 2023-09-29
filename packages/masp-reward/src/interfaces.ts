@@ -48,4 +48,3 @@ export type IMASPRewardAllInputs = {
   unspentPathIndices: BigNumberish;
   unspentPathElements: BigNumberish[];
 };
-

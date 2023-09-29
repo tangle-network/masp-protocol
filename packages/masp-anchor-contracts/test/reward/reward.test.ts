@@ -6,7 +6,7 @@
 const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
 
-const { toWei } = require('web3-utils')
+const { toWei } = require('web3-utils');
 const snarkjs = require('snarkjs');
 
 import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
@@ -62,7 +62,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     let deployerContract = await deployerFactory.deploy();
     await deployerContract.deployed();
     deployer = new Deployer(deployerContract);
-
   });
 
   beforeEach('should reset trees', async () => {
@@ -122,7 +121,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       assert.strictEqual(spentTree.number_of_elements(), 1);
       const spentRoots = [spentTree.root().toString(), emptyTreeRoot.toString()];
       const spentPath = spentTree.path(0);
-      const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString());
+      const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) =>
+        bignum.toString()
+      );
       const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
 
       const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()];
@@ -188,7 +189,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const rewardVerifier = await RewardProofVerifier.create2RewardProofVerifier(
         deployer,
         saltHex,
-        sender,
+        sender
       );
 
       const rewardSwap = await RewardSwap.create2RewardSwap(
@@ -203,7 +204,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       );
 
       // transfer TNT to rewardSwap
-      tangleTokenMockContract.transfer(rewardSwap.contract.address, rewardSwapMiningConfig.miningCap);
+      tangleTokenMockContract.transfer(
+        rewardSwap.contract.address,
+        rewardSwapMiningConfig.miningCap
+      );
 
       // create a new reward manager
       const rewardManager = await RewardManager.createRewardManager(
@@ -266,7 +270,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       assert.strictEqual(spentTree.number_of_elements(), 1);
       const spentRoots = [spentTree.root().toString(), emptyTreeRoot.toString()];
       const spentPath = spentTree.path(0);
-      const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString());
+      const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) =>
+        bignum.toString()
+      );
       const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
       await rewardManager.addRootToSpentList(chainID, spentTree.root());
       await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
@@ -275,8 +281,12 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const recipientTNTBalanceBefore = await tangleTokenMockContract.balanceOf(recipient.address);
 
       let anonymityRewardPoints = maspAmount * rate * (spentTimestamp - unspentTimestamp);
-      let expectedRecipientTNT = await rewardSwap.getExpectedTntReturn(BigNumber.from(anonymityRewardPoints));
-      let expectedRelayerFeeTNT = await rewardSwap.getExpectedTntReturn(BigNumber.from(anonymityRewardPoints + fee));
+      let expectedRecipientTNT = await rewardSwap.getExpectedTntReturn(
+        BigNumber.from(anonymityRewardPoints)
+      );
+      let expectedRelayerFeeTNT = await rewardSwap.getExpectedTntReturn(
+        BigNumber.from(anonymityRewardPoints + fee)
+      );
       expectedRelayerFeeTNT = expectedRelayerFeeTNT.sub(expectedRecipientTNT);
 
       // reward
@@ -294,12 +304,18 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         unspentPathElements,
         fee,
         recipient.address,
-        relayer.address);
+        relayer.address
+      );
 
       const relayerTNTBalanceAfter = await tangleTokenMockContract.balanceOf(relayer.address);
       const recipientTNTBalanceAfter = await tangleTokenMockContract.balanceOf(recipient.address);
 
-      assert(relayerTNTBalanceAfter.sub(relayerTNTBalanceBefore).sub(expectedRelayerFeeTNT).lt(BigNumber.from(delta)));
+      assert(
+        relayerTNTBalanceAfter
+          .sub(relayerTNTBalanceBefore)
+          .sub(expectedRelayerFeeTNT)
+          .lt(BigNumber.from(delta))
+      );
       // to make following work, we need #TODO implement a function to reset blocktime
       // assert(recipientTNTBalanceAfter.sub(recipientTNTBalanceBefore).eq(expectedRecipientTNT));
     });
@@ -317,7 +333,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const rewardVerifier = await RewardProofVerifier.create2RewardProofVerifier(
         deployer,
         saltHex,
-        sender,
+        sender
       );
 
       const rewardSwap = await RewardSwap.create2RewardSwap(
@@ -332,7 +348,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       );
 
       // transfer TNT to rewardSwap
-      tangleTokenMockContract.transfer(rewardSwap.contract.address, rewardSwapMiningConfig.miningCap);
+      tangleTokenMockContract.transfer(
+        rewardSwap.contract.address,
+        rewardSwapMiningConfig.miningCap
+      );
 
       // create a new reward manager
       const rewardManager = await RewardManager.createRewardManager(
@@ -395,7 +414,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       assert.strictEqual(spentTree.number_of_elements(), 1);
       const spentRoots = [spentTree.root().toString(), emptyTreeRoot.toString()];
       const spentPath = spentTree.path(0);
-      const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString());
+      const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) =>
+        bignum.toString()
+      );
       const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
       await rewardManager.addRootToSpentList(chainID, spentTree.root());
       await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
@@ -415,7 +436,8 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         unspentPathElements,
         fee,
         recipient.address,
-        relayer.address);
+        relayer.address
+      );
 
       // reclaim reward, this is rejected because rewrdNullifier is already claimed
       await TruffleAssert.reverts(
@@ -433,10 +455,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
           unspentPathElements,
           fee,
           recipient.address,
-          relayer.address),
-        "Reward has been already spent"
+          relayer.address
+        ),
+        'Reward has been already spent'
       );
     });
   });
 });
-
