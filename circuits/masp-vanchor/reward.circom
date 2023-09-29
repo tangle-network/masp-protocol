@@ -109,6 +109,9 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
         rateEqualsResult[i] <== rateEquals[i].out;
     }
 
+	// Now check if the assetID and rate are present in the respective
+	// whitelistedAssetIDs and rates array at same index, that means both of 
+	// the arrays are equal and each contain '1' only once. and at same index.
     component binaryArrayEquality = BinaryArrayEquality(sizeWhitelistedAssetIDList);
     binaryArrayEquality.array1 <== assetIDEqualsResult;
     binaryArrayEquality.array2 <== rateEqualsResult;
