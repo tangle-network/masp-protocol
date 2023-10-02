@@ -30,7 +30,7 @@ describe('MultiFungibleTokenManager', () => {
 
   describe('#constructor', () => {
     it('should initialize', async () => {
-      assert.strictEqual((await multiTokenMgr.contract.proposalNonce()), 0);
+      assert.strictEqual(await multiTokenMgr.contract.proposalNonce(), 0);
       assert.strictEqual(await multiTokenMgr.contract.registry(), sender.address);
     });
   });
