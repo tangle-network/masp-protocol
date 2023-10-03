@@ -57,8 +57,6 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	signal input rewardNullifier;
 	signal input whitelistedAssetIDs[sizeWhitelistedAssetIDList];
     signal input rates[sizeWhitelistedAssetIDList];
-	// fee and recipient is included in extData
-	signal input extDataHash;
 
 	signal input rate;
 
@@ -83,6 +81,37 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	signal input unspentRoots[length]; // Public inputs
 	signal input unspentPathIndices;
 	signal input unspentPathElements[levels];
+
+	// fee and recipient is included in extData
+	signal input extDataHash;
+
+	// Hash of all data/signal that is available/passed to the RewardManager contract
+	// and is available publically. But in the circuit these signals are passed
+	// as private input.
+	signal input publicInputDataHash;
+
+	component publicInputDataHasher = Poseidon(2 + sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList + length + length + 1);
+    publicInputDataHasher.inputs[0] <== anonymityRewardPoints;
+    publicInputDataHasher.inputs[1] <== rewardNullifier;
+	var currentIndex = 2;
+	for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
+    	publicInputDataHasher.inputs[currentIndex + i] <== whitelistedAssetIDs[i];
+	}
+	currentIndex += sizeWhitelistedAssetIDList;
+	for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
+    	publicInputDataHasher.inputs[currentIndex + i] <== rates[i];
+	}
+	currentIndex += sizeWhitelistedAssetIDList;
+	for (var i = 0; i < length; i++) {
+    	publicInputDataHasher.inputs[currentIndex + i] <== spentRoots[i];
+	}
+	currentIndex += length;
+	for (var i = 0; i < length; i++) {
+    	publicInputDataHasher.inputs[currentIndex + i] <== unspentRoots[i];
+	}
+	currentIndex += length;
+	publicInputDataHasher.inputs[currentIndex] <== extDataHash;
+    publicInputDataHash === publicInputDataHasher.out;
 
 	// TODO: Constrain time range to be less than 2^32
 	// TODO: Check how many bits we should use here
