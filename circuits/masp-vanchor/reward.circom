@@ -90,28 +90,35 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	// as private input.
 	signal input publicInputDataHash;
 
-	component publicInputDataHasher = Poseidon(2 + sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList + length + length + 1);
-    publicInputDataHasher.inputs[0] <== anonymityRewardPoints;
-    publicInputDataHasher.inputs[1] <== rewardNullifier;
-	var currentIndex = 2;
+	// we need Poseidon hashers that can hash: 
+	//  - number of `sizeWhitelistedAssetIDList` inputs
+	//  - number of `length` inputs
+	component assetIdsHasher = Poseidon(sizeWhitelistedAssetIDList);
+	component ratesHasher = Poseidon(sizeWhitelistedAssetIDList);
+	component spentRootsHasher = Poseidon(length);
+	component unspentRootsHasher = Poseidon(length);
+	component restDataHasher = Poseidon(3);
+	// final hasher which hashes the output of other hashers.
+	component publicInputDataHasher = Poseidon(5);
+
+    restDataHasher.inputs[0] <== anonymityRewardPoints;
+    restDataHasher.inputs[1] <== rewardNullifier;
+	restDataHasher.inputs[2] <== extDataHash;
 	for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
-    	publicInputDataHasher.inputs[currentIndex + i] <== whitelistedAssetIDs[i];
+    	assetIdsHasher.inputs[i] <== whitelistedAssetIDs[i];
+    	ratesHasher.inputs[i] <== rates[i];
 	}
-	currentIndex += sizeWhitelistedAssetIDList;
-	for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
-    	publicInputDataHasher.inputs[currentIndex + i] <== rates[i];
-	}
-	currentIndex += sizeWhitelistedAssetIDList;
 	for (var i = 0; i < length; i++) {
-    	publicInputDataHasher.inputs[currentIndex + i] <== spentRoots[i];
+    	spentRootsHasher.inputs[i] <== spentRoots[i];
+    	unspentRootsHasher.inputs[i] <== unspentRoots[i];
 	}
-	currentIndex += length;
-	for (var i = 0; i < length; i++) {
-    	publicInputDataHasher.inputs[currentIndex + i] <== unspentRoots[i];
-	}
-	currentIndex += length;
-	publicInputDataHasher.inputs[currentIndex] <== extDataHash;
-    publicInputDataHash === publicInputDataHasher.out;
+	//  finally hash all the outputs and compare the result with public value
+    publicInputDataHasher.inputs[0] <== restDataHasher.out;
+    publicInputDataHasher.inputs[1] <== assetIdsHasher.out;
+	publicInputDataHasher.inputs[2] <== ratesHasher.out;
+    publicInputDataHasher.inputs[3] <== spentRootsHasher.out;
+	publicInputDataHasher.inputs[4] <== unspentRootsHasher.out;
+	publicInputDataHash === publicInputDataHasher.out;
 
 	// TODO: Constrain time range to be less than 2^32
 	// TODO: Check how many bits we should use here
