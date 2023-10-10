@@ -4,12 +4,10 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../merkle-tree/manyMerkleProof.circom";
-include "../merkle-tree/merkleTree.circom";
-include "../set/membership.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
-include "./babypow.circom";
+include "./spongehash.circom";
 
 // circuit for the equality of 2 binary arrays of size N, 
 // also with the condition that 1 appears once in each array.
@@ -90,34 +88,32 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	// as private input.
 	signal input publicInputDataHash;
 
-	// we need Poseidon hashers that can hash: 
-	//  - number of `sizeWhitelistedAssetIDList` inputs
-	//  - number of `length` inputs
-	component assetIdsHasher = Poseidon(sizeWhitelistedAssetIDList);
-	component ratesHasher = Poseidon(sizeWhitelistedAssetIDList);
-	component spentRootsHasher = Poseidon(length);
-	component unspentRootsHasher = Poseidon(length);
-	component restDataHasher = Poseidon(3);
+	// we hash arrays: whitelistedAssetIDs, rates, spentRoots, unspentRoots using 
+	//   spongeHash and then rest of data along with spongeHash output using an standalone instance of
+	//   Posiedon.
+	//   finalHash = Poseidon {
+	//                 anonymityRewardPoints,
+	//                 rewardNullifier,
+	//                 extDataHash,
+    //                 spongeHash(whitelistedAssetIDs, rates, spentRoots, unspentRoots)
+	//              }
+	var spongeHashInputLength = sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList + length + length;
+	component spongeHasher = SpongeHash(spongeHashInputLength, 6); // 6 - max size of poseidon hash available on-chain
 	// final hasher which hashes the output of other hashers.
-	component publicInputDataHasher = Poseidon(5);
-
-    restDataHasher.inputs[0] <== anonymityRewardPoints;
-    restDataHasher.inputs[1] <== rewardNullifier;
-	restDataHasher.inputs[2] <== extDataHash;
+	component publicInputDataHasher = Poseidon(4);
 	for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
-    	assetIdsHasher.inputs[i] <== whitelistedAssetIDs[i];
-    	ratesHasher.inputs[i] <== rates[i];
+    	spongeHasher.in[i] <== whitelistedAssetIDs[i];
+    	spongeHasher.in[sizeWhitelistedAssetIDList+i] <== rates[i];
 	}
+	var currentIndex = sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList;
 	for (var i = 0; i < length; i++) {
-    	spentRootsHasher.inputs[i] <== spentRoots[i];
-    	unspentRootsHasher.inputs[i] <== unspentRoots[i];
+    	spongeHasher.in[currentIndex+i] <== spentRoots[i];
+    	spongeHasher.in[currentIndex+length+i] <== unspentRoots[i];
 	}
-	//  finally hash all the outputs and compare the result with public value
-    publicInputDataHasher.inputs[0] <== restDataHasher.out;
-    publicInputDataHasher.inputs[1] <== assetIdsHasher.out;
-	publicInputDataHasher.inputs[2] <== ratesHasher.out;
-    publicInputDataHasher.inputs[3] <== spentRootsHasher.out;
-	publicInputDataHasher.inputs[4] <== unspentRootsHasher.out;
+    publicInputDataHasher.inputs[0] <== anonymityRewardPoints;
+    publicInputDataHasher.inputs[1] <== rewardNullifier;
+	publicInputDataHasher.inputs[2] <== extDataHash;
+	publicInputDataHasher.inputs[3] <== spongeHasher.out;
 	publicInputDataHash === publicInputDataHasher.out;
 
 	// TODO: Constrain time range to be less than 2^32
