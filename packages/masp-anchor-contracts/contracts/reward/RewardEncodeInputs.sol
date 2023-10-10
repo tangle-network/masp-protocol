@@ -11,13 +11,14 @@ struct RewardExtData {
 }
 
 struct RewardPublicInputs {
-	uint256 rate;
 	uint256 anonymityRewardPoints;
 	uint256 rewardNullifier;
 	uint256 extDataHash;
 	bytes whitelistedAssetIDs;
+	bytes rates;
 	bytes spentRoots;
 	bytes unspentRoots;
+	uint256 publicDataHash;
 }
 
 /**
@@ -38,22 +39,18 @@ library RewardEncodeInputs {
 		public
 		pure
 		returns (
-			bytes memory,
+			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory,
 			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory,
 			uint256[] memory,
 			uint256[] memory
 		)
 	{
-		uint32[10] memory whitelistedAssetIDsResult = abi.decode(
-			_args.whitelistedAssetIDs,
-			(uint32[10])
-		);
+		uint32[10] memory whitelistedAssetIDs = abi.decode(_args.whitelistedAssetIDs, (uint32[10]));
+		uint32[10] memory rates = abi.decode(_args.rates, (uint32[10]));
 		uint256[] memory spentRootsResult = new uint256[](_maxEdges);
 		uint256[] memory unspentRootsResult = new uint256[](_maxEdges);
-		bytes memory encodedInput;
 
 		if (_maxEdges == 2) {
-			uint256[18] memory inputs;
 			uint256[2] memory spentRoots = abi.decode(_args.spentRoots, (uint256[2]));
 			uint256[2] memory unspentRoots = abi.decode(_args.unspentRoots, (uint256[2]));
 
@@ -64,30 +61,7 @@ library RewardEncodeInputs {
 			// assign unspent roots
 			unspentRootsResult[0] = unspentRoots[0];
 			unspentRootsResult[1] = unspentRoots[1];
-
-			// assign inputs
-			inputs[0] = uint256(_args.rate);
-			inputs[1] = uint256(_args.anonymityRewardPoints);
-			inputs[2] = uint256(_args.rewardNullifier);
-			inputs[3] = uint256(_args.extDataHash);
-			inputs[4] = uint256(whitelistedAssetIDsResult[0]);
-			inputs[5] = uint256(whitelistedAssetIDsResult[1]);
-			inputs[6] = uint256(whitelistedAssetIDsResult[2]);
-			inputs[7] = uint256(whitelistedAssetIDsResult[3]);
-			inputs[8] = uint256(whitelistedAssetIDsResult[4]);
-			inputs[9] = uint256(whitelistedAssetIDsResult[5]);
-			inputs[10] = uint256(whitelistedAssetIDsResult[6]);
-			inputs[11] = uint256(whitelistedAssetIDsResult[7]);
-			inputs[12] = uint256(whitelistedAssetIDsResult[8]);
-			inputs[13] = uint256(whitelistedAssetIDsResult[9]);
-			inputs[14] = uint256(spentRoots[0]);
-			inputs[15] = uint256(spentRoots[1]);
-			inputs[16] = uint256(unspentRoots[0]);
-			inputs[17] = uint256(unspentRoots[1]);
-
-			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 8) {
-			uint256[30] memory inputs;
 			uint256[8] memory spentRoots = abi.decode(_args.spentRoots, (uint256[8]));
 			uint256[8] memory unspentRoots = abi.decode(_args.unspentRoots, (uint256[8]));
 
@@ -110,44 +84,10 @@ library RewardEncodeInputs {
 			unspentRootsResult[5] = unspentRoots[5];
 			unspentRootsResult[6] = unspentRoots[6];
 			unspentRootsResult[7] = unspentRoots[7];
-
-			// assign inputs
-			inputs[0] = uint256(_args.rate);
-			inputs[1] = uint256(_args.anonymityRewardPoints);
-			inputs[2] = uint256(_args.rewardNullifier);
-			inputs[3] = uint256(_args.extDataHash);
-			inputs[4] = uint256(whitelistedAssetIDsResult[0]);
-			inputs[5] = uint256(whitelistedAssetIDsResult[1]);
-			inputs[6] = uint256(whitelistedAssetIDsResult[2]);
-			inputs[7] = uint256(whitelistedAssetIDsResult[3]);
-			inputs[8] = uint256(whitelistedAssetIDsResult[4]);
-			inputs[9] = uint256(whitelistedAssetIDsResult[5]);
-			inputs[10] = uint256(whitelistedAssetIDsResult[6]);
-			inputs[11] = uint256(whitelistedAssetIDsResult[7]);
-			inputs[12] = uint256(whitelistedAssetIDsResult[8]);
-			inputs[13] = uint256(whitelistedAssetIDsResult[9]);
-			inputs[14] = uint256(spentRoots[0]);
-			inputs[15] = uint256(spentRoots[1]);
-			inputs[16] = uint256(spentRoots[2]);
-			inputs[17] = uint256(spentRoots[3]);
-			inputs[18] = uint256(spentRoots[4]);
-			inputs[19] = uint256(spentRoots[5]);
-			inputs[20] = uint256(spentRoots[6]);
-			inputs[21] = uint256(spentRoots[7]);
-			inputs[22] = uint256(unspentRoots[0]);
-			inputs[23] = uint256(unspentRoots[1]);
-			inputs[24] = uint256(unspentRoots[2]);
-			inputs[25] = uint256(unspentRoots[3]);
-			inputs[26] = uint256(unspentRoots[4]);
-			inputs[27] = uint256(unspentRoots[5]);
-			inputs[28] = uint256(unspentRoots[6]);
-			inputs[29] = uint256(unspentRoots[7]);
-
-			encodedInput = abi.encodePacked(inputs);
 		} else {
 			require(false, "Invalid edges");
 		}
 
-		return (encodedInput, whitelistedAssetIDsResult, spentRootsResult, unspentRootsResult);
+		return (whitelistedAssetIDs, rates, spentRootsResult, unspentRootsResult);
 	}
 }

@@ -22,9 +22,9 @@ contract RewardManager is ReentrancyGuard {
 	address public immutable governance;
 
 	mapping(bytes32 => bool) public rewardNullifiers;
-	uint256 public rate;
 
 	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public whitelistedAssetIDs;
+	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public rates;
 
 	struct Edge {
 		uint256[ROOT_HISTORY_SIZE] spentRootList;
@@ -43,7 +43,7 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToSpentList(uint256 indexed chainId, uint256 root);
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
-	event RateUpdated(uint256 newRate);
+	event RatesUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newRates);
 	// Event to log changes in whitelistedAssetIDs.
 	event whitelistedAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newwhitelistedAssetIDs);
 
@@ -57,13 +57,13 @@ contract RewardManager is ReentrancyGuard {
 		address _rewardVerifier,
 		address _governance,
 		uint8 _maxEdges,
-		uint256 _rate,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialwhitelistedAssetIDs
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialwhitelistedAssetIDs,
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
 	) {
 		rewardSwap = IRewardSwap(_rewardSwap);
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
 		governance = _governance;
-		rate = _rate;
+		rates = _rates;
 		whitelistedAssetIDs = _initialwhitelistedAssetIDs;
 		maxEdges = _maxEdges;
 	}
@@ -73,30 +73,38 @@ contract RewardManager is ReentrancyGuard {
 		RewardPublicInputs memory _publicInputs,
 		RewardExtData memory _extData
 	) public {
+		// destructure public input data
 		(
-			bytes memory _encodedInputs,
 			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
+			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
 			uint256[] memory _spentRoots,
 			uint256[] memory _unspentRoots
 		) = RewardEncodeInputs._encodeInputs(_publicInputs, maxEdges);
 
-		require(_publicInputs.rate == rate && _publicInputs.rate > 0, "Invalid reward rate");
+		// prevent double claim of rewards
 		require(
 			!rewardNullifiers[bytes32(_publicInputs.rewardNullifier)],
 			"Reward has been already spent"
 		);
+		// prevent modification of ExtData which includes addresses of recipient, relayer and fee
 		require(
 			_publicInputs.extDataHash ==
 				uint256(_getExtDataHash(_extData)) % SNARK_SCALAR_FIELD_SIZE,
 			"Incorrect external data hash"
 		);
 		require(_isValidWhitelistedIds(_whitelistedAssetIDs), "Invalid asset IDs");
+		require(_isValidRates(_rates), "Invalid rates");
 		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
-
-		// Verify the proof
+		// validate the hash of all public data matches the hash generated inside the circuit
+		// #TODO hash all the data in same way as circuit
+		// encode the publicInputDataHash for the Verifier
+		// verify the proof
+		bytes memory encodedPublicDataHash = abi.encodePacked(
+			uint256(_publicInputs.publicDataHash)
+		);
 		require(
-			IRewardVerifier(rewardVerifier).verifyProof(_proof, _encodedInputs, maxEdges),
+			IRewardVerifier(rewardVerifier).verifyProof(_proof, encodedPublicDataHash, maxEdges),
 			"Invalid reward proof"
 		);
 
@@ -114,48 +122,24 @@ contract RewardManager is ReentrancyGuard {
 		}
 	}
 
-	function setRates(uint256 _rate) external onlyGovernance nonReentrant {
-		rate = _rate;
-		emit RateUpdated(rate);
-	}
-
-	function setPoolWeight(uint256 _newWeight) external onlyGovernance nonReentrant {
-		rewardSwap.setPoolWeight(_newWeight);
-	}
-
 	// Function to modify the whitelistedAssetIDs.
-	function updatewhitelistedAssetIDs(
+	function setwhitelistedAssetIDs(
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newwhitelistedAssetIDs
 	) external onlyGovernance nonReentrant {
 		whitelistedAssetIDs = _newwhitelistedAssetIDs;
 		emit whitelistedAssetIDsUpdated(_newwhitelistedAssetIDs);
 	}
 
-	// Getter function to retrieve whitelistedAssetIDs.
-	function getwhitelistedAssetIDs()
-		external
-		view
-		returns (uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory)
-	{
-		return whitelistedAssetIDs;
+	// Function to modify the rates.
+	function setRates(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
+	) external onlyGovernance nonReentrant {
+		rates = _rates;
+		emit RatesUpdated(rates);
 	}
 
-	function _getExtDataHash(RewardExtData memory _extData) private pure returns (bytes32) {
-		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
-	}
-
-	function _isValidWhitelistedIds(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
-	) private view returns (bool) {
-		require(_inputIds.length == whitelistedAssetIDs.length, "Input list length does not match");
-
-		for (uint256 i = 0; i < _inputIds.length; i++) {
-			if (_inputIds[i] != whitelistedAssetIDs[i]) {
-				return false;
-			}
-		}
-
-		return true;
+	function setPoolWeight(uint256 _newWeight) external onlyGovernance nonReentrant {
+		rewardSwap.setPoolWeight(_newWeight);
 	}
 
 	// Add a new edge.
@@ -267,6 +251,38 @@ contract RewardManager is ReentrancyGuard {
 		}
 
 		return latestUnspentRoots;
+	}
+
+	function _getExtDataHash(RewardExtData memory _extData) private pure returns (bytes32) {
+		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
+	}
+
+	function _isValidRates(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputRates
+	) private view returns (bool) {
+		require(_inputRates.length == rates.length, "Input list length does not match");
+
+		for (uint256 i = 0; i < _inputRates.length; i++) {
+			if (_inputRates[i] != rates[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	function _isValidWhitelistedIds(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
+	) private view returns (bool) {
+		require(_inputIds.length == whitelistedAssetIDs.length, "Input list length does not match");
+
+		for (uint256 i = 0; i < _inputIds.length; i++) {
+			if (_inputIds[i] != whitelistedAssetIDs[i]) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	function _isValidSpentRoots(uint256[] memory spentRoots) private view returns (bool) {
