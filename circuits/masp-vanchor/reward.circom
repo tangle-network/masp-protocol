@@ -110,11 +110,11 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
     	spongeHasher.in[currentIndex+i] <== spentRoots[i];
     	spongeHasher.in[currentIndex+length+i] <== unspentRoots[i];
 	}
-    publicInputDataHasher.inputs[0] <== anonymityRewardPoints;
-    publicInputDataHasher.inputs[1] <== rewardNullifier;
-	publicInputDataHasher.inputs[2] <== extDataHash;
-	publicInputDataHasher.inputs[3] <== spongeHasher.out;
-	publicInputDataHash === publicInputDataHasher.out;
+	currentIndex += length + length;
+    spongeHasher.inputs[currentIndex++] <== anonymityRewardPoints;
+    spongeHasher.inputs[currentIndex++] <== rewardNullifier;
+	spongeHasher.inputs[currentIndex++] <== extDataHash;
+	publicInputDataHash === spongeHasher.out;
 
 	// TODO: Constrain time range to be less than 2^32
 	// TODO: Check how many bits we should use here

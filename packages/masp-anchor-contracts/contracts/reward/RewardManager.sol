@@ -6,6 +6,7 @@
 pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@webb-tools/contracts/contracts/hashers/IHasher.sol";
 import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
 import "./RewardEncodeInputs.sol";
@@ -20,6 +21,7 @@ contract RewardManager is ReentrancyGuard {
 	IRewardSwap public immutable rewardSwap;
 	IRewardVerifier public immutable rewardVerifier;
 	address public immutable governance;
+	IHasher public hasher;
 
 	mapping(bytes32 => bool) public rewardNullifiers;
 
@@ -56,6 +58,7 @@ contract RewardManager is ReentrancyGuard {
 		address _rewardSwap,
 		address _rewardVerifier,
 		address _governance,
+		address _hasher,
 		uint8 _maxEdges,
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialwhitelistedAssetIDs,
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
@@ -63,6 +66,7 @@ contract RewardManager is ReentrancyGuard {
 		rewardSwap = IRewardSwap(_rewardSwap);
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
 		governance = _governance;
+		hasher = IHasher(_hasher);
 		rates = _rates;
 		whitelistedAssetIDs = _initialwhitelistedAssetIDs;
 		maxEdges = _maxEdges;
@@ -97,12 +101,20 @@ contract RewardManager is ReentrancyGuard {
 		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
 		// validate the hash of all public data matches the hash generated inside the circuit
-		// #TODO hash all the data in same way as circuit
-		// encode the publicInputDataHash for the Verifier
-		// verify the proof
+		uint256 _publicDataHash = _getPublicDataHash(
+			_whitelistedAssetIDs,
+			_rates,
+			_spentRoots,
+			_unspentRoots,
+			_publicInputs
+		);
+		require(_publicInputs.publicDataHash == _publicDataHash, "Invalid public input data");
+
+		// encode the publicDataHash for the Verifier
 		bytes memory encodedPublicDataHash = abi.encodePacked(
 			uint256(_publicInputs.publicDataHash)
 		);
+		// verify the proof
 		require(
 			IRewardVerifier(rewardVerifier).verifyProof(_proof, encodedPublicDataHash, maxEdges),
 			"Invalid reward proof"
@@ -255,6 +267,39 @@ contract RewardManager is ReentrancyGuard {
 
 	function _getExtDataHash(RewardExtData memory _extData) private pure returns (bytes32) {
 		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
+	}
+
+	function _getPublicDataHash(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
+		uint256[] memory _spentRoots,
+		uint256[] memory _unspentRoots,
+		RewardPublicInputs memory _publicInputs
+	) private view returns (uint256) {
+		uint256 totalLength = _whitelistedAssetIDs.length +
+			_rates.length +
+			_spentRoots.length +
+			_unspentRoots.length +
+			3;
+		uint256[] memory combined = new uint256[](totalLength);
+		uint256 index = 0;
+		for (uint256 i = 0; i < _whitelistedAssetIDs.length; i++) {
+			combined[index++] = _whitelistedAssetIDs[i];
+		}
+		for (uint256 i = 0; i < _rates.length; i++) {
+			combined[index++] = _rates[i];
+		}
+		for (uint256 i = 0; i < _spentRoots.length; i++) {
+			combined[index++] = _spentRoots[i];
+		}
+		for (uint256 i = 0; i < _unspentRoots.length; i++) {
+			combined[index++] = _unspentRoots[i];
+		}
+		combined[index++] = _publicInputs.anonymityRewardPoints;
+		combined[index++] = _publicInputs.rewardNullifier;
+		combined[index++] = _publicInputs.extDataHash;
+
+		return hasher.hash(combined);
 	}
 
 	function _isValidRates(
