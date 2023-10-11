@@ -135,7 +135,7 @@ contract RewardManager is ReentrancyGuard {
 	}
 
 	// Function to modify the whitelistedAssetIDs.
-	function setwhitelistedAssetIDs(
+	function setWhitelistedAssetIDs(
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newwhitelistedAssetIDs
 	) external onlyGovernance nonReentrant {
 		whitelistedAssetIDs = _newwhitelistedAssetIDs;

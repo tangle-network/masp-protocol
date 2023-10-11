@@ -95,7 +95,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        BigNumber.from(assetID),
+        assetID,
         BigNumber.from(tokenID),
         BigNumber.from(maspAmount)
       );
@@ -236,7 +236,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        BigNumber.from(assetID),
+        assetID,
         BigNumber.from(tokenID),
         BigNumber.from(maspAmount)
       );
@@ -380,7 +380,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        BigNumber.from(assetID),
+        assetID,
         BigNumber.from(tokenID),
         BigNumber.from(maspAmount)
       );

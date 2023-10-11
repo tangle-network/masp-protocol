@@ -56,7 +56,7 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	signal input whitelistedAssetIDs[sizeWhitelistedAssetIDList];
     signal input rates[sizeWhitelistedAssetIDList];
 
-	signal input rate;
+	signal input selectedRewardRate;
 
 	// MASP Spent Note for which reward points are being claimed
 	signal input noteChainID;
@@ -122,7 +122,7 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	component timeRangeCheck = Num2Bits(32);
 	timeRangeCheck.in <== spentTimestamp - unspentTimestamp;
 
-	// Check if rate is present in the rates array
+	// Check if selectedRewardRate is present in the rates array
 	// Check if the note AssetID is present in the whitelistedAssetIDs array
     component assetIDEquals[sizeWhitelistedAssetIDList];
     component rateEquals[sizeWhitelistedAssetIDList];
@@ -136,12 +136,12 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
         assetIDEqualsResult[i] <== assetIDEquals[i].out;
 
         rateEquals[i] = IsEqual();
-        rateEquals[i].in[0] <== rate;
+        rateEquals[i].in[0] <== selectedRewardRate;
         rateEquals[i].in[1] <== rates[i];
         rateEqualsResult[i] <== rateEquals[i].out;
     }
 
-	// Now check if the assetID and rate are present in the respective
+	// Now check if the assetID and selectedRewardRate are present in the respective
 	// whitelistedAssetIDs and rates array at same index, that means both of 
 	// the arrays are equal and each contain '1' only once. and at same index.
     component binaryArrayEquality = BinaryArrayEquality(sizeWhitelistedAssetIDList);
@@ -151,7 +151,7 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 
 	// Check amount invariant
 	signal intermediateRewardValue;
-	intermediateRewardValue <== rate * (spentTimestamp - unspentTimestamp);
+	intermediateRewardValue <== selectedRewardRate * (spentTimestamp - unspentTimestamp);
 	anonymityRewardPoints === intermediateRewardValue * noteAmount;
 
 	// Check that amounts fit into 248 bits to prevent overflow
