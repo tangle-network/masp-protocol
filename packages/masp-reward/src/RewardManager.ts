@@ -253,7 +253,7 @@ export class RewardManager {
   }
 
   // Helper function to hash `IMASPRewardExtData` to a field element
-  public toPublicDataHash(
+  public topublicInputDataHash(
     anonymityRewardPoints: BigNumber,
     rewardNullifier: BigNumber,
     extDataHash: BigNumber,
@@ -287,7 +287,7 @@ export class RewardManager {
     const spentRootsBigNumber = spentRoots.map(num => BigNumber.from(num));
     const unspentRootsBigNumber = unspentRoots.map(num => BigNumber.from(num));
     const rates = this.rates.map(num => BigNumber.from(num));
-    const publicDataHash = this.toPublicDataHash(anonymityRewardPoints, rewardNullifier, extDataHash, spentRootsBigNumber, unspentRootsBigNumber);
+    const publicInputDataHash = this.topublicInputDataHash(anonymityRewardPoints, rewardNullifier, extDataHash, spentRootsBigNumber, unspentRootsBigNumber);
 
     return {
       anonymityRewardPoints: anonymityRewardPoints,
@@ -312,7 +312,7 @@ export class RewardManager {
       unspentPathIndices: unspentPathIndices,
       unspentPathElements: unspentPathElements,
       selectedRewardRate: selectedRewardRate,
-      publicDataHash: publicDataHash,
+      publicInputDataHash: publicInputDataHash,
     };
   }
 
@@ -373,7 +373,7 @@ export class RewardManager {
         rates: RewardManager.createBNArrayToBytes(this.rates),
         spentRoots: RewardManager.createBNArrayToBytes(spentRoots),
         unspentRoots: RewardManager.createBNArrayToBytes(unspentRoots),
-        publicDataHash: publicSignals[0],
+        publicInputDataHash: publicSignals[0],
       },
       extData
     );

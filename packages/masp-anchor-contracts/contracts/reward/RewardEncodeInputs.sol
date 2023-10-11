@@ -18,7 +18,7 @@ struct RewardPublicInputs {
 	bytes rates;
 	bytes spentRoots;
 	bytes unspentRoots;
-	uint256 publicDataHash;
+	uint256 publicInputDataHash;
 }
 
 /**

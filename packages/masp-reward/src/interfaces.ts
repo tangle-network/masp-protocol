@@ -48,5 +48,5 @@ export type IMASPRewardAllInputs = {
   unspentPathElements: BigNumberish[];
 
   selectedRewardRate: number;
-  publicDataHash: BigNumberish;
+  publicInputDataHash: BigNumberish;
 };

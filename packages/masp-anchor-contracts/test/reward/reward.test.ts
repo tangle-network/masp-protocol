@@ -22,6 +22,7 @@ import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 import { TangleTokenMockFixedSupply__factory } from '@webb-tools/masp-anchor-contracts';
 import { anonymityRewardPointsToTNT } from '@webb-tools/masp-reward';
+import { PoseidonHasher } from '@webb-tools/anchors';
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
@@ -50,6 +51,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   const anotherChainID = getChainIdType(30337);
   const levels = 30;
   const whitelistedAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+  let hasherInstance;
 
   before('should initialize trees', async () => {
     const signers = await ethers.getSigners();
@@ -62,6 +66,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     let deployerContract = await deployerFactory.deploy();
     await deployerContract.deployed();
     deployer = new Deployer(deployerContract);
+
+    hasherInstance = await PoseidonHasher.createPoseidonHasher(sender);
+
   });
 
   beforeEach('should reset trees', async () => {
@@ -175,7 +182,8 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
   // Test for masp reward
   describe('MASP Reward contract test', () => {
-    it('should be able to claim reward', async () => {
+
+    it.only('should be able to claim reward', async () => {
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
@@ -217,9 +225,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         rewardSwap.contract.address,
         rewardVerifier,
         sender.address,
+        hasherInstance.contract.address,
         maxEdges,
-        rate,
-        whitelistedAssetIDs
+        whitelistedAssetIDs,
+        rates
       );
       // set manager
       rewardSwap.initialize(rewardManager.contract.address);
@@ -293,7 +302,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
-        rate,
         spentTimestamp,
         spentRoots,
         spentPathIndices,
@@ -361,9 +369,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         rewardSwap.contract.address,
         rewardVerifier,
         sender.address,
+        hasherInstance.contract.address,
         maxEdges,
-        rate,
-        whitelistedAssetIDs
+        whitelistedAssetIDs,
+        rates
       );
       // set manager
       rewardSwap.initialize(rewardManager.contract.address);
@@ -425,7 +434,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
-        rate,
         spentTimestamp,
         spentRoots,
         spentPathIndices,
@@ -444,7 +452,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         rewardManager.reward(
           maspUtxo,
           maspPathIndices,
-          rate,
           spentTimestamp,
           spentRoots,
           spentPathIndices,

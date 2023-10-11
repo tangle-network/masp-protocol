@@ -101,22 +101,29 @@ contract RewardManager is ReentrancyGuard {
 		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
 		// validate the hash of all public data matches the hash generated inside the circuit
-		uint256 _publicDataHash = _getPublicDataHash(
+		uint256 _publicInputDataHash = _getpublicInputDataHash(
 			_whitelistedAssetIDs,
 			_rates,
 			_spentRoots,
 			_unspentRoots,
 			_publicInputs
 		);
-		require(_publicInputs.publicDataHash == _publicDataHash, "Invalid public input data");
+		require(
+			_publicInputs.publicInputDataHash == _publicInputDataHash,
+			"Invalid public input data"
+		);
 
-		// encode the publicDataHash for the Verifier
-		bytes memory encodedPublicDataHash = abi.encodePacked(
-			uint256(_publicInputs.publicDataHash)
+		// encode the publicInputDataHash for the Verifier
+		bytes memory encodedpublicInputDataHash = abi.encodePacked(
+			uint256(_publicInputs.publicInputDataHash)
 		);
 		// verify the proof
 		require(
-			IRewardVerifier(rewardVerifier).verifyProof(_proof, encodedPublicDataHash, maxEdges),
+			IRewardVerifier(rewardVerifier).verifyProof(
+				_proof,
+				encodedpublicInputDataHash,
+				maxEdges
+			),
 			"Invalid reward proof"
 		);
 
@@ -269,7 +276,7 @@ contract RewardManager is ReentrancyGuard {
 		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
 	}
 
-	function _getPublicDataHash(
+	function _getpublicInputDataHash(
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
 		uint256[] memory _spentRoots,

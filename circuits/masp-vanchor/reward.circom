@@ -97,10 +97,9 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 	//                 extDataHash,
     //                 spongeHash(whitelistedAssetIDs, rates, spentRoots, unspentRoots)
 	//              }
-	var spongeHashInputLength = sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList + length + length;
+	var spongeHashInputLength = sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList + length + length + 3;
 	component spongeHasher = SpongeHash(spongeHashInputLength, 6); // 6 - max size of poseidon hash available on-chain
 	// final hasher which hashes the output of other hashers.
-	component publicInputDataHasher = Poseidon(4);
 	for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
     	spongeHasher.in[i] <== whitelistedAssetIDs[i];
     	spongeHasher.in[sizeWhitelistedAssetIDList+i] <== rates[i];
@@ -111,9 +110,9 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
     	spongeHasher.in[currentIndex+length+i] <== unspentRoots[i];
 	}
 	currentIndex += length + length;
-    spongeHasher.inputs[currentIndex++] <== anonymityRewardPoints;
-    spongeHasher.inputs[currentIndex++] <== rewardNullifier;
-	spongeHasher.inputs[currentIndex++] <== extDataHash;
+    spongeHasher.in[currentIndex] <== anonymityRewardPoints;
+    spongeHasher.in[currentIndex+1] <== rewardNullifier;
+	spongeHasher.in[currentIndex+2] <== extDataHash;
 	publicInputDataHash === spongeHasher.out;
 
 	// TODO: Constrain time range to be less than 2^32
