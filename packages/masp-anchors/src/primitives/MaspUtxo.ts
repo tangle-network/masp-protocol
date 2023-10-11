@@ -13,7 +13,7 @@ export class MaspUtxo {
   maspKey: MaspKey;
   blinding: BigNumber;
   // Commitment
-  assetID: BigNumber;
+  assetID: number;
   tokenID: BigNumber;
   amount: BigNumber;
   index: BigNumber;
@@ -21,7 +21,7 @@ export class MaspUtxo {
   constructor(
     chainID: BigNumber,
     maspKey: MaspKey,
-    assetID: BigNumber,
+    assetID: number,
     tokenID: BigNumber,
     amount: BigNumber
   ) {
@@ -55,7 +55,7 @@ export class MaspUtxo {
     // Derive shared symmetric key
     const sharedKey = babyjub.packPoint(babyjub.mulPointEscalar(maspKey.getPublicKey(), esk));
     // Make secret to encrypt
-    const u8aAssetID = hexToU8a(this.assetID.toHexString(), 256);
+    const u8aAssetID = hexToU8a(this.assetID.toString(16), 256);
     const u8aTokenID = hexToU8a(this.tokenID.toHexString(), 256);
     const u8aAmount = hexToU8a(this.amount.toHexString(), 256);
     const u8aChainID = hexToU8a(this.chainID.toHexString(), 64);
@@ -86,7 +86,7 @@ export class MaspUtxo {
       babyjub.mulPointEscalar(epk, maspKey.getViewingKey().toString())
     );
     const decrypted = decrypt(sharedKey, 0, memo.subarray(32, 200));
-    const assetID = BigNumber.from('0x' + decrypted.subarray(0, 32).toString('hex'));
+    const assetID = parseInt('0x' + decrypted.subarray(0, 32).toString('hex'));
     const tokenID = BigNumber.from('0x' + decrypted.subarray(32, 64).toString('hex'));
     const amount = BigNumber.from('0x' + decrypted.subarray(64, 96).toString('hex'));
     const chainID = BigNumber.from('0x' + decrypted.subarray(96, 104).toString('hex'));

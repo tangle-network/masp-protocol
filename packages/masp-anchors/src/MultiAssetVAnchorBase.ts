@@ -477,12 +477,12 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
   public async generateMASPVAnchorInputs(
     roots: BigNumberish[],
     chainId: BigNumberish,
-    assetId: BigNumberish,
+    assetID: number,
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     signing_key: MaspKey,
-    feeAssetId: BigNumberish,
+    feeAssetID: number,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
@@ -504,10 +504,10 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
       pathElements: proof.pathElements,
     }));
 
-    let publicAssetId = BigNumber.from(0);
+    let publicAssetId = 0;
     let publicTokenId = BigNumber.from(0);
     if (extAmount != BigNumber.from(0)) {
-      publicAssetId = BigNumber.from(assetId);
+      publicAssetId = assetID;
       publicTokenId = BigNumber.from(tokenId);
     }
 
@@ -537,7 +537,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
     const allInputs: IMASPAllInputs = {
       publicAmount: publicAmount,
       extDataHash: extDataHash.toString(),
-      assetID: assetId,
+      assetID: assetID,
       tokenID: tokenId,
       publicAssetID: publicAssetId,
       publicTokenID: publicTokenId,
@@ -569,7 +569,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
       ak_X: signing_key.getProofAuthorizingKey()[0],
       ak_Y: signing_key.getProofAuthorizingKey()[1],
 
-      feeAssetID: feeAssetId,
+      feeAssetID: feeAssetID,
       whitelistedAssetIDs: whitelistedAssetIds,
       feeTokenID: feeTokenId,
 
@@ -630,12 +630,12 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
   public async publicInputsWithProof(
     roots: BigNumberish[],
     chainId: BigNumberish,
-    assetId: BigNumberish,
+    assetId: number,
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     signing_key: MaspKey,
-    feeAssetId: BigNumberish,
+    feeAssetId: number,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],

@@ -14,13 +14,13 @@ import { Registry } from './tokens';
 
 export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
   public async transactInner(
-    assetID: BigNumberish,
+    assetID: number,
     tokenID: BigNumberish,
     wrapUnwrapToken: string,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     fee: BigNumberish, // Most likely 0 because fee will be paid through feeInputs
-    feeAssetID: BigNumberish,
+    feeAssetID: number,
     feeTokenID: BigNumberish,
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
@@ -54,7 +54,7 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
       const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
         dummyInMaspKey,
-        BigNumber.from(assetID),
+        assetID,
         BigNumber.from(tokenID),
         BigNumber.from(0)
       );
@@ -68,7 +68,7 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
           new MaspUtxo(
             BigNumber.from(chainId),
             dummyOutMaspKey,
-            BigNumber.from(assetID),
+            assetID,
             BigNumber.from(tokenID),
             BigNumber.from(0)
           )
@@ -80,7 +80,7 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
       const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
         dummyFeeInMaspKey,
-        BigNumber.from(feeAssetID),
+        assetID,
         BigNumber.from(feeTokenID),
         BigNumber.from(0)
       );
@@ -94,7 +94,7 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
           new MaspUtxo(
             BigNumber.from(chainId),
             dummyFeeOutMaspKey,
-            BigNumber.from(feeAssetID),
+            assetID,
             BigNumber.from(feeTokenID),
             BigNumber.from(0)
           )
