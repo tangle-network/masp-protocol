@@ -253,7 +253,7 @@ export class RewardManager {
   }
 
   // Helper function to hash `IMASPRewardExtData` to a field element
-  public topublicInputDataHash(
+  public toPublicInputDataHash(
     anonymityRewardPoints: BigNumber,
     rewardNullifier: BigNumber,
     extDataHash: BigNumber,
@@ -286,8 +286,7 @@ export class RewardManager {
     const extDataHash = this.toRewardExtDataHash(extData);
     const spentRootsBigNumber = spentRoots.map(num => BigNumber.from(num));
     const unspentRootsBigNumber = unspentRoots.map(num => BigNumber.from(num));
-    const rates = this.rates.map(num => BigNumber.from(num));
-    const publicInputDataHash = this.topublicInputDataHash(anonymityRewardPoints, rewardNullifier, extDataHash, spentRootsBigNumber, unspentRootsBigNumber);
+    const publicInputDataHash = this.toPublicInputDataHash(anonymityRewardPoints, rewardNullifier, extDataHash, spentRootsBigNumber, unspentRootsBigNumber);
 
     return {
       anonymityRewardPoints: anonymityRewardPoints,

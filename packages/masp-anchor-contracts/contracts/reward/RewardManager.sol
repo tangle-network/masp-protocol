@@ -114,14 +114,14 @@ contract RewardManager is ReentrancyGuard {
 		);
 
 		// encode the publicInputDataHash for the Verifier
-		bytes memory encodedpublicInputDataHash = abi.encodePacked(
+		bytes memory encodedPublicInputDataHash = abi.encodePacked(
 			uint256(_publicInputs.publicInputDataHash)
 		);
 		// verify the proof
 		require(
 			IRewardVerifier(rewardVerifier).verifyProof(
 				_proof,
-				encodedpublicInputDataHash,
+				encodedPublicInputDataHash,
 				maxEdges
 			),
 			"Invalid reward proof"

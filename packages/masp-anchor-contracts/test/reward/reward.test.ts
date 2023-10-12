@@ -183,7 +183,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   // Test for masp reward
   describe('MASP Reward contract test', () => {
 
-    it.only('should be able to claim reward', async () => {
+    it('should be able to claim reward', async () => {
       const assetID = 1;
       const tokenID = 0;
       const rate = 10;
@@ -331,7 +331,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     it('should reject reclaim(double spend) of reward', async () => {
       const assetID = 1;
       const tokenID = 0;
-      const rate = 10;
       const fee = 1000;
 
       const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);

@@ -24,11 +24,10 @@ contract RewardProofVerifier is IRewardVerifier, ProofUtils {
 	) external view override returns (bool r) {
 		uint256[8] memory p = abi.decode(_proof, (uint256[8]));
 		(uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(p);
+		uint256[1] memory _inputs = abi.decode(input, (uint256[1]));
 		if (maxEdges == 2) {
-			uint256[18] memory _inputs = abi.decode(input, (uint256[18]));
 			return v2_30.verifyProof(a, b, c, _inputs);
 		} else if (maxEdges == 8) {
-			uint256[30] memory _inputs = abi.decode(input, (uint256[30]));
 			return v8_30.verifyProof(a, b, c, _inputs);
 		} else {
 			return false;
