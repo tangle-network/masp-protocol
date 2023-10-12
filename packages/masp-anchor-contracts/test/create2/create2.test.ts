@@ -533,6 +533,26 @@ describe('Should deploy MASP contracts to the same address', () => {
     });
 
     it('should deploy RewardManager to the same address', async () => {
+      let poseidonHasher = await PoseidonHasher.create2PoseidonHasher(deployer1, salt, sender);
+      const dummyGovernance = sender.address;
+      const dummyRewardToken = sender.address;
+
+      const rewardSwapMiningConfig = {
+        miningCap: toWei(1000000, 'ether'),
+        initialLiquidity: toWei(100000, 'ether'),
+        poolWeight: 24 * 60 * 60,
+      };
+      rewardSwap1 = await RewardSwap.create2RewardSwap(
+        deployer1,
+        sender,
+        saltHex,
+        dummyGovernance,
+        dummyRewardToken,
+        rewardSwapMiningConfig.miningCap,
+        rewardSwapMiningConfig.initialLiquidity,
+        rewardSwapMiningConfig.poolWeight
+      );
+
       rewardVerifier1 = await RewardProofVerifier.create2RewardProofVerifier(
         deployer1,
         saltHex,
@@ -540,8 +560,8 @@ describe('Should deploy MASP contracts to the same address', () => {
       );
       const rewardCircuitZkComponents = await maspRewardZkComponents[230]();
       const maxEdges = 2;
-      const rate = 1;
-      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8];
+      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
       // create a new reward manager
       const rewardManager1 = await RewardManager.create2RewardManager(
@@ -550,10 +570,11 @@ describe('Should deploy MASP contracts to the same address', () => {
         saltHex,
         rewardSwap1.contract.address,
         rewardVerifier1,
-        sender.address,
+        dummyGovernance,
+        poseidonHasher.contract.address,
         maxEdges,
-        rate,
-        initialWhitelistedAssetIds
+        initialWhitelistedAssetIds,
+        rates
       );
 
       // create another reward manager
@@ -563,10 +584,11 @@ describe('Should deploy MASP contracts to the same address', () => {
         saltHex,
         rewardSwap2.contract.address,
         rewardVerifier1,
-        sender.address,
+        dummyGovernance,
+        poseidonHasher.contract.address,
         maxEdges,
-        rate,
-        initialWhitelistedAssetIds
+        initialWhitelistedAssetIds,
+        rates
       );
 
       assert.strictEqual(rewardManager1.contract.address, rewardManager2.contract.address);

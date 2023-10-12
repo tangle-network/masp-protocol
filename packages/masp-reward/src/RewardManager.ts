@@ -118,7 +118,7 @@ export class RewardManager {
       throw new Error('whitelisted-asset-id list length must be equal to rate-list id length');
     }
 
-    const argTypes = ['address', 'address', 'address', 'address', 'uint8', 'uint256', 'uint32[]', 'uint32[]'];
+    const argTypes = ['address', 'address', 'address', 'address', 'uint8', 'uint32[]', 'uint32[]'];
     const args = [
       rewardSwapContractAddr,
       rewardVerifierContract.contract.address,
