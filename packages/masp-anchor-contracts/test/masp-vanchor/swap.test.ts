@@ -47,21 +47,21 @@ describe('swap snarkjs local proof', () => {
     const aliceSpendRecord = new MaspUtxo(
       chainID,
       aliceKey,
-      BigNumber.from(webbETHAssetID),
+      webbETHAssetID,
       BigNumber.from(webbETHTokenID),
       BigNumber.from(2e7)
     );
     const aliceChangeRecord = new MaspUtxo(
       chainID,
       aliceKey,
-      BigNumber.from(webbETHAssetID),
+      webbETHAssetID,
       BigNumber.from(webbETHTokenID),
       BigNumber.from(1e7)
     );
     const aliceReceiveRecord = new MaspUtxo(
       chainID,
       aliceKey,
-      BigNumber.from(webbBTCAssetID),
+      webbBTCAssetID,
       BigNumber.from(webbBTCTokenID),
       BigNumber.from(1e6)
     );
@@ -69,21 +69,21 @@ describe('swap snarkjs local proof', () => {
     const bobSpendRecord = new MaspUtxo(
       chainID,
       bobKey,
-      BigNumber.from(webbBTCAssetID),
+      webbBTCAssetID,
       BigNumber.from(webbBTCTokenID),
       BigNumber.from(2e6)
     );
     const bobChangeRecord = new MaspUtxo(
       chainID,
       bobKey,
-      BigNumber.from(webbBTCAssetID),
+      webbBTCAssetID,
       BigNumber.from(webbBTCTokenID),
       BigNumber.from(1e6)
     );
     const bobReceiveRecord = new MaspUtxo(
       chainID,
       bobKey,
-      BigNumber.from(webbETHAssetID),
+      webbETHAssetID,
       BigNumber.from(webbETHTokenID),
       BigNumber.from(1e7)
     );
