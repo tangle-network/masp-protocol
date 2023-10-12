@@ -312,7 +312,6 @@ export class RewardManager {
   // This function is called by the relayer to claim the reward.
   // The relayer will receive the reward amount and the fee.
   // The recipient will receive the remaining amount.
-
   public async reward(
     maspNote: MaspUtxo,
     maspNotePathIndices: number,
@@ -375,6 +374,7 @@ export class RewardManager {
     return { anonymityRewardPoints, receipt };
   }
 
+  // Get the reward rate for a given asset-id
   public getRate(assetId: number): number {
     let assetIdIndex = 0;
     let found = false;

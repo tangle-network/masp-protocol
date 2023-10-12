@@ -72,6 +72,7 @@ contract RewardManager is ReentrancyGuard {
 		maxEdges = _maxEdges;
 	}
 
+	// Claim reward in zero-knowledge for a spent note
 	function reward(
 		bytes memory _proof,
 		RewardPublicInputs memory _publicInputs,
@@ -203,6 +204,7 @@ contract RewardManager is ReentrancyGuard {
 		emit RootAddedToUnspentList(chainId, root);
 	}
 
+	// Get the latest spent roots for all edges.
 	function getLatestSpentRoots() external view returns (uint256[] memory) {
 		uint256[] memory latestSpentRoots = new uint256[](maxEdges);
 
@@ -225,6 +227,7 @@ contract RewardManager is ReentrancyGuard {
 		return latestSpentRoots;
 	}
 
+	// Get the latest unspent roots for all edges.
 	function getLatestUnspentRoots() external view returns (uint256[] memory) {
 		uint256[] memory latestUnspentRoots = new uint256[](maxEdges);
 
