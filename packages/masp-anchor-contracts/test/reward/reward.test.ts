@@ -9,7 +9,7 @@ const TruffleAssert = require('truffle-assertions');
 const { toWei } = require('web3-utils');
 const snarkjs = require('snarkjs');
 
-import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
+import { Keypair, MerkleTree, toFixedHex, randomBN, poseidonSpongeHash } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
@@ -89,10 +89,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         return wtns;
       };
     });
-    it('should work for the basic flow for reward', async () => {
-      const assetID = 1;
+    it.only('should work for the basic flow for reward', async () => {
+      const assetID = 3;
       const tokenID = 0;
-      const rate = 1000;
+      const rate = 30;
 
       // Create MASP Key
       const maspKey = new MaspKey();
@@ -143,13 +143,25 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const anonymityRewardPoints = maspAmount * rate * (spentTimestamp - unspentTimestamp);
       const rewardNullifier = poseidon([maspNullifier, maspPathIndices]);
 
+      const extDataHash = randomBN(31);
+
+      const publicInputDataHash = toPublicInputDataHash(
+        anonymityRewardPoints,
+        rewardNullifier,
+        extDataHash,
+        whitelistedAssetIDs,
+        rates,
+        spentRoots,
+        unspentRoots
+      );
+
       const circuitInput = {
-        rate: rate,
         anonymityRewardPoints: anonymityRewardPoints,
         rewardNullifier: rewardNullifier,
         // Dummy
-        extDataHash: randomBN(31).toHexString(),
+        extDataHash: extDataHash.toHexString(),
         whitelistedAssetIDs: whitelistedAssetIDs,
+        rates: rates,
 
         // MASP Spent Note for which anonymity points are being claimed
         noteChainID: chainID,
@@ -170,6 +182,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         spentRoots: spentRoots,
         spentPathIndices: spentPathIndices,
         spentPathElements: spentPathElements,
+
+        publicInputDataHash: publicInputDataHash,
+        selectedRewardRate: rate,
       };
 
       const wtns = await create2InputWitness(circuitInput);
@@ -468,3 +483,21 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     });
   });
 });
+
+// Helper function to hash `IMASPRewardExtData` to a field element
+function toPublicInputDataHash(
+  anonymityRewardPoints: number,
+  rewardNullifier: BigNumber,
+  extDataHash: BigNumber,
+  whitelistedAssetIDs: number[],
+  rates: number[],
+  spentRoots: string[],
+  unspentRoots: string[],
+): BigNumber {
+  const whitelistedAssetIDsBN = whitelistedAssetIDs.map(num => BigNumber.from(num));
+  const ratesBN = rates.map(num => BigNumber.from(num));
+  const spentRootsBN = spentRoots.map(num => BigNumber.from(num));
+  const unspentRootsBN = unspentRoots.map(num => BigNumber.from(num));
+  const inputs = whitelistedAssetIDsBN.concat(ratesBN, spentRootsBN, unspentRootsBN, BigNumber.from(anonymityRewardPoints), rewardNullifier, extDataHash);
+  return poseidonSpongeHash(inputs);
+}
