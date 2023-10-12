@@ -89,7 +89,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         return wtns;
       };
     });
-    it.only('should work for the basic flow for reward', async () => {
+    it('should work for the basic flow for reward', async () => {
       const assetID = 3;
       const tokenID = 0;
       const rate = 30;
