@@ -177,31 +177,6 @@ contract RewardManager is ReentrancyGuard {
 		emit EdgeAdded(chainId, edgeIndex);
 	}
 
-	// Update an existing edge with a new chainId.
-	function updateEdge(
-		uint256 oldChainId,
-		uint256 newChainId
-	) external onlyGovernance nonReentrant {
-		require(edgeExistsForChain[oldChainId], "Edge for old chainId does not exist");
-		require(!edgeExistsForChain[newChainId], "Edge for new chainId already exists");
-		uint256 edgeIndex = chainIdToEdgeListIndex[oldChainId];
-		chainIdToEdgeListIndex[oldChainId] = 0;
-		chainIdToEdgeListIndex[newChainId] = edgeIndex;
-		edgeExistsForChain[oldChainId] = false;
-		edgeExistsForChain[newChainId] = true;
-
-		// Clear the content of the old chain's spent and unspent root lists
-		Edge storage edge = edgeList[edgeIndex];
-		for (uint8 i = 0; i < ROOT_HISTORY_SIZE; i++) {
-			edge.currentSpentRootListIndex = 0;
-			edge.spentRootList[i] = 0;
-			edge.currentUnspentRootListIndex = 0;
-			edge.unspentRootList[i] = 0;
-		}
-
-		emit EdgeUpdated(oldChainId, newChainId);
-	}
-
 	// Add a root to the spent list of an existing edge.
 	function addRootToSpentList(
 		uint256 chainId,

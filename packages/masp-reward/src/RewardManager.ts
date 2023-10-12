@@ -182,12 +182,6 @@ export class RewardManager {
     await tx.wait();
   }
 
-  // Update an existing edge with a new chainId (only callable by the governance)
-  public async updateEdge(oldChainId: number, newChainId: number): Promise<void> {
-    const tx = await this.contract.updateEdge(oldChainId, newChainId);
-    await tx.wait();
-  }
-
   // Add a root to the spent list of an existing edge (only callable by the governance)
   public async addRootToSpentList(chainId: number, root: BigNumber): Promise<void> {
     const tx = await this.contract.addRootToSpentList(chainId, root);
