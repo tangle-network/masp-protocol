@@ -9,7 +9,7 @@ const TruffleAssert = require('truffle-assertions');
 const { toWei } = require('web3-utils');
 const snarkjs = require('snarkjs');
 
-import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
+import { Keypair, MerkleTree, toFixedHex, randomBN, poseidonSpongeHash } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
@@ -22,6 +22,7 @@ import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 import { TangleTokenMockFixedSupply__factory } from '@webb-tools/masp-anchor-contracts';
 import { anonymityRewardPointsToTNT } from '@webb-tools/masp-reward';
+import { PoseidonHasher } from '@webb-tools/anchors';
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
@@ -50,6 +51,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   const anotherChainID = getChainIdType(30337);
   const levels = 30;
   const whitelistedAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+  let hasherInstance;
 
   before('should initialize trees', async () => {
     const signers = await ethers.getSigners();
@@ -62,6 +66,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     let deployerContract = await deployerFactory.deploy();
     await deployerContract.deployed();
     deployer = new Deployer(deployerContract);
+
+    hasherInstance = await PoseidonHasher.createPoseidonHasher(sender);
+
   });
 
   beforeEach('should reset trees', async () => {
@@ -83,9 +90,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       };
     });
     it('should work for the basic flow for reward', async () => {
-      const assetID = 1;
+      const assetID = 3;
       const tokenID = 0;
-      const rate = 1000;
+      const rate = 30;
 
       // Create MASP Key
       const maspKey = new MaspKey();
@@ -95,7 +102,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        BigNumber.from(assetID),
+        assetID,
         BigNumber.from(tokenID),
         BigNumber.from(maspAmount)
       );
@@ -136,13 +143,25 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const anonymityRewardPoints = maspAmount * rate * (spentTimestamp - unspentTimestamp);
       const rewardNullifier = poseidon([maspNullifier, maspPathIndices]);
 
+      const extDataHash = randomBN(31);
+
+      const publicInputDataHash = toPublicInputDataHash(
+        anonymityRewardPoints,
+        rewardNullifier,
+        extDataHash,
+        whitelistedAssetIDs,
+        rates,
+        spentRoots,
+        unspentRoots
+      );
+
       const circuitInput = {
-        rate: rate,
         anonymityRewardPoints: anonymityRewardPoints,
         rewardNullifier: rewardNullifier,
         // Dummy
-        extDataHash: randomBN(31).toHexString(),
+        extDataHash: extDataHash.toHexString(),
         whitelistedAssetIDs: whitelistedAssetIDs,
+        rates: rates,
 
         // MASP Spent Note for which anonymity points are being claimed
         noteChainID: chainID,
@@ -163,6 +182,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         spentRoots: spentRoots,
         spentPathIndices: spentPathIndices,
         spentPathElements: spentPathElements,
+
+        publicInputDataHash: publicInputDataHash,
+        selectedRewardRate: rate,
       };
 
       const wtns = await create2InputWitness(circuitInput);
@@ -175,6 +197,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
   // Test for masp reward
   describe('MASP Reward contract test', () => {
+
     it('should be able to claim reward', async () => {
       const assetID = 1;
       const tokenID = 0;
@@ -217,9 +240,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         rewardSwap.contract.address,
         rewardVerifier,
         sender.address,
+        hasherInstance.contract.address,
         maxEdges,
-        rate,
-        whitelistedAssetIDs
+        whitelistedAssetIDs,
+        rates
       );
       // set manager
       rewardSwap.initialize(rewardManager.contract.address);
@@ -236,7 +260,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        BigNumber.from(assetID),
+        assetID,
         BigNumber.from(tokenID),
         BigNumber.from(maspAmount)
       );
@@ -293,7 +317,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
-        rate,
         spentTimestamp,
         spentRoots,
         spentPathIndices,
@@ -323,7 +346,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     it('should reject reclaim(double spend) of reward', async () => {
       const assetID = 1;
       const tokenID = 0;
-      const rate = 10;
       const fee = 1000;
 
       const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
@@ -361,9 +383,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         rewardSwap.contract.address,
         rewardVerifier,
         sender.address,
+        hasherInstance.contract.address,
         maxEdges,
-        rate,
-        whitelistedAssetIDs
+        whitelistedAssetIDs,
+        rates
       );
       // set manager
       rewardSwap.initialize(rewardManager.contract.address);
@@ -380,7 +403,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        BigNumber.from(assetID),
+        assetID,
         BigNumber.from(tokenID),
         BigNumber.from(maspAmount)
       );
@@ -425,7 +448,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
-        rate,
         spentTimestamp,
         spentRoots,
         spentPathIndices,
@@ -444,7 +466,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         rewardManager.reward(
           maspUtxo,
           maspPathIndices,
-          rate,
           spentTimestamp,
           spentRoots,
           spentPathIndices,
@@ -462,3 +483,21 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     });
   });
 });
+
+// Helper function to hash `IMASPRewardExtData` to a field element
+function toPublicInputDataHash(
+  anonymityRewardPoints: number,
+  rewardNullifier: BigNumber,
+  extDataHash: BigNumber,
+  whitelistedAssetIDs: number[],
+  rates: number[],
+  spentRoots: string[],
+  unspentRoots: string[],
+): BigNumber {
+  const whitelistedAssetIDsBN = whitelistedAssetIDs.map(num => BigNumber.from(num));
+  const ratesBN = rates.map(num => BigNumber.from(num));
+  const spentRootsBN = spentRoots.map(num => BigNumber.from(num));
+  const unspentRootsBN = unspentRoots.map(num => BigNumber.from(num));
+  const inputs = whitelistedAssetIDsBN.concat(ratesBN, spentRootsBN, unspentRootsBN, BigNumber.from(anonymityRewardPoints), rewardNullifier, extDataHash);
+  return poseidonSpongeHash(inputs);
+}

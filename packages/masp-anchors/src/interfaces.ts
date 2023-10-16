@@ -10,7 +10,7 @@ export interface QueueDepositInfo {
   unwrappedToken: string;
   wrappedToken: string;
   amount: BigNumberish;
-  assetID: BigNumberish;
+  assetID: number;
   tokenID: BigNumberish;
   depositPartialCommitment: string;
   commitment: string;
@@ -22,7 +22,7 @@ export interface IMASPVAnchorPublicInputs {
   proof: BigNumberish;
   publicAmount: BigNumberish;
   extDataHash: BigNumberish;
-  publicAssetID: BigNumberish;
+  publicAssetID: number;
   publicTokenID: BigNumberish;
   inputNullifier: BigNumberish[];
   outputCommitment: BigNumberish[];
@@ -37,9 +37,9 @@ export interface IMASPVAnchorPublicInputs {
 export type IMASPAllInputs = {
   publicAmount: BigNumberish;
   extDataHash: BigNumberish;
-  assetID: BigNumberish;
+  assetID: number;
   tokenID: BigNumberish;
-  publicAssetID: BigNumberish;
+  publicAssetID: number;
   publicTokenID: BigNumberish;
 
   // data for transaction inputs
@@ -69,7 +69,7 @@ export type IMASPAllInputs = {
   ak_X: BigNumberish;
   ak_Y: BigNumberish;
 
-  feeAssetID: BigNumberish;
+  feeAssetID: number;
   whitelistedAssetIDs: BigNumberish[];
   feeTokenID: BigNumberish;
 

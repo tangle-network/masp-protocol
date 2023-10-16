@@ -13,7 +13,7 @@ export class MaspUtxo {
   maspKey: MaspKey;
   blinding: BigNumber;
   // Commitment
-  assetID: BigNumber;
+  assetID: number;
   tokenID: BigNumber;
   amount: BigNumber;
   index: BigNumber;
@@ -21,7 +21,7 @@ export class MaspUtxo {
   constructor(
     chainID: BigNumber,
     maspKey: MaspKey,
-    assetID: BigNumber,
+    assetID: number,
     tokenID: BigNumber,
     amount: BigNumber
   ) {
@@ -55,7 +55,7 @@ export class MaspUtxo {
     // Derive shared symmetric key
     const sharedKey = babyjub.packPoint(babyjub.mulPointEscalar(maspKey.getPublicKey(), esk));
     // Make secret to encrypt
-    const u8aAssetID = hexToU8a(this.assetID.toHexString(), 256);
+    const u8aAssetID = numberToU8Array(this.assetID);
     const u8aTokenID = hexToU8a(this.tokenID.toHexString(), 256);
     const u8aAmount = hexToU8a(this.amount.toHexString(), 256);
     const u8aChainID = hexToU8a(this.chainID.toHexString(), 64);
@@ -71,7 +71,7 @@ export class MaspUtxo {
     // Create chacha20 ciphertext
     const ciphertext = encrypt(sharedKey, 0, Buffer.concat(secret));
     // Return Concatenation ciphertext with ephemeral public key
-    // Total Bytes 32 epk + 32 assetID + 32 tokenID + 32 amount + 8 chainID + 32 pubkey + 32 blinding = 200 bytes
+    // Total Bytes 32 epk + 4 assetID + 32 tokenID + 32 amount + 8 chainID + 32 pubkey + 32 blinding = 172 bytes
     // TODO: Num of bytes can likely be reduced.
     const encryptedMemo = [
       babyjub.packPoint(babyjub.mulPointEscalar(babyjub.Base8, esk)),
@@ -85,16 +85,16 @@ export class MaspUtxo {
     const sharedKey = babyjub.packPoint(
       babyjub.mulPointEscalar(epk, maspKey.getViewingKey().toString())
     );
-    const decrypted = decrypt(sharedKey, 0, memo.subarray(32, 200));
-    const assetID = BigNumber.from('0x' + decrypted.subarray(0, 32).toString('hex'));
-    const tokenID = BigNumber.from('0x' + decrypted.subarray(32, 64).toString('hex'));
-    const amount = BigNumber.from('0x' + decrypted.subarray(64, 96).toString('hex'));
-    const chainID = BigNumber.from('0x' + decrypted.subarray(96, 104).toString('hex'));
-    const pubKey = babyjub.unpackPoint(decrypted.subarray(104, 136));
+    const decrypted = decrypt(sharedKey, 0, memo.subarray(32, 172));
+    const assetID = parseInt('0x' + decrypted.subarray(0, 4).toString('hex'));
+    const tokenID = BigNumber.from('0x' + decrypted.subarray(4, 36).toString('hex'));
+    const amount = BigNumber.from('0x' + decrypted.subarray(36, 68).toString('hex'));
+    const chainID = BigNumber.from('0x' + decrypted.subarray(68, 76).toString('hex'));
+    const pubKey = babyjub.unpackPoint(decrypted.subarray(76, 108));
     if (pubKey == null) {
       return undefined;
     }
-    const blinding = BigNumber.from('0x' + decrypted.subarray(136, 168).toString('hex'));
+    const blinding = BigNumber.from('0x' + decrypted.subarray(108, 140).toString('hex'));
 
     const calculatedInnerPartialCommitment = BigNumber.from(poseidon([blinding]));
 
@@ -143,4 +143,11 @@ export class MaspUtxo {
   public forceSetIndex(index: BigNumber) {
     this.index = index;
   }
+}
+
+function numberToU8Array(value: number): Uint8Array {
+  let buffer = new ArrayBuffer(4); // 4 bytes for 32-bit integer
+  let view = new DataView(buffer);
+  view.setInt32(0, value, false); // Using big-endian order
+  return new Uint8Array(buffer);
 }
