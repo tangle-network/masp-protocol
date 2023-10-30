@@ -37,7 +37,7 @@ describe('NftTokenWrapper', () => {
       assert.strictEqual(await token.contract.name(), tokenName);
       assert.strictEqual(await token.contract.symbol(), tokenSymbol);
 
-      assert.strictEqual((await wrappedNft.contract.proposalNonce()), 0);
+      assert.strictEqual(await wrappedNft.contract.proposalNonce(), 0);
       assert.strictEqual(await wrappedNft.contract.handler(), sender.address);
     });
   });
