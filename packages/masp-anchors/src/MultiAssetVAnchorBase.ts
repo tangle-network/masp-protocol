@@ -477,12 +477,12 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
   public async generateMASPVAnchorInputs(
     roots: BigNumberish[],
     chainId: BigNumberish,
-    assetID: number,
+    assetID: BigNumberish,
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     signing_key: MaspKey,
-    feeAssetID: number,
+    feeAssetID: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
@@ -504,10 +504,10 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
       pathElements: proof.pathElements,
     }));
 
-    let publicAssetId = 0;
+    let publicAssetId = BigNumber.from(0);
     let publicTokenId = BigNumber.from(0);
     if (extAmount != BigNumber.from(0)) {
-      publicAssetId = assetID;
+      publicAssetId = BigNumber.from(assetID);
       publicTokenId = BigNumber.from(tokenId);
     }
 
@@ -630,12 +630,12 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
   public async publicInputsWithProof(
     roots: BigNumberish[],
     chainId: BigNumberish,
-    assetId: number,
+    assetId: BigNumberish,
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     signing_key: MaspKey,
-    feeAssetId: number,
+    feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],

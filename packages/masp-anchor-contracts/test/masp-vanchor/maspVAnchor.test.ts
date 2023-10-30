@@ -249,7 +249,7 @@ describe('MASP for 2 max edges', () => {
     await mintTx7.wait();
 
     // Register a wrapped non-fungible WEBB token
-    const webbNftAssetId = 2;
+    const webbNftAssetId = BigNumber.from(2);
     const unwrappedNftAddr = await unwrappedERC721_1.contract.address;
     const webbNftSalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
     const webbNftName = '0x' + Buffer.from(randomBytes(32)).toString('hex');
@@ -290,7 +290,7 @@ describe('MASP for 2 max edges', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        assetID,
+        BigNumber.from(assetID),
         BigNumber.from(tokenID),
         BigNumber.from(0)
       );
@@ -317,7 +317,7 @@ describe('MASP for 2 max edges', () => {
   });
 
   describe('MASP snark proof native verification on js side', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const extAmount = 1e7;
       const relayer = '0x2111111111111111111111111111111111111111';
       const recipient = '0x1111111111111111111111111111111111111111';
@@ -331,14 +331,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(0)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(0)
         ),
@@ -347,14 +347,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(1e7)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(0)
         ),
@@ -364,14 +364,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
@@ -380,14 +380,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
@@ -908,7 +908,7 @@ describe('MASP for 2 max edges', () => {
       const bob_key = new MaspKey();
       const carol_key = new MaspKey();
 
-      const webbFungibleAssetID = 1;
+      const webbFungibleAssetID = BigNumber.from(1);
       const webbFungibleTokenID = BigNumber.from(0);
 
       // 4 Masp Utxos
@@ -1156,7 +1156,7 @@ describe('MASP for 2 max edges', () => {
       const carol_key = new MaspKey();
       const dave_key = new MaspKey();
 
-      const webbFungibleAssetID = 1;
+      const webbFungibleAssetID = BigNumber.from(1);
       const webbFungibleTokenID = BigNumber.from(0);
 
       // 4 Masp Utxos
@@ -1343,7 +1343,7 @@ describe('MASP for 2 max edges', () => {
       const carol_key = new MaspKey();
       const dave_key = new MaspKey();
 
-      const webbNftAssetID = 2;
+      const webbNftAssetID = BigNumber.from(2);
 
       // 4 Masp Utxos
       const alice_utxo = new MaspUtxo(
@@ -1501,7 +1501,7 @@ describe('MASP for 2 max edges', () => {
       const carol_key = new MaspKey();
       const dave_key = new MaspKey();
       // Queue ERC20 deposits
-      const webbFungibleAssetID = 1;
+      const webbFungibleAssetID = BigNumber.from(1);
       const webbFungibleTokenID = BigNumber.from(0);
       // 4 Masp Utxos
       const alice_fungible_utxo = new MaspUtxo(
@@ -1609,7 +1609,7 @@ describe('MASP for 2 max edges', () => {
       );
 
       // Queue ERC721 deposits
-      const webbNftAssetID = 2;
+      const webbNftAssetID = BigNumber.from(2);
 
       // 4 Masp Utxos
       const alice_nft_utxo = new MaspUtxo(
