@@ -55,7 +55,7 @@ export class MaspUtxo {
     // Derive shared symmetric key
     const sharedKey = babyjub.packPoint(babyjub.mulPointEscalar(maspKey.getPublicKey(), esk));
     // Make secret to encrypt
-    const u8aAssetID = hexToU8a(this.assetID.toHexString(), 256);
+    const u8aAssetID = numberToU8Array(this.assetID.toNumber());
     const u8aTokenID = hexToU8a(this.tokenID.toHexString(), 256);
     const u8aAmount = hexToU8a(this.amount.toHexString(), 256);
     const u8aChainID = hexToU8a(this.chainID.toHexString(), 64);
@@ -86,7 +86,7 @@ export class MaspUtxo {
       babyjub.mulPointEscalar(epk, maspKey.getViewingKey().toString())
     );
     const decrypted = decrypt(sharedKey, 0, memo.subarray(32, 172));
-    const assetID = BigNumber.from('0x' + decrypted.subarray(0, 32).toString('hex'));
+    const assetID = BigNumber.from('0x' + decrypted.subarray(0, 4).toString('hex'));
     const tokenID = BigNumber.from('0x' + decrypted.subarray(4, 36).toString('hex'));
     const amount = BigNumber.from('0x' + decrypted.subarray(36, 68).toString('hex'));
     const chainID = BigNumber.from('0x' + decrypted.subarray(68, 76).toString('hex'));
@@ -111,6 +111,7 @@ export class MaspUtxo {
       poseidon([assetID, tokenID, amount, calculatedPartialCommitment.toString()])
     );
 
+    console.log(calculatedCommitment, commitment);
     if (calculatedCommitment.eq(commitment)) {
       return {
         assetID: assetID,

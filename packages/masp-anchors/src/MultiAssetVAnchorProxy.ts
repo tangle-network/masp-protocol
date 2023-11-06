@@ -82,6 +82,7 @@ export class MultiAssetVAnchorProxy {
       await this.getQueuedDeposits(masp.contract.address, startQueueIndex, batchSize)
     ).map((x) => x.commitment.toString());
     const batchProofInfo = await masp.depositTree.generateProof(batchSize.toNumber(), leaves);
+
     const batchTx = await this.contract.batchInsertDeposits(
       masp.contract.address,
       batchProofInfo.proof,
@@ -91,7 +92,7 @@ export class MultiAssetVAnchorProxy {
       batchProofInfo.input.pathIndices,
       batchHeight
     );
-
+    console.log('here2');
     await batchTx.wait();
   }
 

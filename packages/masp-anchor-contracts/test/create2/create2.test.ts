@@ -34,6 +34,10 @@ import {
   maspRewardFixtures,
   batchTreeFixtures,
 } from '@webb-tools/protocol-solidity-extension-utils';
+import {
+  RewardEncodeInputs__factory,
+  RewardManager__factory,
+} from '@webb-tools/masp-anchor-contracts';
 
 const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
@@ -532,33 +536,34 @@ describe('Should deploy MASP contracts to the same address', () => {
       assert.strictEqual(rewardSwap1.contract.address, rewardSwap2.contract.address);
     });
 
-    it('should deploy RewardManager to the same address', async () => {
-      let poseidonHasher = await PoseidonHasher.create2PoseidonHasher(deployer1, salt, sender);
-      const dummyGovernance = sender.address;
-      const dummyRewardToken = sender.address;
+    it('should deploy RewardManager and get gas cost', async () => {
+      const maxEdges = 2;
+      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+      const zkComponents = await maspRewardZkComponents[230]();
 
-      const rewardSwapMiningConfig = {
-        miningCap: toWei(1000000, 'ether'),
-        initialLiquidity: toWei(100000, 'ether'),
-        poolWeight: 24 * 60 * 60,
+      const rewardEncodeLibraryFactory = new RewardEncodeInputs__factory(sender);
+      const rewardEncodeLibrary = await rewardEncodeLibraryFactory.deploy();
+      const libraryAddresses = {
+        ['contracts/reward/RewardEncodeInputs.sol:RewardEncodeInputs']: rewardEncodeLibrary.address,
       };
-      rewardSwap1 = await RewardSwap.create2RewardSwap(
-        deployer1,
-        sender,
-        saltHex,
-        dummyGovernance,
-        dummyRewardToken,
-        rewardSwapMiningConfig.miningCap,
-        rewardSwapMiningConfig.initialLiquidity,
-        rewardSwapMiningConfig.poolWeight
-      );
 
-      rewardVerifier1 = await RewardProofVerifier.create2RewardProofVerifier(
-        deployer1,
-        saltHex,
-        sender
+      const factory = new RewardManager__factory(libraryAddresses, sender);
+      const deployTx = await factory.getDeployTransaction(
+        sender.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        maxEdges,
+        initialWhitelistedAssetIds,
+        rates
       );
-      const rewardCircuitZkComponents = await maspRewardZkComponents[230]();
+      const gas = await ethers.provider.estimateGas(deployTx);
+      assert.ok(gas);
+    });
+
+    it('should deploy RewardManager to the same address', async () => {
+      const dummyGovernance = sender.address;
       const maxEdges = 2;
       const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -571,7 +576,7 @@ describe('Should deploy MASP contracts to the same address', () => {
         rewardSwap1.contract.address,
         rewardVerifier1,
         dummyGovernance,
-        poseidonHasher.contract.address,
+        poseidonHasher1.contract.address,
         maxEdges,
         initialWhitelistedAssetIds,
         rates
@@ -585,7 +590,7 @@ describe('Should deploy MASP contracts to the same address', () => {
         rewardSwap2.contract.address,
         rewardVerifier1,
         dummyGovernance,
-        poseidonHasher.contract.address,
+        poseidonHasher2.contract.address,
         maxEdges,
         initialWhitelistedAssetIds,
         rates

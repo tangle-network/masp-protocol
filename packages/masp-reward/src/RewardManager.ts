@@ -67,6 +67,7 @@ export class RewardManager {
     if (initialWhitelistedAssetIds.length != rates.length) {
       throw new Error('whitelisted-asset-id list length must be equal to rate-list id length');
     }
+
     const { contract: rewardEncodeLibrary } = await deployer.deploy(
       RewardEncodeInputs__factory,
       saltHex,
@@ -135,6 +136,7 @@ export class RewardManager {
       initialWhitelistedAssetIds,
       rates,
     ];
+
     const { contract: rewardEncodeLibrary } = await deployer.deploy(
       RewardEncodeInputs__factory,
       saltHex,
