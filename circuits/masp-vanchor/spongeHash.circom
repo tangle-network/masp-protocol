@@ -6,8 +6,8 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 // https://github.com/iden3/circuits/blob/8fffb6609ecad0b7bcda19bb908bdb544bdb3cf7/circuits/lib/utils/spongeHash.circom
 // Because of the way the Poseidon hash function is implemented for Solidity, the max number of inputs must be 6
 template SpongeHash(arraySize, hashFnBatchSize) {
-	signal input in[arraySize];
-	signal output out;
+    signal input in[arraySize];
+    signal output out;
     var batchSize = hashFnBatchSize - 1; // 1 input is reserved for the hash of the previous iteration
     var iterationCount = 0;
     component firstPoseidon = Poseidon(hashFnBatchSize);
@@ -16,11 +16,11 @@ template SpongeHash(arraySize, hashFnBatchSize) {
     }
 
     var restLength = arraySize - hashFnBatchSize > 0 ? arraySize - hashFnBatchSize : 0;
-	if (restLength > 0) {
-		var r = restLength % batchSize;
-		var diff = r == 0 ? 0 : batchSize - r;
-		iterationCount = (restLength + diff) / batchSize;
-	}
+    if (restLength > 0) {
+        var r = restLength % batchSize;
+        var diff = r == 0 ? 0 : batchSize - r;
+        iterationCount = (restLength + diff) / batchSize;
+    }
 
     signal fullHash[iterationCount+1];
 
@@ -46,10 +46,9 @@ template SpongeHash(arraySize, hashFnBatchSize) {
 
 
 function getArrayValueByIndex(valueArray, arraySize, idx) {
-
-   if(idx < arraySize) {
+    if (idx < arraySize) {
         return valueArray[idx];
-    } else{
+    } else {
         return 0;
     }
 }

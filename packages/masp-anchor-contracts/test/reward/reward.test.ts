@@ -68,7 +68,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     deployer = new Deployer(deployerContract);
 
     hasherInstance = await PoseidonHasher.createPoseidonHasher(sender);
-
   });
 
   beforeEach('should reset trees', async () => {
@@ -197,7 +196,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
   // Test for masp reward
   describe('MASP Reward contract test', () => {
-
     it('should be able to claim reward', async () => {
       const assetID = 1;
       const tokenID = 0;
@@ -492,12 +490,19 @@ function toPublicInputDataHash(
   whitelistedAssetIDs: number[],
   rates: number[],
   spentRoots: string[],
-  unspentRoots: string[],
+  unspentRoots: string[]
 ): BigNumber {
-  const whitelistedAssetIDsBN = whitelistedAssetIDs.map(num => BigNumber.from(num));
-  const ratesBN = rates.map(num => BigNumber.from(num));
-  const spentRootsBN = spentRoots.map(num => BigNumber.from(num));
-  const unspentRootsBN = unspentRoots.map(num => BigNumber.from(num));
-  const inputs = whitelistedAssetIDsBN.concat(ratesBN, spentRootsBN, unspentRootsBN, BigNumber.from(anonymityRewardPoints), rewardNullifier, extDataHash);
+  const whitelistedAssetIDsBN = whitelistedAssetIDs.map((num) => BigNumber.from(num));
+  const ratesBN = rates.map((num) => BigNumber.from(num));
+  const spentRootsBN = spentRoots.map((num) => BigNumber.from(num));
+  const unspentRootsBN = unspentRoots.map((num) => BigNumber.from(num));
+  const inputs = whitelistedAssetIDsBN.concat(
+    ratesBN,
+    spentRootsBN,
+    unspentRootsBN,
+    BigNumber.from(anonymityRewardPoints),
+    rewardNullifier,
+    extDataHash
+  );
   return poseidonSpongeHash(inputs);
 }

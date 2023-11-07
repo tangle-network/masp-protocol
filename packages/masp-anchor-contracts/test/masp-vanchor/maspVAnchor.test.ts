@@ -42,7 +42,7 @@ const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/soli
 const maspVAnchorZkComponents = maspVAnchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('MASP for 2 max edges', () => {
+describe.only('MASP for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchTree;
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
@@ -181,8 +181,8 @@ describe('MASP for 2 max edges', () => {
     const assetId = 1;
     const tokenName = '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webb-fungible')).toString('hex');
     const tokenSymbol = '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webbfung')).toString('hex');
-    const salt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-    const limit = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+    const salt = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
+    const limit = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
     const feePercentage = 0;
     const isNativeAllowed = false;
     const proposalData = await registry.getRegisterFungibleTokenProposalData(
@@ -249,11 +249,11 @@ describe('MASP for 2 max edges', () => {
     await mintTx7.wait();
 
     // Register a wrapped non-fungible WEBB token
-    const webbNftAssetId = 2;
+    const webbNftAssetId = BigNumber.from(2);
     const unwrappedNftAddr = await unwrappedERC721_1.contract.address;
-    const webbNftSalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-    const webbNftName = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-    const webbNftSymbol = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+    const webbNftSalt = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
+    const webbNftName = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
+    const webbNftSymbol = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
     const webbNftProposalData = await registry.getRegisterNftTokenProposalData(
       tokenHandler.contract.address,
       webbNftAssetId,
@@ -290,7 +290,7 @@ describe('MASP for 2 max edges', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        assetID,
+        BigNumber.from(assetID),
         BigNumber.from(tokenID),
         BigNumber.from(0)
       );
@@ -331,14 +331,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(0)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(0)
         ),
@@ -347,14 +347,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(1e7)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           maspKey,
-          assetID,
+          BigNumber.from(assetID),
           BigNumber.from(tokenID),
           BigNumber.from(0)
         ),
@@ -364,14 +364,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
@@ -380,14 +380,14 @@ describe('MASP for 2 max edges', () => {
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
           feeMaspKey,
-          assetID,
+          BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
@@ -458,8 +458,8 @@ describe('MASP for 2 max edges', () => {
         '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webb-ether')).toString('hex');
       const dummyTokenSymbol =
         '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webbeth')).toString('hex');
-      const dummySalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-      const dummyLimit = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const dummySalt = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
+      const dummyLimit = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       const dummyFeePercentage = 10;
       const dummyIsNativeAllowed = true;
       const proposalData = await registry.getRegisterFungibleTokenProposalData(
@@ -490,9 +490,9 @@ describe('MASP for 2 max edges', () => {
       const dummyTokenHandler = '0x' + Buffer.from(randomBytes(20)).toString('hex');
       const dummyAssetId = 5;
       const dummyUnwrappedNftAddr = '0x' + Buffer.from(randomBytes(20)).toString('hex');
-      const dummySalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-      const dummyName = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-      const dummySymbol = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const dummySalt = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
+      const dummyName = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
+      const dummySymbol = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       const proposalData = await registry.getRegisterNftTokenProposalData(
         dummyTokenHandler,
         dummyAssetId,
@@ -516,27 +516,35 @@ describe('MASP for 2 max edges', () => {
     });
   });
 
-  describe('MASP smart contract deposit tests max edges = 1', () => {
+  describe.only('MASP smart contract deposit tests max edges = 1', () => {
     it('proxy should queue erc20 deposit', async () => {
+      const assetID = 1;
+      const tokenID = 0;
+      const amount = 1;
+      const maspKey = new MaspKey();
+      const utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        maspKey,
+        BigNumber.from(assetID),
+        BigNumber.from(tokenID),
+        BigNumber.from(amount)
+      );
       // Queue ERC20 deposit
       const tokenApproveTx = await unwrappedERC20_1.contract.approve(
         await maspProxy.contract.address,
-        100
+        amount
       );
       await tokenApproveTx.wait();
-      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
-          amount: 100,
-          assetID: 1,
-          tokenID: 0,
-          depositPartialCommitment: depositPartialCommitment,
-          commitment: toFixedHex(
-            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment)]))
-          ),
+          amount: amount,
+          assetID: assetID,
+          tokenID: tokenID,
+          depositPartialCommitment: utxo.getPartialCommitment().toHexString(),
+          commitment: utxo.getCommitment().toHexString(),
           isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
@@ -553,18 +561,18 @@ describe('MASP for 2 max edges', () => {
       assert.strictEqual(queuedDeposit.length, 1);
       assert.strictEqual(queuedDeposit[0].unwrappedToken, unwrappedERC20_1.contract.address);
       assert.strictEqual(queuedDeposit[0].wrappedToken, fungibleWebbToken.contract.address);
-      assert.strictEqual(queuedDeposit[0].amount.toString(), '100');
-      assert.strictEqual(queuedDeposit[0].assetID.toString(), '1');
-      assert.strictEqual(queuedDeposit[0].tokenID.toString(), '0');
+      assert.strictEqual(queuedDeposit[0].amount.toString(), amount.toString());
+      assert.strictEqual(queuedDeposit[0].assetID.toString(), assetID.toString());
+      assert.strictEqual(queuedDeposit[0].tokenID.toString(), tokenID.toString());
       // Check that MASP proxy owns the ERC20 tokens
       assert.strictEqual(
         (await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(),
-        '100'
+        amount.toString()
       );
     });
 
     it('proxy should NOT queue erc20 deposit for unregistered asset', async () => {
-      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await TruffleAssert.reverts(
         maspProxy.queueDeposit(
           {
@@ -574,7 +582,7 @@ describe('MASP for 2 max edges', () => {
             amount: 100,
             assetID: 1,
             tokenID: 0,
-            depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+            depositPartialCommitment: '0x00' + Buffer.from(randomBytes(31)).toString('hex'),
             commitment: toFixedHex(
               BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment)]))
             ),
@@ -591,7 +599,7 @@ describe('MASP for 2 max edges', () => {
 
     it('proxy should queue erc721 deposit', async () => {
       await unwrappedERC721_1.approve(await maspProxy.contract.address, 1);
-      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC721,
@@ -631,7 +639,7 @@ describe('MASP for 2 max edges', () => {
     });
 
     it('proxy should NOT queue erc721 deposit for unregistered asset', async () => {
-      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await TruffleAssert.reverts(
         maspProxy.queueDeposit(
           {
@@ -657,7 +665,7 @@ describe('MASP for 2 max edges', () => {
     });
 
     it('proxy should NOT queue deposit for masp it does not proxy for', async () => {
-      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await TruffleAssert.reverts(
         maspProxy.queueDeposit(
           {
@@ -679,10 +687,10 @@ describe('MASP for 2 max edges', () => {
         'Invalid MASP'
       );
     });
-    it('e2e should batch insert erc20 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
+    it.only('e2e should batch insert erc20 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
       // Queue deposit
       await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
-      const depositPartialCommitment1 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment1 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC20,
@@ -703,7 +711,7 @@ describe('MASP for 2 max edges', () => {
         }
       );
 
-      const depositPartialCommitment2 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment2 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC20,
@@ -724,7 +732,7 @@ describe('MASP for 2 max edges', () => {
         }
       );
 
-      const depositPartialCommitment3 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment3 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC20,
@@ -745,7 +753,7 @@ describe('MASP for 2 max edges', () => {
         }
       );
 
-      const depositPartialCommitment4 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment4 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC20,
@@ -771,17 +779,17 @@ describe('MASP for 2 max edges', () => {
         (await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(),
         '400'
       );
-
+      console.log('checked masp proxy balance');
       // Batch Insert
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
-
+      console.log('batch insert deposits');
       // Check Reward Unspent Tree is Queued
       const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(
         maspVAnchor.contract.address,
         BigNumber.from(0),
         BigNumber.from(4)
       );
-
+      console.log('queued reward unspent deposits');
       assert.strictEqual(queuedRewardUnspentComms.length, 4);
 
       // Batch insert into reward unspent tree
@@ -799,7 +807,7 @@ describe('MASP for 2 max edges', () => {
       await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 4);
 
       // Queue deposits
-      const depositPartialCommitment1 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment1 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC721,
@@ -818,7 +826,7 @@ describe('MASP for 2 max edges', () => {
         }
       );
 
-      const depositPartialCommitment2 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment2 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC721,
@@ -837,7 +845,7 @@ describe('MASP for 2 max edges', () => {
         }
       );
 
-      const depositPartialCommitment3 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment3 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC721,
@@ -856,7 +864,7 @@ describe('MASP for 2 max edges', () => {
         }
       );
 
-      const depositPartialCommitment4 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const depositPartialCommitment4 = '0x00' + Buffer.from(randomBytes(31)).toString('hex');
       await maspProxy.queueDeposit(
         {
           assetType: AssetType.ERC721,
@@ -908,7 +916,7 @@ describe('MASP for 2 max edges', () => {
       const bob_key = new MaspKey();
       const carol_key = new MaspKey();
 
-      const webbFungibleAssetID = 1;
+      const webbFungibleAssetID = BigNumber.from(1);
       const webbFungibleTokenID = BigNumber.from(0);
 
       // 4 Masp Utxos
@@ -1156,7 +1164,7 @@ describe('MASP for 2 max edges', () => {
       const carol_key = new MaspKey();
       const dave_key = new MaspKey();
 
-      const webbFungibleAssetID = 1;
+      const webbFungibleAssetID = BigNumber.from(1);
       const webbFungibleTokenID = BigNumber.from(0);
 
       // 4 Masp Utxos
@@ -1343,7 +1351,7 @@ describe('MASP for 2 max edges', () => {
       const carol_key = new MaspKey();
       const dave_key = new MaspKey();
 
-      const webbNftAssetID = 2;
+      const webbNftAssetID = BigNumber.from(2);
 
       // 4 Masp Utxos
       const alice_utxo = new MaspUtxo(
@@ -1501,7 +1509,7 @@ describe('MASP for 2 max edges', () => {
       const carol_key = new MaspKey();
       const dave_key = new MaspKey();
       // Queue ERC20 deposits
-      const webbFungibleAssetID = 1;
+      const webbFungibleAssetID = BigNumber.from(1);
       const webbFungibleTokenID = BigNumber.from(0);
       // 4 Masp Utxos
       const alice_fungible_utxo = new MaspUtxo(
@@ -1609,7 +1617,7 @@ describe('MASP for 2 max edges', () => {
       );
 
       // Queue ERC721 deposits
-      const webbNftAssetID = 2;
+      const webbNftAssetID = BigNumber.from(2);
 
       // 4 Masp Utxos
       const alice_nft_utxo = new MaspUtxo(

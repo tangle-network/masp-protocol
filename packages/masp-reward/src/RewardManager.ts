@@ -53,7 +53,7 @@ export class RewardManager {
     hasherAddr: string,
     maxEdges: number,
     initialWhitelistedAssetIds: number[],
-    rates: number[],
+    rates: number[]
   ) {
     let zkComponents: ZkComponents;
 
@@ -67,6 +67,7 @@ export class RewardManager {
     if (initialWhitelistedAssetIds.length != rates.length) {
       throw new Error('whitelisted-asset-id list length must be equal to rate-list id length');
     }
+
     const { contract: rewardEncodeLibrary } = await deployer.deploy(
       RewardEncodeInputs__factory,
       saltHex,
@@ -88,7 +89,14 @@ export class RewardManager {
     );
     await manager.deployed();
 
-    return new RewardManager(manager, signer, zkComponents, maxEdges, initialWhitelistedAssetIds, rates);
+    return new RewardManager(
+      manager,
+      signer,
+      zkComponents,
+      maxEdges,
+      initialWhitelistedAssetIds,
+      rates
+    );
   }
 
   // Deploy a new RewardManager using CREATE2
@@ -103,7 +111,7 @@ export class RewardManager {
     hasherAddr: string,
     maxEdges: number,
     initialWhitelistedAssetIds: number[],
-    rates: number[],
+    rates: number[]
   ) {
     let zkComponents: ZkComponents;
 
@@ -126,8 +134,9 @@ export class RewardManager {
       hasherAddr,
       maxEdges,
       initialWhitelistedAssetIds,
-      rates
+      rates,
     ];
+
     const { contract: rewardEncodeLibrary } = await deployer.deploy(
       RewardEncodeInputs__factory,
       saltHex,
@@ -145,7 +154,14 @@ export class RewardManager {
       args
     );
 
-    return new RewardManager(manager, signer, zkComponents, maxEdges, initialWhitelistedAssetIds, rates);
+    return new RewardManager(
+      manager,
+      signer,
+      zkComponents,
+      maxEdges,
+      initialWhitelistedAssetIds,
+      rates
+    );
   }
 
   // Set the rate (only callable by the governance)
@@ -252,11 +268,18 @@ export class RewardManager {
     rewardNullifier: BigNumber,
     extDataHash: BigNumber,
     spentRoots: BigNumber[],
-    unspentRoots: BigNumber[],
+    unspentRoots: BigNumber[]
   ): BigNumber {
-    const whitelistedAssetIDs = this.whitelistedAssetIDs.map(num => BigNumber.from(num));
-    const rates = this.rates.map(num => BigNumber.from(num));
-    const inputs = whitelistedAssetIDs.concat(rates, spentRoots, unspentRoots, anonymityRewardPoints, rewardNullifier, extDataHash);
+    const whitelistedAssetIDs = this.whitelistedAssetIDs.map((num) => BigNumber.from(num));
+    const rates = this.rates.map((num) => BigNumber.from(num));
+    const inputs = whitelistedAssetIDs.concat(
+      rates,
+      spentRoots,
+      unspentRoots,
+      anonymityRewardPoints,
+      rewardNullifier,
+      extDataHash
+    );
     return poseidonSpongeHash(inputs);
   }
 
@@ -276,11 +299,19 @@ export class RewardManager {
     extData: IMASPRewardExtData
   ): IMASPRewardAllInputs {
     const selectedRewardRate = this.getRate(maspNote.assetID);
-    const anonymityRewardPoints = maspNote.amount.mul(selectedRewardRate).mul(spentTimestamp - unspentTimestamp);
+    const anonymityRewardPoints = maspNote.amount
+      .mul(selectedRewardRate)
+      .mul(spentTimestamp - unspentTimestamp);
     const extDataHash = this.toRewardExtDataHash(extData);
-    const spentRootsBigNumber = spentRoots.map(num => BigNumber.from(num));
-    const unspentRootsBigNumber = unspentRoots.map(num => BigNumber.from(num));
-    const publicInputDataHash = this.toPublicInputDataHash(anonymityRewardPoints, rewardNullifier, extDataHash, spentRootsBigNumber, unspentRootsBigNumber);
+    const spentRootsBigNumber = spentRoots.map((num) => BigNumber.from(num));
+    const unspentRootsBigNumber = unspentRoots.map((num) => BigNumber.from(num));
+    const publicInputDataHash = this.toPublicInputDataHash(
+      anonymityRewardPoints,
+      rewardNullifier,
+      extDataHash,
+      spentRootsBigNumber,
+      unspentRootsBigNumber
+    );
 
     return {
       anonymityRewardPoints: anonymityRewardPoints,

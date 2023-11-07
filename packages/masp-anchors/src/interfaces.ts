@@ -22,7 +22,7 @@ export interface IMASPVAnchorPublicInputs {
   proof: BigNumberish;
   publicAmount: BigNumberish;
   extDataHash: BigNumberish;
-  publicAssetID: number;
+  publicAssetID: BigNumberish;
   publicTokenID: BigNumberish;
   inputNullifier: BigNumberish[];
   outputCommitment: BigNumberish[];
@@ -37,9 +37,9 @@ export interface IMASPVAnchorPublicInputs {
 export type IMASPAllInputs = {
   publicAmount: BigNumberish;
   extDataHash: BigNumberish;
-  assetID: number;
+  assetID: BigNumberish;
   tokenID: BigNumberish;
-  publicAssetID: number;
+  publicAssetID: BigNumberish;
   publicTokenID: BigNumberish;
 
   // data for transaction inputs
@@ -69,7 +69,7 @@ export type IMASPAllInputs = {
   ak_X: BigNumberish;
   ak_Y: BigNumberish;
 
-  feeAssetID: number;
+  feeAssetID: BigNumberish;
   whitelistedAssetIDs: BigNumberish[];
   feeTokenID: BigNumberish;
 

@@ -304,13 +304,13 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
   }
 
   public async transact(
-    assetID: number,
+    assetID: BigNumberish,
     tokenID: BigNumberish,
     wrapUnwrapToken: string,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     fee: BigNumberish, // Most likely 0 because fee will be paid through feeInputs
-    feeAssetID: number,
+    feeAssetID: BigNumberish,
     feeTokenID: BigNumberish,
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
