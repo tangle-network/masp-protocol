@@ -20,17 +20,12 @@ struct RewardPublicInputs {
 	bytes unspentRoots;
 }
 
-/**
-RewardEncodeInputs library is used to encode the public inputs for the Reward circuit
- */
-
+/// RewardEncodeInputs library is used to encode the public inputs for the Reward circuit
 library RewardEncodeInputs {
-	/**
-        @notice Encodes the public inputs into ZKP verifier suitable format
-        @param _args The proof arguments
-        @param _maxEdges The maximum # of edges supported by the connected VAnchor
-        @return (bytes, uint32[10], uint256[], uint256[]) The public inputs and roots array separated
-     */
+	/// @notice Encodes the public inputs into ZKP verifier suitable format
+	/// @param _args The proof arguments
+	/// @param _maxEdges The maximum # of edges supported by the connected VAnchor
+	/// @return (bytes, uint32[10], uint256[], uint256[]) The public inputs and roots array separated
 	function _encodeInputs(
 		RewardPublicInputs memory _args,
 		uint8 _maxEdges

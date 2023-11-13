@@ -33,7 +33,7 @@ import {
   batchTreeFixtures,
   maspSwapFixtures,
   maspVAnchorFixtures,
-} from '@webb-tools/protocol-solidity-extension-utils';
+} from '@webb-tools/masp-protocol-utils';
 
 const snarkjs = require('snarkjs');
 const { poseidon, eddsa } = require('circomlibjs');

@@ -40,7 +40,6 @@
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
-    "@zk-kit/incremental-merkle-tree.sol": "^1.7.0",
     "ethers": "^5.7.0",
     "typescript": "^5.0.4"
   }

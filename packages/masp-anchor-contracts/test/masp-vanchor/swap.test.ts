@@ -10,7 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { ZkComponents } from '@webb-tools/utils';
 import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
-import { maspSwapFixtures } from '@webb-tools/protocol-solidity-extension-utils';
+import { maspSwapFixtures } from '@webb-tools/masp-protocol-utils';
 const snarkjs = require('snarkjs');
 const { poseidon, eddsa } = require('circomlibjs');
 

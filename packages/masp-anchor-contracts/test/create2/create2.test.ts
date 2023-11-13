@@ -33,7 +33,7 @@ import {
   maspVAnchorFixtures,
   maspRewardFixtures,
   batchTreeFixtures,
-} from '@webb-tools/protocol-solidity-extension-utils';
+} from '@webb-tools/masp-protocol-utils';
 import {
   RewardEncodeInputs__factory,
   RewardManager__factory,

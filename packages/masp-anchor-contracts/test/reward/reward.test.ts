@@ -16,7 +16,7 @@ import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { getChainIdType, hexToU8a, ZkComponents } from '@webb-tools/utils';
 import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
-import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
+import { maspRewardFixtures } from '@webb-tools/masp-protocol-utils';
 import { RewardManager, RewardProofVerifier, RewardSwap } from '@webb-tools/masp-reward';
 import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';

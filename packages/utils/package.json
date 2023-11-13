@@ -1,5 +1,5 @@
 {
-  "name": "@webb-tools/protocol-solidity-extension-utils",
+  "name": "@webb-tools/masp-protocol-utils",
   "main": "./dist/index.js",
   "license": "(MIT OR Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
