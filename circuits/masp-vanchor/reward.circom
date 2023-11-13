@@ -7,7 +7,6 @@ include "../merkle-tree/manyMerkleProof.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
-include "./spongehash.circom";
 
 // circuit for the equality of 2 binary arrays of size N, 
 // also with the condition that 1 appears once in each array.
@@ -48,13 +47,13 @@ template BinaryArrayEquality(N) {
     equal <== equality[N - 1];
 }
 
-template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
+template Reward(levels, zeroLeaf, length, rewardListLength) {
     // Public inputs
     // fee is subtracted from "anonymityRewardPoints" while paying the relayer
     signal input anonymityRewardPoints;
     signal input rewardNullifier;
-    signal input whitelistedAssetIDs[sizeWhitelistedAssetIDList];
-    signal input rates[sizeWhitelistedAssetIDList];
+    signal input whitelistedAssetIDs[rewardListLength];
+    signal input rates[rewardListLength];
 
     signal input selectedRewardRate;
 
@@ -83,39 +82,6 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
     // fee and recipient is included in extData
     signal input extDataHash;
 
-    // Hash of all data/signal that is available/passed to the RewardManager contract
-    // and is available publically. But in the circuit these signals are passed
-    // as private input.
-    signal input publicInputDataHash;
-
-    // we hash arrays: whitelistedAssetIDs, rates, spentRoots, unspentRoots using 
-    // spongeHash and then rest of data along with spongeHash output using an standalone instance of
-    // Poseidon.
-    //
-    // finalHash = Poseidon {
-    //       anonymityRewardPoints,
-    //       rewardNullifier,
-    //       extDataHash,
-    //       spongeHash(whitelistedAssetIDs, rates, spentRoots, unspentRoots)
-    //   }
-    var spongeHashInputLength = sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList + length + length + 3;
-    component spongeHasher = SpongeHash(spongeHashInputLength, 6); // 6 - max size of poseidon hash available on-chain
-    // final hasher which hashes the output of other hashers.
-    for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
-        spongeHasher.in[i] <== whitelistedAssetIDs[i];
-        spongeHasher.in[sizeWhitelistedAssetIDList+i] <== rates[i];
-    }
-    var currentIndex = sizeWhitelistedAssetIDList + sizeWhitelistedAssetIDList;
-    for (var i = 0; i < length; i++) {
-        spongeHasher.in[currentIndex+i] <== spentRoots[i];
-        spongeHasher.in[currentIndex+length+i] <== unspentRoots[i];
-    }
-    currentIndex += length + length;
-    spongeHasher.in[currentIndex] <== anonymityRewardPoints;
-    spongeHasher.in[currentIndex+1] <== rewardNullifier;
-    spongeHasher.in[currentIndex+2] <== extDataHash;
-    publicInputDataHash === spongeHasher.out;
-
     // TODO: Constrain time range to be less than 2^32
     // TODO: Check how many bits we should use here
     // 32 bit value is enough for 136 years
@@ -124,12 +90,12 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
 
     // Check if selectedRewardRate is present in the rates array
     // Check if the note AssetID is present in the whitelistedAssetIDs array
-    component assetIDEquals[sizeWhitelistedAssetIDList];
-    component rateEquals[sizeWhitelistedAssetIDList];
-    signal assetIDEqualsResult[sizeWhitelistedAssetIDList];
-    signal rateEqualsResult[sizeWhitelistedAssetIDList];
+    component assetIDEquals[rewardListLength];
+    component rateEquals[rewardListLength];
+    signal assetIDEqualsResult[rewardListLength];
+    signal rateEqualsResult[rewardListLength];
 
-    for (var i = 0; i < sizeWhitelistedAssetIDList; i++) {
+    for (var i = 0; i < rewardListLength; i++) {
         assetIDEquals[i] = IsEqual();
         assetIDEquals[i].in[0] <== noteAssetID;
         assetIDEquals[i].in[1] <== whitelistedAssetIDs[i];
@@ -144,7 +110,7 @@ template Reward(levels, zeroLeaf, length, sizeWhitelistedAssetIDList) {
     // Now check if the assetID and selectedRewardRate are present in the respective
     // whitelistedAssetIDs and rates array at same index, that means both of 
     // the arrays are equal and each contain '1' only once. and at same index.
-    component binaryArrayEquality = BinaryArrayEquality(sizeWhitelistedAssetIDList);
+    component binaryArrayEquality = BinaryArrayEquality(rewardListLength);
     binaryArrayEquality.array1 <== assetIDEqualsResult;
     binaryArrayEquality.array2 <== rateEqualsResult;
     binaryArrayEquality.equal === 1;

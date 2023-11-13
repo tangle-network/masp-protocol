@@ -6,7 +6,7 @@
 pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@webb-tools/contracts/contracts/hashers/IHasher.sol";
+import "@webb-tools/protocol-solidity/hashers/IHasher.sol";
 import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
 import "./RewardEncodeInputs.sol";
@@ -80,6 +80,7 @@ contract RewardManager is ReentrancyGuard {
 	) public {
 		// destructure public input data
 		(
+			bytes memory encodedInput,
 			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
 			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
 			uint256[] memory _spentRoots,
@@ -101,28 +102,12 @@ contract RewardManager is ReentrancyGuard {
 		require(_isValidRates(_rates), "Invalid rates");
 		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
-		// validate the hash of all public data matches the hash generated inside the circuit
-		uint256 _publicInputDataHash = _getpublicInputDataHash(
-			_whitelistedAssetIDs,
-			_rates,
-			_spentRoots,
-			_unspentRoots,
-			_publicInputs
-		);
-		require(
-			_publicInputs.publicInputDataHash == _publicInputDataHash,
-			"Invalid public input data"
-		);
 
-		// encode the publicInputDataHash for the Verifier
-		bytes memory encodedPublicInputDataHash = abi.encodePacked(
-			uint256(_publicInputs.publicInputDataHash)
-		);
 		// verify the proof
 		require(
 			IRewardVerifier(rewardVerifier).verifyProof(
 				_proof,
-				encodedPublicInputDataHash,
+				encodedInput,
 				maxEdges
 			),
 			"Invalid reward proof"
@@ -252,39 +237,6 @@ contract RewardManager is ReentrancyGuard {
 
 	function _getExtDataHash(RewardExtData memory _extData) private pure returns (bytes32) {
 		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
-	}
-
-	function _getpublicInputDataHash(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
-		uint256[] memory _spentRoots,
-		uint256[] memory _unspentRoots,
-		RewardPublicInputs memory _publicInputs
-	) private view returns (uint256) {
-		uint256 totalLength = _whitelistedAssetIDs.length +
-			_rates.length +
-			_spentRoots.length +
-			_unspentRoots.length +
-			3;
-		uint256[] memory combined = new uint256[](totalLength);
-		uint256 index = 0;
-		for (uint256 i = 0; i < _whitelistedAssetIDs.length; i++) {
-			combined[index++] = _whitelistedAssetIDs[i];
-		}
-		for (uint256 i = 0; i < _rates.length; i++) {
-			combined[index++] = _rates[i];
-		}
-		for (uint256 i = 0; i < _spentRoots.length; i++) {
-			combined[index++] = _spentRoots[i];
-		}
-		for (uint256 i = 0; i < _unspentRoots.length; i++) {
-			combined[index++] = _unspentRoots[i];
-		}
-		combined[index++] = _publicInputs.anonymityRewardPoints;
-		combined[index++] = _publicInputs.rewardNullifier;
-		combined[index++] = _publicInputs.extDataHash;
-
-		return hasher.hash(combined);
 	}
 
 	function _isValidRates(

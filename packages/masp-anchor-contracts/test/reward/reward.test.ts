@@ -101,7 +101,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
         maspKey,
-        assetID,
+        BigNumber.from(assetID),
         BigNumber.from(tokenID),
         BigNumber.from(maspAmount)
       );
@@ -144,16 +144,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
 
       const extDataHash = randomBN(31);
 
-      const publicInputDataHash = toPublicInputDataHash(
-        anonymityRewardPoints,
-        rewardNullifier,
-        extDataHash,
-        whitelistedAssetIDs,
-        rates,
-        spentRoots,
-        unspentRoots
-      );
-
       const circuitInput = {
         anonymityRewardPoints: anonymityRewardPoints,
         rewardNullifier: rewardNullifier,
@@ -182,7 +172,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         spentPathIndices: spentPathIndices,
         spentPathElements: spentPathElements,
 
-        publicInputDataHash: publicInputDataHash,
         selectedRewardRate: rate,
       };
 
@@ -481,28 +470,3 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     });
   });
 });
-
-// Helper function to hash `IMASPRewardExtData` to a field element
-function toPublicInputDataHash(
-  anonymityRewardPoints: number,
-  rewardNullifier: BigNumber,
-  extDataHash: BigNumber,
-  whitelistedAssetIDs: number[],
-  rates: number[],
-  spentRoots: string[],
-  unspentRoots: string[]
-): BigNumber {
-  const whitelistedAssetIDsBN = whitelistedAssetIDs.map((num) => BigNumber.from(num));
-  const ratesBN = rates.map((num) => BigNumber.from(num));
-  const spentRootsBN = spentRoots.map((num) => BigNumber.from(num));
-  const unspentRootsBN = unspentRoots.map((num) => BigNumber.from(num));
-  const inputs = whitelistedAssetIDsBN.concat(
-    ratesBN,
-    spentRootsBN,
-    unspentRootsBN,
-    BigNumber.from(anonymityRewardPoints),
-    rewardNullifier,
-    extDataHash
-  );
-  return poseidonSpongeHash(inputs);
-}

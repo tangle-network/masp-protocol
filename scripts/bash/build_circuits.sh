@@ -5,10 +5,10 @@ compile () {
     mkdir -p build/$outdir
     mkdir -p build/$outdir/$size
     mkdir -p artifacts/circuits/$outdir
-    echo "circuits/test/$circuit.circom"
+    echo "circuits/main/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
-        circuits/test/$circuit.circom
+        circuits/main/$circuit.circom
     echo -e "Done!\n"
 }
 
@@ -22,91 +22,76 @@ copy_to_fixtures () {
     cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js solidity-fixtures/solidity-fixtures/$anchorType/$size/witness_calculator.cjs
 }
 
-###
-# WEBB BATCH TREE UPDATER
-###
+run_batch_tree () {
+    local size="$1"
+    echo "Compiling batch insertion for $size leafs (levels=$(($size/2)))"
+    compile batch_tree_$size batchMerkleTreeUpdate_$size $size
+    copy_to_fixtures batch_tree_$size batchMerkleTreeUpdate_$size $size batch-tree
+}
 
-echo "Compiling batch insertion for 4 leafs (levels=2)"
-compile batch_tree_4 batchMerkleTreeUpdate_4 4
-copy_to_fixtures batch_tree_4 batchMerkleTreeUpdate_4 4 batch-tree
+run_masp_vanchor () {
+    local size="$1"
+    echo "Compiling Webb style multi-asset Poseidon vanchor $size circuit w/ 2 inputs"
+    compile masp_vanchor_2 masp_vanchor_2_$size $size
+    copy_to_fixtures masp_vanchor_2 masp_vanchor_2_$size $size masp_vanchor_2
+}
 
-echo "Compiling batch insertion for 8 leafs (levels=3)"
-compile batch_tree_8 batchMerkleTreeUpdate_8 8
-copy_to_fixtures batch_tree_8 batchMerkleTreeUpdate_8 8 batch-tree
+run_reward () {
+    local size="$1"
+    echo "Compiling anonimity mining circuit"
+    compile reward_$size reward_30_$size 30
+    copy_to_fixtures reward_$size reward_30_$size 30 reward_$size
+}
 
-echo "Compiling batch insertion for 16 leafs (levels=4)"
-compile batch_tree_16 batchMerkleTreeUpdate_16 16
-copy_to_fixtures batch_tree_16 batchMerkleTreeUpdate_16 16 batch-tree
+run_swap () {
+    local size="$1"
+    echo "Compiling swap circuit 30 $size"
+    compile swap_$size swap_30_$size 30
+    copy_to_fixtures swap_$size swap_30_$size 30 swap_$size
+}
 
-echo "Compiling batch insertion for 32 leafs (levels=5)"
-compile batch_tree_32 batchMerkleTreeUpdate_32 32
-copy_to_fixtures batch_tree_32 batchMerkleTreeUpdate_32 32 batch-tree
-
-echo "Compiling batch insertion for 64 leafs (levels=6)"
-compile batch_tree_64 batchMerkleTreeUpdate_64 64
-copy_to_fixtures batch_tree_64 batchMerkleTreeUpdate_64 64 batch-tree
-
-###
-# WEBB MASP-VANCHORS
-###
-
-echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
-compile masp_vanchor_2 masp_vanchor_2_2 2
-copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
-
-echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-compile masp_vanchor_2 masp_vanchor_2_8 8
-copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
-
-echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
-compile masp_vanchor_16 masp_vanchor_16_2 2
-copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
-
-echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 16 inputs"
-compile masp_vanchor_16 masp_vanchor_16_8 8
-copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
-
-###
-# WEBB MASP VANCHOR FOREST
-###
-
-# echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 2 inputs"
-# compile vanchor_forest_2 vanchor_forest_2_2 2
-# copy_to_fixtures vanchor_forest_2 vanchor_forest_2_2 2 vanchor_forest_2
-
-# echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
-# compile vanchor_forest_2 vanchor_forest_2_8 8
-# copy_to_fixtures vanchor_forest_2 vanchor_forest_2_8 8 vanchor_forest_2
-# #
-# echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 16 inputs"
-# compile vanchor_forest_16 vanchor_forest_16_2 2
-# copy_to_fixtures vanchor_forest_16 vanchor_forest_16_2 2 vanchor_forest_16 
-# #
-# echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
-# compile vanchor_forest_16 vanchor_forest_16_8 8
-# copy_to_fixtures vanchor_forest_16 vanchor_forest_16_8 8 vanchor_forest_16 
-
-
-###
-# WEBB ANONIMITY MINING REWARD SYSTEM
-###
-
-echo "Compiling anonimity mining circuit"
-compile reward_2 reward_30_2 30
-copy_to_fixtures reward_2 reward_30_2 30 reward_2
-
-echo "Compiling anonimity mining circuit"
-compile reward_8 reward_30_8 30
-copy_to_fixtures reward_8 reward_30_8 30 reward_8
-
-# ###
-# # WEBB MASP SWAP SYSTEM
-# ###
-
-echo "Compiling swap circuit 30 2"
-compile swap_2 swap_30_2 30
-copy_to_fixtures swap_2 swap_30_2 30 swap_2
-
-echo "Compiling swap circuit 30 8"
-compile swap_8 swap_30_8 30
-copy_to_fixtures swap_8 swap_30_8 30 swap_8
+case "$1" in
+    --circuit=batch4)
+        run_batch_tree 4
+        ;;
+    --circuit=batch8)
+        run_batch_tree 8
+        ;;
+    --circuit=batch16)
+        run_batch_tree 16
+        ;;
+    --circuit=batch32)
+        run_batch_tree 32
+        ;;
+    --circuit=batch64)
+        run_batch_tree 64
+        ;;
+    --circuit=masp2)
+        run_masp_vanchor 2
+        ;;
+    --circuit=masp8)
+        run_masp_vanchor 8
+        ;;
+    --circuit=reward2)
+        run_reward 2
+        ;;
+    --circuit=reward8)
+        run_reward 8
+        ;;
+    --circuit=swap2)
+        run_swap 2
+        ;;
+    --circuit=swap8)
+        run_swap 8
+        ;;
+    *)
+        for size in 4 8 16 32 64; do
+            run_batch_tree $size
+        done
+        for size in 2 8; do
+            run_masp_vanchor $size
+            run_reward $size
+            run_swap $size
+        done
+        ;;
+esac

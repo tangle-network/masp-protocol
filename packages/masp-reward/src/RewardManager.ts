@@ -22,7 +22,7 @@ export class RewardManager {
   signer: ethers.Signer;
   zkComponents: ZkComponents;
   maxEdges: number;
-  whitelistedAssetIDs: number[];
+  whitelistedAssetIDs: BigNumberish[];
   rates: number[];
 
   // Constructor
@@ -262,27 +262,6 @@ export class RewardManager {
     return poseidon([maspNoteNullifier, maspNotePathIndices]);
   }
 
-  // Helper function to hash `IMASPRewardExtData` to a field element
-  public toPublicInputDataHash(
-    anonymityRewardPoints: BigNumber,
-    rewardNullifier: BigNumber,
-    extDataHash: BigNumber,
-    spentRoots: BigNumber[],
-    unspentRoots: BigNumber[]
-  ): BigNumber {
-    const whitelistedAssetIDs = this.whitelistedAssetIDs.map((num) => BigNumber.from(num));
-    const rates = this.rates.map((num) => BigNumber.from(num));
-    const inputs = whitelistedAssetIDs.concat(
-      rates,
-      spentRoots,
-      unspentRoots,
-      anonymityRewardPoints,
-      rewardNullifier,
-      extDataHash
-    );
-    return poseidonSpongeHash(inputs);
-  }
-
   // Generate MASP Reward Inputs
   public generateMASPRewardInputs(
     maspNote: MaspUtxo,
@@ -298,20 +277,13 @@ export class RewardManager {
     unspentPathElements: BigNumberish[],
     extData: IMASPRewardExtData
   ): IMASPRewardAllInputs {
-    const selectedRewardRate = this.getRate(maspNote.assetID);
+    const selectedRewardRate = this.getRate(maspNote.assetID.toNumber());
     const anonymityRewardPoints = maspNote.amount
       .mul(selectedRewardRate)
       .mul(spentTimestamp - unspentTimestamp);
     const extDataHash = this.toRewardExtDataHash(extData);
     const spentRootsBigNumber = spentRoots.map((num) => BigNumber.from(num));
     const unspentRootsBigNumber = unspentRoots.map((num) => BigNumber.from(num));
-    const publicInputDataHash = this.toPublicInputDataHash(
-      anonymityRewardPoints,
-      rewardNullifier,
-      extDataHash,
-      spentRootsBigNumber,
-      unspentRootsBigNumber
-    );
 
     return {
       anonymityRewardPoints: anonymityRewardPoints,
@@ -336,7 +308,6 @@ export class RewardManager {
       unspentPathIndices: unspentPathIndices,
       unspentPathElements: unspentPathElements,
       selectedRewardRate: selectedRewardRate,
-      publicInputDataHash: publicInputDataHash,
     };
   }
 
@@ -396,7 +367,6 @@ export class RewardManager {
         rates: RewardManager.createBNArrayToBytes(this.rates),
         spentRoots: RewardManager.createBNArrayToBytes(spentRoots),
         unspentRoots: RewardManager.createBNArrayToBytes(unspentRoots),
-        publicInputDataHash: publicSignals[0],
       },
       extData
     );
