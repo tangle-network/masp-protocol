@@ -18,7 +18,11 @@ import "../interfaces/IMultiAssetVAnchorBatchTree.sol";
 	queues and submits batches deposit commitments into the BatchTree using a
 	zero-knowledge proof.
  */
-contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
+contract MultiAssetVAnchorBatchTree is
+	IMultiAssetVAnchorBatchTree,
+	MultiAssetVAnchor,
+	ProxiedBatchTree
+{
 	using SafeERC20 for IERC20;
 
 	address public rewardUnspentTree;
@@ -161,5 +165,38 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 			this.getNextIndex() - 1,
 			_feeEncryptions.encryptedOutput2
 		);
+	}
+
+	/// @notice Wraps a token for the `msg.sender`, a wrapping on top
+	/// of the internal function `_executeWrapping` for proxying purposes.
+	/// @param _fromTokenAddress The address of the token to wrap from
+	/// @param _toTokenAddress The address of the token to wrap into
+	/// @param _extAmount The external amount for the transaction
+	function executeWrapping(
+		address _fromTokenAddress,
+		address _toTokenAddress,
+		uint256 _extAmount
+	) external override {
+		// Check if token is valid for wrapping
+		require(
+			ITokenWrapper(_toTokenAddress).isValidToken(_fromTokenAddress),
+			"Invalid token for wrapping"
+		);
+		_executeWrapping(_fromTokenAddress, _toTokenAddress, _extAmount);
+	}
+
+	/// @notice Returns the address of the registry contract
+	function getRegistry() external view override returns (address) {
+		return address(registry);
+	}
+
+	/// @notice Returns the address of the reward unspent tree contract
+	function getRewardUnspentTree() external view override returns (address) {
+		return address(rewardUnspentTree);
+	}
+
+	/// @notice Returns the address of the reward spent tree contract
+	function getRewardSpentTree() external view override returns (address) {
+		return address(rewardSpentTree);
 	}
 }

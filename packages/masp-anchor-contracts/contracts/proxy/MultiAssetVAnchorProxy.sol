@@ -88,7 +88,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 				"Not an output commitment, isShielded should be false"
 			);
 			require(
-				IRegistry(IMultiAssetVAnchorBatchTree(proxiedMASP).registry())
+				IRegistry(IMultiAssetVAnchorBatchTree(proxiedMASP).getRegistry())
 					.getAssetIdFromWrappedAddress(depositInfo.wrappedToken) != 0,
 				"Wrapped asset not registered"
 			);
@@ -121,7 +121,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			}
 		}
 		QueueDepositMap[proxiedMASP][nextQueueDepositIndex[proxiedMASP]] = depositInfo;
-		IMultiAssetVAnchorBatchTree(proxiedMASP).registerInsertion(depositInfo.commitment);
+		IBatchTree(proxiedMASP).registerInsertion(depositInfo.commitment);
 		// Emit Event
 		emit QueueDeposit(nextQueueDepositIndex[proxiedMASP], proxiedMASP);
 		nextQueueDepositIndex[proxiedMASP] = nextQueueDepositIndex[proxiedMASP] + 1;
@@ -166,7 +166,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 							address(depositInfo.wrappedToken),
 							uint256(depositInfo.amount)
 						);
-						IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP)._executeWrapping(
+						IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).executeWrapping(
 							depositInfo.unwrappedToken,
 							depositInfo.wrappedToken,
 							depositInfo.amount
@@ -204,8 +204,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		// Update latestProcessedDepositLeaf
 		lastProcessedDepositLeaf = _lastProcessedDepositLeaf + _batchSize;
 		// Call batchInsert function on MASP
-
-		IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(
+		IBatchTree(proxiedMASP).batchInsert(
 			_proof,
 			_argsHash,
 			_currentRoot,
@@ -224,9 +223,8 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		RewardUnspentTreeCommitmentMap[proxiedMASP][
 			nextRewardUnspentTreeCommitmentIndex[proxiedMASP]
 		] = rewardUnspentTreeCommitment;
-		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardUnspentTree()).registerInsertion(
-			rewardUnspentTreeCommitment
-		);
+		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).getRewardUnspentTree())
+			.registerInsertion(rewardUnspentTreeCommitment);
 		// Emit Event
 		emit QueueRewardUnspentTree(nextRewardUnspentTreeCommitmentIndex[proxiedMASP], proxiedMASP);
 		nextRewardUnspentTreeCommitmentIndex[proxiedMASP] =
@@ -265,7 +263,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardUnspentTreeLeaf = _lastProcessedRewardUnspentTreeLeaf + _batchSize;
 		// Call batchInsert function on MASP
-		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardUnspentTree()).batchInsert(
+		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).getRewardUnspentTree()).batchInsert(
 			_proof,
 			_argsHash,
 			_currentRoot,
@@ -286,7 +284,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		RewardSpentTreeCommitmentMap[proxiedMASP][
 			nextRewardSpentTreeCommitmentIndex[proxiedMASP]
 		] = rewardSpentTreeCommitment;
-		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardSpentTree()).registerInsertion(
+		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).getRewardSpentTree()).registerInsertion(
 			rewardSpentTreeCommitment
 		);
 		// Emit Event
@@ -327,7 +325,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardSpentTreeLeaf = _lastProcessedRewardSpentTreeLeaf + _batchSize;
 		// Call batchInsert function on MASP
-		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardSpentTree()).batchInsert(
+		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).getRewardSpentTree()).batchInsert(
 			_proof,
 			_argsHash,
 			_currentRoot,

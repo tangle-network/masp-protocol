@@ -277,7 +277,7 @@ export class RewardManager {
     unspentPathElements: BigNumberish[],
     extData: IMASPRewardExtData
   ): IMASPRewardAllInputs {
-    const selectedRewardRate = this.getRate(maspNote.assetID.toNumber());
+    const selectedRewardRate = this.getRate(Number(maspNote.assetID));
     const anonymityRewardPoints = maspNote.amount
       .mul(selectedRewardRate)
       .mul(spentTimestamp - unspentTimestamp);

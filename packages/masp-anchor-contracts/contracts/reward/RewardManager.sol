@@ -105,11 +105,7 @@ contract RewardManager is ReentrancyGuard {
 
 		// verify the proof
 		require(
-			IRewardVerifier(rewardVerifier).verifyProof(
-				_proof,
-				encodedInput,
-				maxEdges
-			),
+			IRewardVerifier(rewardVerifier).verifyProof(_proof, encodedInput, maxEdges),
 			"Invalid reward proof"
 		);
 

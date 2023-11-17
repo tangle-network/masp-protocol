@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@webb-tools/protocol-solidity/vanchors/base/ZKVAnchorBase.sol";
 import "@webb-tools/protocol-solidity/trees/MerkleTree.sol";
+import "@webb-tools/protocol-solidity/interfaces/tokens/ITokenWrapper.sol";
 import "./MASPVAnchorEncodeInputs.sol";
 import "./interfaces/IRegistry.sol";
 import "./interfaces/INftTokenWrapper.sol";
@@ -127,16 +128,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		_executeAuxInsertions(aux.feeOutputCommitments, _encryptions);
 	}
 
-	/**
-		@notice Executes a deposit/withdrawal or combination join/split transaction
-        including possible wrapping or unwrapping if a valid token is provided.
-		@param _wrappedToken The wrapped token address (only tokens living on the bridge)
-		@param _proof The zkSNARK proof
-		@param _externalData The serialized external data
-		@param _auxPublicInputs The extension public inputs for the zkSNARK proof
-		@param _publicInputs The public inputs for the zkSNARK proof
-		@param _encryptions The encrypted outputs
-	 */
+	/// @inheritdoc ZKVAnchorBase
 	function _transact(
 		address _wrappedToken,
 		bytes memory _proof,
@@ -272,6 +264,11 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 			);
 	}
 
+	/// @notice Swaps two shielded notes using a zero-knowledge proof.
+	/// @param proof The zero-knowledge proof.
+	/// @param _publicInputs The public inputs for the swap.
+	/// @param aliceEncryptions The encryptions for Alice's output transaction.
+	/// @param bobEncryptions The encryptions for Bob's output transaction.
 	function swap(
 		bytes memory proof,
 		SwapPublicInputs memory _publicInputs,
@@ -279,10 +276,12 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		Encryptions memory bobEncryptions
 	) public {
 		// Verify the proof
+		// Encode the public inputs and get the roots
 		(bytes memory encodedInputs, uint256[] memory roots) = SwapEncodeInputs._encodeInputs(
 			_publicInputs,
 			maxEdges
 		);
+		// Check if the roots are valid
 		require(isValidRoots(roots), "Invalid vanchor roots");
 		require(
 			ISwapVerifier(swapVerifier).verifySwap(proof, encodedInputs, maxEdges),
@@ -328,6 +327,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		);
 	}
 
+	/// @notice Processes an ERC721 NFT withdrawal.
+	/// @param _token The address of the token to withdraw from
+	/// @param _recipient The address of the recipient
+	/// @param publicTokenID The public token ID of the NFT
 	function _processWithdrawERC721(
 		address _token,
 		address _recipient,
@@ -343,6 +346,11 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		}
 	}
 
+	/// @notice Processes an ERC721 NFT withdrawal and unwrapping.
+	/// @param _fromTokenAddress The address of the token to withdraw from
+	/// @param _toTokenAddress The address of the token to wrap into
+	/// @param _recipient The address of the recipient
+	/// @param publicTokenID The public token ID of the NFT
 	function _withdrawAndUnwrapERC721(
 		address _fromTokenAddress,
 		address _toTokenAddress,
@@ -354,15 +362,17 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		INftTokenWrapper(_fromTokenAddress).unwrap721(publicTokenID, _toTokenAddress);
 	}
 
-	/**
-	 * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
-	 * by `operator` from `from`, this function is called.
-	 *
-	 * It must return its Solidity selector to confirm the token transfer.
-	 * If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
-	 *
-	 * The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.
-	 */
+	/// @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
+	/// by `operator` from `from`, this function is called.
+	///
+	/// It must return its Solidity selector to confirm the token transfer.
+	/// If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
+	///
+	/// The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.
+	///
+	/// @param operator The address which called `safeTransferFrom` function
+	/// @param from The address which previously owned the token
+	/// @param tokenId The NFT identifier which is being transferred
 	function onERC721Received(
 		address operator,
 		address from,

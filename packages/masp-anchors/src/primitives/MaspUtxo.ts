@@ -111,7 +111,6 @@ export class MaspUtxo {
       poseidon([assetID, tokenID, amount, calculatedPartialCommitment.toString()])
     );
 
-    console.log(calculatedCommitment, commitment);
     if (calculatedCommitment.eq(commitment)) {
       return {
         assetID: assetID,

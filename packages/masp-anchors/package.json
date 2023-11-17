@@ -22,7 +22,7 @@
     "@webb-tools/contracts": "^1.0.10",
     "@webb-tools/create2-utils": "^1.0.10",
     "@webb-tools/interfaces": "^1.0.10",
-    "@webb-tools/masp-anchor-contracts": "file:../masp-anchor-contracts",
+    "@webb-tools/masp-anchor-contracts": "^1.0.7",
     "@webb-tools/utils": "^1.0.10",
     "chacha20": "^0.1.4",
     "ethers": "5.7.0",
