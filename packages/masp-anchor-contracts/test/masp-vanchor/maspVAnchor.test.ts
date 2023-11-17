@@ -22,6 +22,7 @@ import {
   NftTokenWrapper,
   MaspKey,
   MaspUtxo,
+  ProxiedBatchTree,
 } from '@webb-tools/masp-anchors';
 
 import { PoseidonHasher } from '@webb-tools/anchors';
@@ -71,7 +72,7 @@ describe('MASP for 2 max edges', () => {
   let unwrappedERC20_3;
   let unwrappedERC721_1;
   let fungibleWebbToken;
-  let nftWebbToken;
+  let nftWebbToken: NftTokenWrapper;
   let create2InputWitness;
   let signers;
 
@@ -1182,8 +1183,24 @@ describe('MASP for 2 max edges', () => {
         '310'
       );
 
+      const asProxiedBatchTree = await ProxiedBatchTree.connect(
+        maspVAnchor.contract.address,
+        batchTreeZkComponents_4,
+        batchTreeZkComponents_8,
+        batchTreeZkComponents_16,
+        batchTreeZkComponents_32,
+        sender
+      );
+      const currentRoot = await asProxiedBatchTree.contract.currentRoot();
+      const currentRootIndex = await asProxiedBatchTree.contract.currentRootIndex();
       // Batch Insert
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+
+      // Check the leaves of the masp
+      const newRoot = await asProxiedBatchTree.contract.currentRoot();
+      const newRootIndex = await asProxiedBatchTree.contract.currentRootIndex();
+      assert.notStrictEqual(currentRoot, newRoot);
+      assert.notStrictEqual(currentRootIndex, newRootIndex);
 
       // Do withdraw.
       const alice_utxo_2 = new MaspUtxo(
@@ -1242,9 +1259,11 @@ describe('MASP for 2 max edges', () => {
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
       const carol_key = new MaspKey();
-      const dave_key = new MaspKey();
 
       const webbNftAssetID = BigNumber.from(2);
+      const webbFungibleAssetID = BigNumber.from(1);
+      const webbFungibleTokenID = BigNumber.from(0);
+      await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 10);
 
       // 4 Masp Utxos
       const alice_utxo = new MaspUtxo(
@@ -1270,7 +1289,7 @@ describe('MASP for 2 max edges', () => {
       );
       const dave_utxo = new MaspUtxo(
         BigNumber.from(chainID),
-        dave_key,
+        carol_key,
         webbNftAssetID,
         BigNumber.from(4),
         BigNumber.from(1)
@@ -1345,11 +1364,31 @@ describe('MASP for 2 max edges', () => {
         '4'
       );
 
+      const asProxiedBatchTree = await ProxiedBatchTree.connect(
+        maspVAnchor.contract.address,
+        batchTreeZkComponents_4,
+        batchTreeZkComponents_8,
+        batchTreeZkComponents_16,
+        batchTreeZkComponents_32,
+        sender
+      );
+      const currentRoot = await asProxiedBatchTree.contract.currentRoot();
+      const currentRootIndex = await asProxiedBatchTree.contract.currentRootIndex();
       // Batch Insert
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
-      const webbFeeAssetID = 1;
-      const webbFeeTokenID = BigNumber.from(0);
+      // Check the leaves of the masp
+      const newRoot = await asProxiedBatchTree.contract.currentRoot();
+      const newRootIndex = await asProxiedBatchTree.contract.currentRootIndex();
+      assert.notStrictEqual(currentRoot, newRoot);
+      assert.notStrictEqual(currentRootIndex, newRootIndex);
+
+      // Check MASP Proxy Balance of unwrapped ERC721
+      assert.strictEqual(
+        (await unwrappedERC721_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '0'
+      );
+
       const aliceAddress = signers[4];
       await maspVAnchor.transact(
         webbNftAssetID,
@@ -1358,8 +1397,8 @@ describe('MASP for 2 max edges', () => {
         [alice_utxo],
         [],
         BigNumber.from(0),
-        webbFeeAssetID,
-        webbFeeTokenID,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
         [],
         [],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],

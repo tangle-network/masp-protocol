@@ -10,7 +10,7 @@ export interface QueueDepositInfo {
   unwrappedToken: string;
   wrappedToken: string;
   amount: BigNumberish;
-  assetID: number;
+  assetID: BigNumberish;
   tokenID: BigNumberish;
   depositPartialCommitment: string;
   commitment: string;

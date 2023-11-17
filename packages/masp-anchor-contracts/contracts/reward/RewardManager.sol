@@ -60,7 +60,7 @@ contract RewardManager is ReentrancyGuard {
 		address _governance,
 		address _hasher,
 		uint8 _maxEdges,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialwhitelistedAssetIDs,
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialWhitelistedAssetIDs,
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
 	) {
 		rewardSwap = IRewardSwap(_rewardSwap);
@@ -68,7 +68,7 @@ contract RewardManager is ReentrancyGuard {
 		governance = _governance;
 		hasher = IHasher(_hasher);
 		rates = _rates;
-		whitelistedAssetIDs = _initialwhitelistedAssetIDs;
+		whitelistedAssetIDs = _initialWhitelistedAssetIDs;
 		maxEdges = _maxEdges;
 	}
 
@@ -125,10 +125,10 @@ contract RewardManager is ReentrancyGuard {
 
 	// Function to modify the whitelistedAssetIDs.
 	function setWhitelistedAssetIDs(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newwhitelistedAssetIDs
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newWhitelistedAssetIDs
 	) external onlyGovernance nonReentrant {
-		whitelistedAssetIDs = _newwhitelistedAssetIDs;
-		emit whitelistedAssetIDsUpdated(_newwhitelistedAssetIDs);
+		whitelistedAssetIDs = _newWhitelistedAssetIDs;
+		emit whitelistedAssetIDsUpdated(_newWhitelistedAssetIDs);
 	}
 
 	// Function to modify the rates.

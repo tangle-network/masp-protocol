@@ -244,7 +244,8 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     isShieldedTx.in <== publicAmount;    component checkAssetIDEqualIfNotShielded = ForceEqualIfEnabled();
     checkAssetIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkAssetIDEqualIfNotShielded.in[0] <== assetID;
-    checkAssetIDEqualIfNotShielded.in[1] <== publicAssetID;    component checkTokenIDEqualIfNotShielded = ForceEqualIfEnabled();
+    checkAssetIDEqualIfNotShielded.in[1] <== publicAssetID;
+    component checkTokenIDEqualIfNotShielded = ForceEqualIfEnabled();
     checkTokenIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkTokenIDEqualIfNotShielded.in[0] <== tokenID;
     checkTokenIDEqualIfNotShielded.in[1] <== publicTokenID;

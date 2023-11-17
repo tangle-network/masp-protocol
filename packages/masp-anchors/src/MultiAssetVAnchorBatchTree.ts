@@ -6,7 +6,7 @@ import {
   MASPVAnchorEncodeInputs__factory,
 } from '@webb-tools/masp-anchor-contracts';
 import { ProxiedBatchTree } from './ProxiedBatchTree';
-import { ZkComponents } from '@webb-tools/utils';
+import { MerkleTree, ZkComponents } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { MaspUtxo } from './primitives/MaspUtxo';
 import { Deployer } from '@webb-tools/create2-utils';
@@ -19,7 +19,6 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
   // Constructor
   constructor(
     contract: MultiAssetVAnchorBatchTreeContract,
-    depositTree: ProxiedBatchTree,
     unspentTree: ProxiedBatchTree,
     spentTree: ProxiedBatchTree,
     levels: number,
@@ -39,7 +38,15 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       signer
     );
 
-    this.depositTree = depositTree;
+    this.depositTree = new ProxiedBatchTree(
+      null,
+      signer,
+      levels,
+      unspentTree.zkComponents_4,
+      unspentTree.zkComponents_8,
+      unspentTree.zkComponents_16,
+      unspentTree.zkComponents_32
+    );
     this.unspentTree = unspentTree;
     this.spentTree = spentTree;
   }
@@ -59,7 +66,6 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     swapCircuitZkComponents: ZkComponents,
-    depositTree: ProxiedBatchTree,
     unspentTree: ProxiedBatchTree,
     spentTree: ProxiedBatchTree,
     signer: ethers.Signer
@@ -98,7 +104,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       registry,
       transactVerifierAddr,
       swapVerifierAddr,
-      await depositTree.contract.treeUpdateVerifier(),
+      batchVerifierAddr,
       handlerAddr,
       hasherAddr,
       proxyAddr,
@@ -119,7 +125,6 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
 
     const createdMASPVAnchorBatchTree = new MultiAssetVAnchorBatchTree(
       maspVAnchorBatchTree,
-      depositTree,
       unspentTree,
       spentTree,
       levels,
@@ -175,17 +180,6 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       signer
     );
 
-    const depositTree = await ProxiedBatchTree.createProxiedBatchTree(
-      batchVerifierAddr,
-      levels,
-      hasherAddr,
-      proxyAddr,
-      zkComponents_4,
-      zkComponents_8,
-      zkComponents_16,
-      zkComponents_32,
-      signer
-    );
     const unspentTree = await ProxiedBatchTree.createProxiedBatchTree(
       batchVerifierAddr,
       levels,
@@ -214,7 +208,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       registry,
       transactVerifierAddr,
       swapVerifierAddr,
-      await depositTree.contract.treeUpdateVerifier(),
+      batchVerifierAddr,
       handlerAddr,
       hasherAddr,
       proxy,
@@ -226,7 +220,6 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     await maspVAnchorBatchTree.deployed();
     const createdMASPVAnchorBatchTree = new MultiAssetVAnchorBatchTree(
       maspVAnchorBatchTree,
-      depositTree,
       unspentTree,
       spentTree,
       levels,
@@ -290,7 +283,6 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     const treeHeight = await masp.levels();
     const createdAnchor = new MultiAssetVAnchorBatchTree(
       masp,
-      depositTree,
       unspentTree,
       spentTree,
       treeHeight,
