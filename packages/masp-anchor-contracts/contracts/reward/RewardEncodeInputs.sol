@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.18;
 
+import "hardhat/console.sol";
+
 uint8 constant WHITELISTED_ASSET_ID_LIST_SIZE = 10;
 
 struct RewardExtData {
@@ -31,7 +33,7 @@ library RewardEncodeInputs {
 		uint8 _maxEdges
 	)
 		public
-		pure
+		view
 		returns (
 			bytes memory,
 			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory,
@@ -47,18 +49,16 @@ library RewardEncodeInputs {
 		bytes memory encodedInput;
 		uint8 i = 0;
 		if (_maxEdges == 2) {
-			uint256[18] memory inputs;
+			uint256[27] memory inputs;
 			uint256[2] memory spentRoots = abi.decode(_args.spentRoots, (uint256[2]));
 			uint256[2] memory unspentRoots = abi.decode(_args.unspentRoots, (uint256[2]));
 
 			// assign spent roots
 			spentRootsResult[0] = spentRoots[0];
 			spentRootsResult[1] = spentRoots[1];
-
 			// assign unspent roots
 			unspentRootsResult[0] = unspentRoots[0];
 			unspentRootsResult[1] = unspentRoots[1];
-
 			inputs[i++] = uint256(_args.anonymityRewardPoints);
 			inputs[i++] = uint256(_args.rewardNullifier);
 			inputs[i++] = uint256(_args.extDataHash);
@@ -86,10 +86,11 @@ library RewardEncodeInputs {
 			inputs[i++] = uint256(spentRoots[1]);
 			inputs[i++] = uint256(unspentRoots[0]);
 			inputs[i++] = uint256(unspentRoots[1]);
+
 			// Encode the inputs into a single bytes array
 			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 8) {
-			uint256[30] memory inputs;
+			uint256[39] memory inputs;
 			uint256[8] memory spentRoots = abi.decode(_args.spentRoots, (uint256[8]));
 			uint256[8] memory unspentRoots = abi.decode(_args.unspentRoots, (uint256[8]));
 

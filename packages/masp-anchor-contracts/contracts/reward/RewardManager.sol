@@ -10,6 +10,7 @@ import "@webb-tools/protocol-solidity/hashers/IHasher.sol";
 import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
 import "./RewardEncodeInputs.sol";
+import "hardhat/console.sol";
 
 contract RewardManager is ReentrancyGuard {
 	// this constant is taken from the Verifier.sol generated from circom library
@@ -72,13 +73,16 @@ contract RewardManager is ReentrancyGuard {
 		maxEdges = _maxEdges;
 	}
 
-	// Claim reward in zero-knowledge for a spent note
+	/// Claim a reward a spent UTXO using a zkSNARK proof
+	/// @param _proof The SNARK proof
+	/// @param _publicInputs The public inputs to the SNARK proof
+	/// @param _extData The external data to the SNARK proof
 	function reward(
 		bytes memory _proof,
 		RewardPublicInputs memory _publicInputs,
 		RewardExtData memory _extData
 	) public {
-		// destructure public input data
+		// Destructure public input data
 		(
 			bytes memory encodedInput,
 			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
@@ -86,13 +90,12 @@ contract RewardManager is ReentrancyGuard {
 			uint256[] memory _spentRoots,
 			uint256[] memory _unspentRoots
 		) = RewardEncodeInputs._encodeInputs(_publicInputs, maxEdges);
-
 		// prevent double claim of rewards
 		require(
 			!rewardNullifiers[bytes32(_publicInputs.rewardNullifier)],
 			"Reward has been already spent"
 		);
-		// prevent modification of ExtData which includes addresses of recipient, relayer and fee
+		// Prevent modification of ExtData which includes addresses of recipient, relayer and fee
 		require(
 			_publicInputs.extDataHash ==
 				uint256(_getExtDataHash(_extData)) % SNARK_SCALAR_FIELD_SIZE,

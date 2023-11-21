@@ -52,6 +52,8 @@ template Reward(levels, zeroLeaf, length, rewardListLength) {
     // fee is subtracted from "anonymityRewardPoints" while paying the relayer
     signal input anonymityRewardPoints;
     signal input rewardNullifier;
+    // fee and recipient is included in extData
+    signal input extDataHash;
     signal input whitelistedAssetIDs[rewardListLength];
     signal input rates[rewardListLength];
 
@@ -78,9 +80,6 @@ template Reward(levels, zeroLeaf, length, rewardListLength) {
     signal input unspentRoots[length]; // Public inputs
     signal input unspentPathIndices;
     signal input unspentPathElements[levels];
-
-    // fee and recipient is included in extData
-    signal input extDataHash;
 
     // TODO: Constrain time range to be less than 2^32
     // TODO: Check how many bits we should use here

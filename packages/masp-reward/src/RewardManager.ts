@@ -356,7 +356,6 @@ export class RewardManager {
     );
 
     const { proofEncoded, publicSignals } = await this.generateRewardProof(rewardAllInputs);
-
     const tx = await this.contract.reward(
       proofEncoded,
       {
@@ -368,7 +367,10 @@ export class RewardManager {
         spentRoots: RewardManager.createBNArrayToBytes(spentRoots),
         unspentRoots: RewardManager.createBNArrayToBytes(unspentRoots),
       },
-      extData
+      extData,
+      {
+        gasLimit: 10000000,
+      }
     );
     const receipt = await tx.wait();
     const anonymityRewardPoints = rewardAllInputs.anonymityRewardPoints;
