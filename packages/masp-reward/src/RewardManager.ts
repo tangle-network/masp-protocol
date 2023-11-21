@@ -21,7 +21,7 @@ export class RewardManager {
   signer: ethers.Signer;
   zkComponents: ZkComponents;
   maxEdges: number;
-  whitelistedAssetIDs: BigNumberish[];
+  validRewardAssetIDs: BigNumberish[];
   rates: number[];
 
   // Constructor
@@ -30,14 +30,14 @@ export class RewardManager {
     signer: ethers.Signer,
     zkComponents: ZkComponents,
     maxEdges: number,
-    whitelistedAssetIDs: number[],
+    validRewardAssetIDs: number[],
     rates: number[]
   ) {
     this.contract = contract;
     this.signer = signer;
     this.zkComponents = zkComponents;
     this.maxEdges = maxEdges;
-    this.whitelistedAssetIDs = whitelistedAssetIDs;
+    this.validRewardAssetIDs = validRewardAssetIDs;
     this.rates = rates;
   }
 
@@ -51,7 +51,7 @@ export class RewardManager {
     governanceAddr: string,
     hasherAddr: string,
     maxEdges: number,
-    initialWhitelistedAssetIds: number[],
+    initialvalidRewardAssetIDs: number[],
     rates: number[]
   ) {
     let zkComponents: ZkComponents;
@@ -63,7 +63,7 @@ export class RewardManager {
     } else {
       throw new Error('maxEdges must be 2 or 8');
     }
-    if (initialWhitelistedAssetIds.length != rates.length) {
+    if (initialvalidRewardAssetIDs.length != rates.length) {
       throw new Error('whitelisted-asset-id list length must be equal to rate-list id length');
     }
 
@@ -83,7 +83,7 @@ export class RewardManager {
       governanceAddr,
       hasherAddr,
       maxEdges,
-      initialWhitelistedAssetIds,
+      initialvalidRewardAssetIDs,
       rates
     );
     await manager.deployed();
@@ -93,13 +93,13 @@ export class RewardManager {
       signer,
       zkComponents,
       maxEdges,
-      initialWhitelistedAssetIds,
+      initialvalidRewardAssetIDs,
       rates
     );
   }
 
   // Deploy a new RewardManager using CREATE2
-  // #TODO does not work yet, whitelistedAssetIds is not getting set correctly in RewardManager contract
+  // #TODO does not work yet, validRewardAssetIDs is not getting set correctly in RewardManager contract
   public static async create2RewardManager(
     deployer: Deployer,
     signer: ethers.Signer,
@@ -109,7 +109,7 @@ export class RewardManager {
     governanceAddr: string,
     hasherAddr: string,
     maxEdges: number,
-    initialWhitelistedAssetIds: number[],
+    initialvalidRewardAssetIDs: number[],
     rates: number[]
   ) {
     let zkComponents: ZkComponents;
@@ -121,7 +121,7 @@ export class RewardManager {
     } else {
       throw new Error('maxEdges must be 2 or 8');
     }
-    if (initialWhitelistedAssetIds.length != rates.length) {
+    if (initialvalidRewardAssetIDs.length != rates.length) {
       throw new Error('whitelisted-asset-id list length must be equal to rate-list id length');
     }
 
@@ -132,7 +132,7 @@ export class RewardManager {
       governanceAddr,
       hasherAddr,
       maxEdges,
-      initialWhitelistedAssetIds,
+      initialvalidRewardAssetIDs,
       rates,
     ];
 
@@ -158,7 +158,7 @@ export class RewardManager {
       signer,
       zkComponents,
       maxEdges,
-      initialWhitelistedAssetIds,
+      initialvalidRewardAssetIDs,
       rates
     );
   }
@@ -175,9 +175,9 @@ export class RewardManager {
     await tx.wait();
   }
 
-  // Update the whitelistedAssetIds (only callable by the governance)
-  public async setWhiteListedAssetIds(newAssetIds: number[]): Promise<void> {
-    const tx = await this.contract.setWhitelistedAssetIDs(newAssetIds);
+  // Update the validRewardAssetIDs (only callable by the governance)
+  public async setvalidRewardAssetIDs(newAssetIds: number[]): Promise<void> {
+    const tx = await this.contract.setvalidRewardAssetIDs(newAssetIds);
     await tx.wait();
   }
 
@@ -288,7 +288,7 @@ export class RewardManager {
       anonymityRewardPoints: anonymityRewardPoints,
       rewardNullifier: rewardNullifier,
       extDataHash: extDataHash,
-      whitelistedAssetIDs: this.whitelistedAssetIDs,
+      validRewardAssetIDs: this.validRewardAssetIDs,
       rates: this.rates,
       noteChainID: maspNote.chainID,
       noteAmount: maspNote.amount,
@@ -361,7 +361,7 @@ export class RewardManager {
         anonymityRewardPoints: rewardAllInputs.anonymityRewardPoints,
         rewardNullifier: rewardAllInputs.rewardNullifier,
         extDataHash: rewardAllInputs.extDataHash,
-        whitelistedAssetIDs: RewardManager.createBNArrayToBytes(this.whitelistedAssetIDs),
+        validRewardAssetIDs: RewardManager.createBNArrayToBytes(this.validRewardAssetIDs),
         rates: RewardManager.createBNArrayToBytes(this.rates),
         spentRoots: RewardManager.createBNArrayToBytes(spentRoots),
         unspentRoots: RewardManager.createBNArrayToBytes(unspentRoots),
@@ -380,8 +380,8 @@ export class RewardManager {
   public getRate(assetId: number): number {
     let assetIdIndex = 0;
     let found = false;
-    for (let i = 0; i < this.whitelistedAssetIDs.length; i++) {
-      if (assetId == this.whitelistedAssetIDs[i]) {
+    for (let i = 0; i < this.validRewardAssetIDs.length; i++) {
+      if (assetId == this.validRewardAssetIDs[i]) {
         found = true;
         assetIdIndex = i;
       }

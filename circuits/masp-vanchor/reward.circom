@@ -54,7 +54,7 @@ template Reward(levels, zeroLeaf, length, rewardListLength) {
     signal input rewardNullifier;
     // fee and recipient is included in extData
     signal input extDataHash;
-    signal input whitelistedAssetIDs[rewardListLength];
+    signal input validRewardAssetIDs[rewardListLength];
     signal input rates[rewardListLength];
 
     signal input selectedRewardRate;
@@ -88,7 +88,7 @@ template Reward(levels, zeroLeaf, length, rewardListLength) {
     timeRangeCheck.in <== spentTimestamp - unspentTimestamp;
 
     // Check if selectedRewardRate is present in the rates array
-    // Check if the note AssetID is present in the whitelistedAssetIDs array
+    // Check if the note AssetID is present in the validRewardAssetIDs array
     component assetIDEquals[rewardListLength];
     component rateEquals[rewardListLength];
     signal assetIDEqualsResult[rewardListLength];
@@ -97,7 +97,7 @@ template Reward(levels, zeroLeaf, length, rewardListLength) {
     for (var i = 0; i < rewardListLength; i++) {
         assetIDEquals[i] = IsEqual();
         assetIDEquals[i].in[0] <== noteAssetID;
-        assetIDEquals[i].in[1] <== whitelistedAssetIDs[i];
+        assetIDEquals[i].in[1] <== validRewardAssetIDs[i];
         assetIDEqualsResult[i] <== assetIDEquals[i].out;
 
         rateEquals[i] = IsEqual();
@@ -107,7 +107,7 @@ template Reward(levels, zeroLeaf, length, rewardListLength) {
     }
 
     // Now check if the assetID and selectedRewardRate are present in the respective
-    // whitelistedAssetIDs and rates array at same index, that means both of 
+    // validRewardAssetIDs and rates array at same index, that means both of 
     // the arrays are equal and each contain '1' only once. and at same index.
     component binaryArrayEquality = BinaryArrayEquality(rewardListLength);
     binaryArrayEquality.array1 <== assetIDEqualsResult;

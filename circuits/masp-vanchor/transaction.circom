@@ -77,7 +77,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
 
     // data for input/output asset identifier
     signal input feeAssetID;
-    signal input whitelistedAssetIDs[numFeeTokens]; // Public Input
+    signal input validFeeAssetIDs[numFeeTokens]; // Public Input
     signal input feeTokenID;
 
     // data for transaction inputs
@@ -255,7 +255,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     component membership = SetMembership(numFeeTokens);
     membership.element <== feeAssetID;
     for (var i = 0; i < numFeeTokens; i++) {
-        membership.set[i] <== whitelistedAssetIDs[i];
+        membership.set[i] <== validFeeAssetIDs[i];
     }
 
     // Fee Token must be a fungible token
