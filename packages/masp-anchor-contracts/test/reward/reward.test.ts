@@ -27,7 +27,7 @@ import { TangleTokenMockFixedSupply } from '@webb-tools/masp-anchor-contracts/in
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe.only('MASP Reward Tests for maxEdges=2, levels=30', () => {
+describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   let sender: SignerWithAddress;
   let recipient: SignerWithAddress;
   let relayer: SignerWithAddress;
