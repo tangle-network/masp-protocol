@@ -9,8 +9,9 @@ import "@webb-tools/protocol-solidity/trees/MerkleTreeWithHistory.sol";
 import "@webb-tools/protocol-solidity/utils/ProofUtils.sol";
 import "../interfaces/IBatchVerifier.sol";
 import "../interfaces/IMASPProxy.sol";
+import "../interfaces/IBatchTree.sol";
 
-contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
+contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils, IBatchTree {
 	bytes32 public currentRoot;
 	bytes32 public previousRoot;
 	uint256 public queueLength;
@@ -46,8 +47,8 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		maspProxy = address(_maspProxy);
 	}
 
-	function registerInsertion(bytes32 _commitment) public onlyProxy {
-		queue[queueLength] = _commitment;
+	function registerInsertion(bytes32 _commitment) external override onlyProxy {
+		queue[queueLength] = bytes32(uint256(_commitment) % SNARK_FIELD);
 		emit DepositData(maspProxy, _commitment, block.number, queueLength);
 		queueLength = queueLength + 1;
 	}
@@ -79,7 +80,7 @@ contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 		uint32 _pathIndices,
 		bytes32[] calldata _leaves,
 		uint32 _batchHeight
-	) public onlyProxy {
+	) external override onlyProxy {
 		uint256 offset = nextIndex;
 
 		require(_currentRoot == currentRoot, "Initial deposit root is invalid");

@@ -39,10 +39,10 @@
       /**
       *   Utils TypeScript packages
       */
-      "@webb-tools/protocol-solidity-extension-utils": [
+      "@webb-tools/masp-protocol-utils": [
         "packages/utils/src"
       ],
-      "@webb-tools/protocol-solidity-extension-utils/*": [
+      "@webb-tools/masp-protocol-utils/*": [
         "packages/utils/src/*"
       ],
     },

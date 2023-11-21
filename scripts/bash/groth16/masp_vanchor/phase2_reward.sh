@@ -6,8 +6,8 @@ move_verifiers_and_metadata_reward () {
 
     mkdir -p packages/masp-anchor-contracts/contracts/verifiers/$anchor_type
     cp $indir/verifier.sol packages/masp-anchor-contracts/contracts/verifiers/$anchor_type/${verifier_rename}.sol
-    sed -i 's/contract Verifier/contract '$verifier_rename'/g' packages/masp-anchor-contracts/contracts/verifiers/$anchor_type/${verifier_rename}.sol
-    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.18;/g' packages/masp-anchor-contracts/contracts/verifiers/$anchor_type/${verifier_rename}.sol
+    perl -i -pe 's/contract Verifier/contract '$verifier_rename'/g' packages/masp-anchor-contracts/contracts/verifiers/$anchor_type/${verifier_rename}.sol
+    perl -i -pe 's/pragma solidity \^0.6.11;/pragma solidity \^0.8.18;/g' packages/masp-anchor-contracts/contracts/verifiers/$anchor_type/${verifier_rename}.sol
 }
 
 compile_phase2 ./solidity-fixtures/solidity-fixtures/reward_2/30 reward_30_2 ./artifacts/circuits/reward_2

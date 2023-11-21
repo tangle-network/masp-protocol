@@ -17,7 +17,7 @@ import {
   VerifierBatch_32__factory,
   BatchTreeVerifierSelector__factory,
 } from '@webb-tools/masp-anchor-contracts';
-import { batchTreeFixtures } from '@webb-tools/protocol-solidity-extension-utils';
+import { batchTreeFixtures } from '@webb-tools/masp-protocol-utils';
 
 const batchTreeZkComponents = batchTreeFixtures('../../../solidity-fixtures/solidity-fixtures');
 

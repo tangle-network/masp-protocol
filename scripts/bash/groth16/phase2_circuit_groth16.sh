@@ -24,6 +24,6 @@ move_verifiers_and_metadata_masp_vanchor () {
 
     mkdir -p packages/masp-anchor-contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/masp-anchor-contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
-    sed -i 's/contract Verifier/contract VerifierMASP'$size'_'$nIns'/g' packages/masp-anchor-contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
-    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.18;/g' packages/masp-anchor-contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
+    perl -i -pe 's/contract Verifier/contract VerifierMASP'$size'_'$nIns'/g' packages/masp-anchor-contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
+    perl -i -pe 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.18;/g' packages/masp-anchor-contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
 }

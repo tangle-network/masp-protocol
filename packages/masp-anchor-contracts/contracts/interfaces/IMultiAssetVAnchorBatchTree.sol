@@ -7,16 +7,12 @@ pragma solidity ^0.8.18;
 
 import "./IBatchTree.sol";
 
-abstract contract IMultiAssetVAnchorBatchTree is IBatchTree {
-	function registry() external view virtual returns (address);
+abstract contract IMultiAssetVAnchorBatchTree {
+	function getRegistry() external view virtual returns (address);
 
-	function rewardUnspentTree() external view virtual returns (address);
+	function getRewardUnspentTree() external view virtual returns (address);
 
-	function rewardSpentTree() external view virtual returns (address);
+	function getRewardSpentTree() external view virtual returns (address);
 
-	function _executeWrapping(
-		address _fromToken,
-		address _toToken,
-		uint256 amount
-	) external virtual;
+	function executeWrapping(address _fromToken, address _toToken, uint256 amount) external virtual;
 }

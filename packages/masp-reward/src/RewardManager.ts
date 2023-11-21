@@ -7,13 +7,12 @@ import {
   RewardManager__factory,
   RewardEncodeInputs__factory,
 } from '@webb-tools/masp-anchor-contracts';
-import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
-import { getChainIdType, ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
+import { maspRewardFixtures } from '@webb-tools/masp-protocol-utils';
+import { ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
 import { MaspUtxo } from '@webb-tools/masp-anchors';
 import { IMASPRewardExtData, IMASPRewardAllInputs } from './interfaces';
 import RewardProofVerifier from './RewardVerifier';
-import { poseidonSpongeHash } from '@webb-tools/utils';
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
@@ -22,7 +21,7 @@ export class RewardManager {
   signer: ethers.Signer;
   zkComponents: ZkComponents;
   maxEdges: number;
-  whitelistedAssetIDs: number[];
+  whitelistedAssetIDs: BigNumberish[];
   rates: number[];
 
   // Constructor
@@ -262,27 +261,6 @@ export class RewardManager {
     return poseidon([maspNoteNullifier, maspNotePathIndices]);
   }
 
-  // Helper function to hash `IMASPRewardExtData` to a field element
-  public toPublicInputDataHash(
-    anonymityRewardPoints: BigNumber,
-    rewardNullifier: BigNumber,
-    extDataHash: BigNumber,
-    spentRoots: BigNumber[],
-    unspentRoots: BigNumber[]
-  ): BigNumber {
-    const whitelistedAssetIDs = this.whitelistedAssetIDs.map((num) => BigNumber.from(num));
-    const rates = this.rates.map((num) => BigNumber.from(num));
-    const inputs = whitelistedAssetIDs.concat(
-      rates,
-      spentRoots,
-      unspentRoots,
-      anonymityRewardPoints,
-      rewardNullifier,
-      extDataHash
-    );
-    return poseidonSpongeHash(inputs);
-  }
-
   // Generate MASP Reward Inputs
   public generateMASPRewardInputs(
     maspNote: MaspUtxo,
@@ -298,20 +276,13 @@ export class RewardManager {
     unspentPathElements: BigNumberish[],
     extData: IMASPRewardExtData
   ): IMASPRewardAllInputs {
-    const selectedRewardRate = this.getRate(maspNote.assetID);
+    const selectedRewardRate = this.getRate(Number(maspNote.assetID));
     const anonymityRewardPoints = maspNote.amount
       .mul(selectedRewardRate)
       .mul(spentTimestamp - unspentTimestamp);
     const extDataHash = this.toRewardExtDataHash(extData);
     const spentRootsBigNumber = spentRoots.map((num) => BigNumber.from(num));
     const unspentRootsBigNumber = unspentRoots.map((num) => BigNumber.from(num));
-    const publicInputDataHash = this.toPublicInputDataHash(
-      anonymityRewardPoints,
-      rewardNullifier,
-      extDataHash,
-      spentRootsBigNumber,
-      unspentRootsBigNumber
-    );
 
     return {
       anonymityRewardPoints: anonymityRewardPoints,
@@ -336,7 +307,6 @@ export class RewardManager {
       unspentPathIndices: unspentPathIndices,
       unspentPathElements: unspentPathElements,
       selectedRewardRate: selectedRewardRate,
-      publicInputDataHash: publicInputDataHash,
     };
   }
 
@@ -385,7 +355,6 @@ export class RewardManager {
     );
 
     const { proofEncoded, publicSignals } = await this.generateRewardProof(rewardAllInputs);
-
     const tx = await this.contract.reward(
       proofEncoded,
       {
@@ -396,9 +365,11 @@ export class RewardManager {
         rates: RewardManager.createBNArrayToBytes(this.rates),
         spentRoots: RewardManager.createBNArrayToBytes(spentRoots),
         unspentRoots: RewardManager.createBNArrayToBytes(unspentRoots),
-        publicInputDataHash: publicSignals[0],
       },
-      extData
+      extData,
+      {
+        gasLimit: 10000000,
+      }
     );
     const receipt = await tx.wait();
     const anonymityRewardPoints = rewardAllInputs.anonymityRewardPoints;

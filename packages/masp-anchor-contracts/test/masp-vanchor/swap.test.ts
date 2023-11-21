@@ -10,7 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { ZkComponents } from '@webb-tools/utils';
 import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
-import { maspSwapFixtures } from '@webb-tools/protocol-solidity-extension-utils';
+import { maspSwapFixtures } from '@webb-tools/masp-protocol-utils';
 const snarkjs = require('snarkjs');
 const { poseidon, eddsa } = require('circomlibjs');
 
@@ -47,21 +47,21 @@ describe('swap snarkjs local proof', () => {
     const aliceSpendRecord = new MaspUtxo(
       chainID,
       aliceKey,
-      webbETHAssetID,
+      BigNumber.from(webbETHAssetID),
       BigNumber.from(webbETHTokenID),
       BigNumber.from(2e7)
     );
     const aliceChangeRecord = new MaspUtxo(
       chainID,
       aliceKey,
-      webbETHAssetID,
+      BigNumber.from(webbETHAssetID),
       BigNumber.from(webbETHTokenID),
       BigNumber.from(1e7)
     );
     const aliceReceiveRecord = new MaspUtxo(
       chainID,
       aliceKey,
-      webbBTCAssetID,
+      BigNumber.from(webbBTCAssetID),
       BigNumber.from(webbBTCTokenID),
       BigNumber.from(1e6)
     );
@@ -69,21 +69,21 @@ describe('swap snarkjs local proof', () => {
     const bobSpendRecord = new MaspUtxo(
       chainID,
       bobKey,
-      webbBTCAssetID,
+      BigNumber.from(webbBTCAssetID),
       BigNumber.from(webbBTCTokenID),
       BigNumber.from(2e6)
     );
     const bobChangeRecord = new MaspUtxo(
       chainID,
       bobKey,
-      webbBTCAssetID,
+      BigNumber.from(webbBTCAssetID),
       BigNumber.from(webbBTCTokenID),
       BigNumber.from(1e6)
     );
     const bobReceiveRecord = new MaspUtxo(
       chainID,
       bobKey,
-      webbETHAssetID,
+      BigNumber.from(webbETHAssetID),
       BigNumber.from(webbETHTokenID),
       BigNumber.from(1e7)
     );
