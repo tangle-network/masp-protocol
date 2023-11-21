@@ -25,7 +25,7 @@
     "type": "git",
     "url": "git://github.com/webb-tools/masp-protocol.git"
   },
-  "version": "1.0.7",
+  "version": "1.0.8",
   "devDependencies": {
     "@webb-tools/anchors": "^1.0.10",
     "@webb-tools/contracts": "^1.0.10",
