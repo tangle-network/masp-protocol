@@ -8,12 +8,11 @@ import {
   RewardEncodeInputs__factory,
 } from '@webb-tools/masp-anchor-contracts';
 import { maspRewardFixtures } from '@webb-tools/masp-protocol-utils';
-import { getChainIdType, ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
+import { ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
 import { MaspUtxo } from '@webb-tools/masp-anchors';
 import { IMASPRewardExtData, IMASPRewardAllInputs } from './interfaces';
 import RewardProofVerifier from './RewardVerifier';
-import { poseidonSpongeHash } from '@webb-tools/utils';
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 

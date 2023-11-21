@@ -9,7 +9,7 @@ const TruffleAssert = require('truffle-assertions');
 const { toWei } = require('web3-utils');
 const snarkjs = require('snarkjs');
 
-import { Keypair, MerkleTree, toFixedHex, randomBN, poseidonSpongeHash } from '@webb-tools/utils';
+import { MerkleTree, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
