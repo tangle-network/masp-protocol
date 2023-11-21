@@ -452,7 +452,6 @@ describe('Should deploy MASP contracts to the same address', () => {
         zkComponents2_2,
         zkComponents16_2,
         swapCircuitZkComponents,
-        depositTree1,
         spentTree1,
         unspentTree1,
         sender
@@ -472,7 +471,6 @@ describe('Should deploy MASP contracts to the same address', () => {
         zkComponents2_2,
         zkComponents16_2,
         swapCircuitZkComponents,
-        depositTree2,
         spentTree2,
         unspentTree2,
         ganacheWallet2
