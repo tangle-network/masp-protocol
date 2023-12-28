@@ -4,7 +4,6 @@
  */
 
 pragma solidity ^0.8.18;
-pragma experimental ABIEncoderV2;
 
 import "@webb-tools/protocol-solidity/handlers/HandlerHelpers.sol";
 import "@webb-tools/protocol-solidity/interfaces/IExecutor.sol";

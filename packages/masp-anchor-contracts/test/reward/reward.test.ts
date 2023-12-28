@@ -9,19 +9,21 @@ const TruffleAssert = require('truffle-assertions');
 const { toWei } = require('web3-utils');
 const snarkjs = require('snarkjs');
 
-import { Keypair, MerkleTree, toFixedHex, randomBN } from '@webb-tools/utils';
+import { MerkleTree, randomBN } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { getChainIdType, hexToU8a, ZkComponents } from '@webb-tools/utils';
 import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
-import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
+import { maspRewardFixtures } from '@webb-tools/masp-protocol-utils';
 import { RewardManager, RewardProofVerifier, RewardSwap } from '@webb-tools/masp-reward';
 import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 import { TangleTokenMockFixedSupply__factory } from '@webb-tools/masp-anchor-contracts';
 import { anonymityRewardPointsToTNT } from '@webb-tools/masp-reward';
+import { PoseidonHasher } from '@webb-tools/anchors';
+import { TangleTokenMockFixedSupply } from '@webb-tools/masp-anchor-contracts/index';
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
@@ -35,6 +37,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   // VAnchor-like contract's merkle-tree
   let maspMerkleTree: MerkleTree;
   let emptyTreeRoot: BigNumber;
+  let rewardSwap: RewardSwap;
+  let rewardVerifier: RewardProofVerifier;
+  let rewardManager: RewardManager;
+  let tangleTokenMockContract: TangleTokenMockFixedSupply;
 
   const rewardSwapMiningConfig = {
     miningCap: toWei(1000000, 'ether'),
@@ -49,7 +55,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   const chainID = getChainIdType(31337);
   const anotherChainID = getChainIdType(30337);
   const levels = 30;
-  const whitelistedAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const validRewardAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+  let hasherInstance;
 
   before('should initialize trees', async () => {
     const signers = await ethers.getSigners();
@@ -62,6 +71,52 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
     let deployerContract = await deployerFactory.deploy();
     await deployerContract.deployed();
     deployer = new Deployer(deployerContract);
+
+    hasherInstance = await PoseidonHasher.createPoseidonHasher(sender);
+
+    const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
+    tangleTokenMockContract = await tangleTokenMockFactory.deploy();
+    await tangleTokenMockContract.deployed();
+
+    rewardVerifier = await RewardProofVerifier.create2RewardProofVerifier(
+      deployer,
+      saltHex,
+      sender
+    );
+
+    rewardSwap = await RewardSwap.create2RewardSwap(
+      deployer,
+      sender,
+      saltHex,
+      sender.address,
+      tangleTokenMockContract.address,
+      rewardSwapMiningConfig.miningCap,
+      rewardSwapMiningConfig.initialLiquidity,
+      rewardSwapMiningConfig.poolWeight
+    );
+
+    // transfer TNT to rewardSwap
+    tangleTokenMockContract.transfer(rewardSwap.contract.address, rewardSwapMiningConfig.miningCap);
+
+    // create a new reward manager
+    rewardManager = await RewardManager.createRewardManager(
+      deployer,
+      sender,
+      saltHex,
+      rewardSwap.contract.address,
+      rewardVerifier,
+      sender.address,
+      hasherInstance.contract.address,
+      maxEdges,
+      validRewardAssetIDs,
+      rates
+    );
+    // set manager
+    rewardSwap.initialize(rewardManager.contract.address);
+
+    // Add edges to different VAnchor Chains
+    await rewardManager.addEdge(chainID);
+    await rewardManager.addEdge(anotherChainID);
   });
 
   beforeEach('should reset trees', async () => {
@@ -83,9 +138,9 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       };
     });
     it('should work for the basic flow for reward', async () => {
-      const assetID = 1;
+      const assetID = 3;
       const tokenID = 0;
-      const rate = 1000;
+      const rate = 30;
 
       // Create MASP Key
       const maspKey = new MaspKey();
@@ -136,13 +191,15 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const anonymityRewardPoints = maspAmount * rate * (spentTimestamp - unspentTimestamp);
       const rewardNullifier = poseidon([maspNullifier, maspPathIndices]);
 
+      const extDataHash = randomBN(31);
+
       const circuitInput = {
-        rate: rate,
         anonymityRewardPoints: anonymityRewardPoints,
         rewardNullifier: rewardNullifier,
         // Dummy
-        extDataHash: randomBN(31).toHexString(),
-        whitelistedAssetIDs: whitelistedAssetIDs,
+        extDataHash: extDataHash.toHexString(),
+        validRewardAssetIDs: validRewardAssetIDs,
+        rates: rates,
 
         // MASP Spent Note for which anonymity points are being claimed
         noteChainID: chainID,
@@ -163,6 +220,8 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         spentRoots: spentRoots,
         spentPathIndices: spentPathIndices,
         spentPathElements: spentPathElements,
+
+        selectedRewardRate: rate,
       };
 
       const wtns = await create2InputWitness(circuitInput);
@@ -182,51 +241,11 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const fee = 1000;
       const delta = 10000; // max floating point error
 
-      const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
-      const tangleTokenMockContract = await tangleTokenMockFactory.deploy();
-      await tangleTokenMockContract.deployed();
-
-      const rewardVerifier = await RewardProofVerifier.create2RewardProofVerifier(
-        deployer,
-        saltHex,
-        sender
-      );
-
-      const rewardSwap = await RewardSwap.create2RewardSwap(
-        deployer,
-        sender,
-        saltHex,
-        sender.address,
-        tangleTokenMockContract.address,
-        rewardSwapMiningConfig.miningCap,
-        rewardSwapMiningConfig.initialLiquidity,
-        rewardSwapMiningConfig.poolWeight
-      );
-
       // transfer TNT to rewardSwap
       tangleTokenMockContract.transfer(
         rewardSwap.contract.address,
         rewardSwapMiningConfig.miningCap
       );
-
-      // create a new reward manager
-      const rewardManager = await RewardManager.createRewardManager(
-        deployer,
-        sender,
-        saltHex,
-        rewardSwap.contract.address,
-        rewardVerifier,
-        sender.address,
-        maxEdges,
-        rate,
-        whitelistedAssetIDs
-      );
-      // set manager
-      rewardSwap.initialize(rewardManager.contract.address);
-
-      // Add edges to different VAnchor Chains
-      await rewardManager.addEdge(chainID);
-      await rewardManager.addEdge(anotherChainID);
 
       // Create MASP Key
       const maspKey = new MaspKey();
@@ -293,7 +312,6 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
-        rate,
         spentTimestamp,
         spentRoots,
         spentPathIndices,
@@ -308,7 +326,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       );
 
       const relayerTNTBalanceAfter = await tangleTokenMockContract.balanceOf(relayer.address);
-      const recipientTNTBalanceAfter = await tangleTokenMockContract.balanceOf(recipient.address);
+      // const recipientTNTBalanceAfter = await tangleTokenMockContract.balanceOf(recipient.address);
 
       assert(
         relayerTNTBalanceAfter
@@ -320,62 +338,13 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       // assert(recipientTNTBalanceAfter.sub(recipientTNTBalanceBefore).eq(expectedRecipientTNT));
     });
 
-    it('should reject reclaim(double spend) of reward', async () => {
+    it('should reject double-claim of reward', async () => {
       const assetID = 1;
       const tokenID = 0;
-      const rate = 10;
       const fee = 1000;
 
-      const tangleTokenMockFactory = new TangleTokenMockFixedSupply__factory(sender);
-      const tangleTokenMockContract = await tangleTokenMockFactory.deploy();
-      await tangleTokenMockContract.deployed();
-
-      const rewardVerifier = await RewardProofVerifier.create2RewardProofVerifier(
-        deployer,
-        saltHex,
-        sender
-      );
-
-      const rewardSwap = await RewardSwap.create2RewardSwap(
-        deployer,
-        sender,
-        saltHex,
-        sender.address,
-        tangleTokenMockContract.address,
-        rewardSwapMiningConfig.miningCap,
-        rewardSwapMiningConfig.initialLiquidity,
-        rewardSwapMiningConfig.poolWeight
-      );
-
-      // transfer TNT to rewardSwap
-      tangleTokenMockContract.transfer(
-        rewardSwap.contract.address,
-        rewardSwapMiningConfig.miningCap
-      );
-
-      // create a new reward manager
-      const rewardManager = await RewardManager.createRewardManager(
-        deployer,
-        sender,
-        saltHex,
-        rewardSwap.contract.address,
-        rewardVerifier,
-        sender.address,
-        maxEdges,
-        rate,
-        whitelistedAssetIDs
-      );
-      // set manager
-      rewardSwap.initialize(rewardManager.contract.address);
-
-      // Add edges to different VAnchor Chains
-      await rewardManager.addEdge(chainID);
-      await rewardManager.addEdge(anotherChainID);
-
-      // Create MASP Key
+      // Create MASP Key / UTXO
       const maspKey = new MaspKey();
-
-      // Create MASP Utxo
       const maspAmount = 100;
       const maspUtxo = new MaspUtxo(
         BigNumber.from(chainID),
@@ -420,12 +389,10 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
       await rewardManager.addRootToSpentList(chainID, spentTree.root());
       await rewardManager.addRootToSpentList(anotherChainID, emptyTreeRoot);
-
       // reward
       await rewardManager.reward(
         maspUtxo,
         maspPathIndices,
-        rate,
         spentTimestamp,
         spentRoots,
         spentPathIndices,
@@ -438,13 +405,11 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         recipient.address,
         relayer.address
       );
-
       // reclaim reward, this is rejected because rewrdNullifier is already claimed
       await TruffleAssert.reverts(
         rewardManager.reward(
           maspUtxo,
           maspPathIndices,
-          rate,
           spentTimestamp,
           spentRoots,
           spentPathIndices,

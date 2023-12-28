@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.18;
-pragma experimental ABIEncoderV2;
 
 /**
     @notice Auxiliary public input struct made up of deserializable values
@@ -11,7 +10,7 @@ pragma experimental ABIEncoderV2;
 struct MASPAuxPublicInputs {
 	uint256 publicAssetID;
 	uint256 publicTokenID;
-	uint256[10] whitelistedAssetIDs;
+	uint256[10] validFeeAssetIDs;
 	uint256[2] feeInputNullifiers;
 	uint256[2] feeOutputCommitments;
 }

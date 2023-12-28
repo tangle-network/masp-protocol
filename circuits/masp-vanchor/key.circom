@@ -26,7 +26,6 @@ template Signature() {
     out <== hasher.out;
 }
 
-// Since we don't use signatures, the keypair can be based on a simple hash
 template Key() {
     signal input ak_X;
     signal input ak_Y;

@@ -24,7 +24,7 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
     feeTokenID: BigNumberish,
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    whitelistedAssetIds: BigNumberish[],
+    validFeeAssetIDs: BigNumberish[],
     refund: BigNumberish,
     recipient: string,
     relayer: string,
@@ -34,8 +34,6 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
-    const registry = await Registry.connect(await this.contract.registry(), signer);
-    const wrappedToken = await registry.contract.getWrappedAssetAddress(assetID);
     let dummyInMaspKey = new MaspKey();
     if (inputs.length !== 0) {
       dummyInMaspKey = inputs[0].maspKey;
@@ -50,7 +48,8 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
 
     let dummyFeeOutMaspKey = new MaspKey();
 
-    while (inputs.length !== 2 && inputs.length < 16) {
+    while (inputs.length < 16) {
+      if (inputs.length === 2) break;
       const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
         dummyInMaspKey,
@@ -62,21 +61,19 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
       dummyUtxo.forceSetIndex(BigNumber.from(0));
     }
 
-    if (outputs.length < 2) {
-      while (outputs.length < 2) {
-        outputs.push(
-          new MaspUtxo(
-            BigNumber.from(chainId),
-            dummyOutMaspKey,
-            BigNumber.from(assetID),
-            BigNumber.from(tokenID),
-            BigNumber.from(0)
-          )
-        );
-      }
+    while (outputs.length < 2) {
+      outputs.push(
+        new MaspUtxo(
+          BigNumber.from(chainId),
+          dummyOutMaspKey,
+          BigNumber.from(assetID),
+          BigNumber.from(tokenID),
+          BigNumber.from(0)
+        )
+      );
     }
 
-    while (feeInputs.length !== 2 && feeInputs.length < 16) {
+    while (feeInputs.length < 2) {
       const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
         dummyFeeInMaspKey,
@@ -88,18 +85,16 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
       dummyUtxo.forceSetIndex(BigNumber.from(0));
     }
 
-    if (feeOutputs.length < 2) {
-      while (feeOutputs.length < 2) {
-        feeOutputs.push(
-          new MaspUtxo(
-            BigNumber.from(chainId),
-            dummyFeeOutMaspKey,
-            BigNumber.from(feeAssetID),
-            BigNumber.from(feeTokenID),
-            BigNumber.from(0)
-          )
-        );
-      }
+    while (feeOutputs.length < 2) {
+      feeOutputs.push(
+        new MaspUtxo(
+          BigNumber.from(chainId),
+          dummyFeeOutMaspKey,
+          BigNumber.from(feeAssetID),
+          BigNumber.from(feeTokenID),
+          BigNumber.from(0)
+        )
+      );
     }
 
     const merkleProofs = inputs.map((x) =>
@@ -137,7 +132,7 @@ export class MultiAssetVAnchor extends MultiAssetVAnchorBase {
       dummyInMaspKey,
       feeAssetID,
       feeTokenID,
-      whitelistedAssetIds,
+      validFeeAssetIDs,
       feeInputs,
       feeOutputs,
       dummyFeeInMaspKey,

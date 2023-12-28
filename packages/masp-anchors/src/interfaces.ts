@@ -29,7 +29,7 @@ export interface IMASPVAnchorPublicInputs {
   chainID: BigNumberish;
   roots: BigNumberish[];
   extensionRoots: BigNumberish;
-  whitelistedAssetIDs: BigNumberish[];
+  validFeeAssetIDs: BigNumberish[];
   feeInputNullifier: BigNumberish[];
   feeOutputCommitment: BigNumberish[];
 }
@@ -70,7 +70,7 @@ export type IMASPAllInputs = {
   ak_Y: BigNumberish;
 
   feeAssetID: BigNumberish;
-  whitelistedAssetIDs: BigNumberish[];
+  validFeeAssetIDs: BigNumberish[];
   feeTokenID: BigNumberish;
 
   // data for transaction inputs

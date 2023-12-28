@@ -9,7 +9,6 @@ include "./key.circom";
 
 // Swap message is (aliceChangeRecord, aliceReceiveRecord, bobChangeRecord, bobReceiveRecord, t, t')
 // We check a Poseidon Hash of message is signed by both parties
-
 template Swap(levels, length) {
     signal input aliceSpendAssetID;
     signal input aliceSpendTokenID;

@@ -9,19 +9,17 @@ include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
 
-/*
-Goal is to support:
-- Fungible assets
-- Non-fungible assets
-- Contract calls from the shielded and ability to re-shield
 
-Goal is to differentiate between
-- Collections of NFTs without taking over too much of the address space
-
-commitment = hash(assetID, tokenID, amount, hash(chainID, pubKey, blinding))
-nullifier = hash(ak_X, ak_Y, commitment)
-*/
-
+/// Goal is to support:
+/// - Fungible assets
+/// - Non-fungible assets
+/// - Contract calls from the shielded and ability to re-shield
+///
+/// Goal is to differentiate between
+/// - Collections of NFTs without taking over too much of the address space
+///
+/// commitment = hash(assetID, tokenID, amount, hash(chainID, pubKey, blinding))
+/// nullifier = hash(ak_X, ak_Y, commitment)
 template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeTokens) {
     // extAmount = external amount used for deposits and withdrawals
     // correct extAmount range is enforced on the smart contract
@@ -77,7 +75,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
 
     // data for input/output asset identifier
     signal input feeAssetID;
-    signal input whitelistedAssetIDs[numFeeTokens]; // Public Input
+    signal input validFeeAssetIDs[numFeeTokens]; // Public Input
     signal input feeTokenID;
 
     // data for transaction inputs
@@ -244,7 +242,8 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     isShieldedTx.in <== publicAmount;    component checkAssetIDEqualIfNotShielded = ForceEqualIfEnabled();
     checkAssetIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkAssetIDEqualIfNotShielded.in[0] <== assetID;
-    checkAssetIDEqualIfNotShielded.in[1] <== publicAssetID;    component checkTokenIDEqualIfNotShielded = ForceEqualIfEnabled();
+    checkAssetIDEqualIfNotShielded.in[1] <== publicAssetID;
+    component checkTokenIDEqualIfNotShielded = ForceEqualIfEnabled();
     checkTokenIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkTokenIDEqualIfNotShielded.in[0] <== tokenID;
     checkTokenIDEqualIfNotShielded.in[1] <== publicTokenID;
@@ -254,7 +253,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     component membership = SetMembership(numFeeTokens);
     membership.element <== feeAssetID;
     for (var i = 0; i < numFeeTokens; i++) {
-        membership.set[i] <== whitelistedAssetIDs[i];
+        membership.set[i] <== validFeeAssetIDs[i];
     }
 
     // Fee Token must be a fungible token

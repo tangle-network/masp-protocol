@@ -25,22 +25,21 @@
     "type": "git",
     "url": "git://github.com/webb-tools/masp-protocol.git"
   },
-  "version": "1.0.5",
+  "version": "1.0.8",
   "devDependencies": {
-    "@webb-tools/anchors": "^1.0.9",
-    "@webb-tools/contracts": "^1.0.9",
-    "@webb-tools/create2-utils": "^1.0.9",
-    "@webb-tools/evm-test-utils": "^1.0.9",
-    "@webb-tools/interfaces": "^1.0.9",
+    "@webb-tools/anchors": "^1.0.10",
+    "@webb-tools/contracts": "^1.0.10",
+    "@webb-tools/create2-utils": "^1.0.10",
+    "@webb-tools/evm-test-utils": "^1.0.10",
+    "@webb-tools/interfaces": "^1.0.10",
     "@webb-tools/protocol-solidity": "^1.1.1",
-    "@webb-tools/tokens": "^1.0.9",
-    "@webb-tools/utils": "^1.0.9",
-    "@webb-tools/vbridge": "^1.0.9"
+    "@webb-tools/tokens": "^1.0.10",
+    "@webb-tools/utils": "^1.0.10",
+    "@webb-tools/vbridge": "^1.0.10"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
-    "@zk-kit/incremental-merkle-tree.sol": "^1.7.0",
     "ethers": "^5.7.0",
     "typescript": "^5.0.4"
   }

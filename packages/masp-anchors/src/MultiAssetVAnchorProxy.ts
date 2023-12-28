@@ -7,8 +7,9 @@ import {
 
 import { MultiAssetVAnchorBatchTree } from './MultiAssetVAnchorBatchTree';
 import { toFixedHex } from '@webb-tools/utils';
-import { QueueDepositInfo } from './interfaces';
+import { AssetType, QueueDepositInfo } from './interfaces';
 import { Deployer } from '@webb-tools/create2-utils';
+import { MaspUtxo } from './primitives';
 
 export class MultiAssetVAnchorProxy {
   contract: MultiAssetVAnchorProxyContract;
@@ -53,10 +54,33 @@ export class MultiAssetVAnchorProxy {
     await this.contract.initialize(validMASPs.map((m) => m.address));
   }
 
-  // Queue ERC20 deposits
+  // Queue deposits
   public async queueDeposit(depositInfo: QueueDepositInfo) {
     const tx = await this.contract.queueDeposit(depositInfo);
     await tx.wait();
+  }
+
+  // Queue deposits from UTXO
+  public async queueDepositFromUTXO(
+    utxo: MaspUtxo,
+    proxiedMASP: string,
+    unwrappedToken: string,
+    wrappedToken: string
+  ) {
+    const depositInfo: QueueDepositInfo = {
+      assetType: !utxo.tokenID.eq(BigNumber.from(0)) ? AssetType.ERC20 : AssetType.ERC721,
+      unwrappedToken: unwrappedToken,
+      wrappedToken: wrappedToken,
+      amount: utxo.amount,
+      assetID: utxo.assetID,
+      tokenID: utxo.tokenID,
+      depositPartialCommitment: toFixedHex(utxo.getPartialCommitment()),
+      commitment: toFixedHex(utxo.getCommitment()),
+      isShielded: false,
+      proxiedMASP: proxiedMASP,
+    };
+
+    await this.queueDeposit(depositInfo);
   }
 
   // Queue reward unspent tree commitments
@@ -91,7 +115,6 @@ export class MultiAssetVAnchorProxy {
       batchProofInfo.input.pathIndices,
       batchHeight
     );
-
     await batchTx.wait();
   }
 
@@ -160,7 +183,7 @@ export class MultiAssetVAnchorProxy {
       if (i.gte(nextIndex)) {
         break;
       }
-      deposits.push(await this.contract.QueueDepositMap(maspAddr, i));
+      deposits.push(await this.contract.queueDepositMap(maspAddr, i));
     }
     return deposits;
   }
@@ -171,14 +194,14 @@ export class MultiAssetVAnchorProxy {
     startIndex: BigNumber,
     batchSize: BigNumber
   ): Promise<string[]> {
-    const nextIndex = await this.contract.nextRewardUnspentTreeCommitmentIndex(maspAddr);
+    const nextIndex = await this.contract.nextUnspentTreeComIndex(maspAddr);
     const endIndex = startIndex.add(batchSize);
     const commitments = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
       if (i.gte(nextIndex)) {
         break;
       }
-      commitments.push(await this.contract.RewardUnspentTreeCommitmentMap(maspAddr, i));
+      commitments.push(await this.contract.unspentTreeComMap(maspAddr, i));
     }
     return commitments;
   }
@@ -189,14 +212,14 @@ export class MultiAssetVAnchorProxy {
     startIndex: BigNumber,
     batchSize: BigNumber
   ): Promise<string[]> {
-    const nextIndex = await this.contract.nextRewardSpentTreeCommitmentIndex(maspAddr);
+    const nextIndex = await this.contract.nextSpentTreeComIndex(maspAddr);
     const endIndex = startIndex.add(batchSize);
     const commitments = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
       if (i.gte(nextIndex)) {
         break;
       }
-      commitments.push(await this.contract.RewardSpentTreeCommitmentMap(maspAddr, i));
+      commitments.push(await this.contract.spentTreeComMap(maspAddr, i));
     }
     return commitments;
   }

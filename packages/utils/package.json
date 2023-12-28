@@ -1,5 +1,5 @@
 {
-  "name": "@webb-tools/protocol-solidity-extension-utils",
+  "name": "@webb-tools/masp-protocol-utils",
   "main": "./dist/index.js",
   "license": "(MIT OR Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
@@ -9,7 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/utils": "^1.0.7",
+    "@webb-tools/utils": "^1.0.10",
     "babyjubjub": "^1.0.4",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"
@@ -22,5 +22,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity-extnesions.git"
   },
-  "version": "1.0.5"
+  "version": "1.0.8"
 }

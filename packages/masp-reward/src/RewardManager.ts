@@ -7,8 +7,8 @@ import {
   RewardManager__factory,
   RewardEncodeInputs__factory,
 } from '@webb-tools/masp-anchor-contracts';
-import { maspRewardFixtures } from '@webb-tools/protocol-solidity-extension-utils';
-import { getChainIdType, ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
+import { maspRewardFixtures } from '@webb-tools/masp-protocol-utils';
+import { ZkComponents, toFixedHex, FIELD_SIZE } from '@webb-tools/utils';
 import { Deployer } from '@webb-tools/create2-utils';
 import { MaspUtxo } from '@webb-tools/masp-anchors';
 import { IMASPRewardExtData, IMASPRewardAllInputs } from './interfaces';
@@ -21,7 +21,8 @@ export class RewardManager {
   signer: ethers.Signer;
   zkComponents: ZkComponents;
   maxEdges: number;
-  whitelistedAssetIDs: number[];
+  validRewardAssetIDs: BigNumberish[];
+  rates: number[];
 
   // Constructor
   public constructor(
@@ -29,13 +30,15 @@ export class RewardManager {
     signer: ethers.Signer,
     zkComponents: ZkComponents,
     maxEdges: number,
-    whitelistedAssetIDs: number[]
+    validRewardAssetIDs: number[],
+    rates: number[]
   ) {
     this.contract = contract;
     this.signer = signer;
     this.zkComponents = zkComponents;
     this.maxEdges = maxEdges;
-    this.whitelistedAssetIDs = whitelistedAssetIDs;
+    this.validRewardAssetIDs = validRewardAssetIDs;
+    this.rates = rates;
   }
 
   // Deploy a new RewardManager
@@ -46,9 +49,10 @@ export class RewardManager {
     rewardSwapContractAddr: string,
     rewardVerifierContract: RewardProofVerifier,
     governanceAddr: string,
+    hasherAddr: string,
     maxEdges: number,
-    rate: number,
-    initialWhitelistedAssetIds: number[]
+    initialvalidRewardAssetIDs: number[],
+    rates: number[]
   ) {
     let zkComponents: ZkComponents;
 
@@ -59,6 +63,10 @@ export class RewardManager {
     } else {
       throw new Error('maxEdges must be 2 or 8');
     }
+    if (initialvalidRewardAssetIDs.length != rates.length) {
+      throw new Error('whitelisted-asset-id list length must be equal to rate-list id length');
+    }
+
     const { contract: rewardEncodeLibrary } = await deployer.deploy(
       RewardEncodeInputs__factory,
       saltHex,
@@ -73,17 +81,25 @@ export class RewardManager {
       rewardSwapContractAddr,
       rewardVerifierContract.contract.address,
       governanceAddr,
+      hasherAddr,
       maxEdges,
-      rate,
-      initialWhitelistedAssetIds
+      initialvalidRewardAssetIDs,
+      rates
     );
     await manager.deployed();
 
-    return new RewardManager(manager, signer, zkComponents, maxEdges, initialWhitelistedAssetIds);
+    return new RewardManager(
+      manager,
+      signer,
+      zkComponents,
+      maxEdges,
+      initialvalidRewardAssetIDs,
+      rates
+    );
   }
 
   // Deploy a new RewardManager using CREATE2
-  // #TODO does not work yet, whitelistedAssetIds is not getting set correctly in RewardManager contract
+  // #TODO does not work yet, validRewardAssetIDs is not getting set correctly in RewardManager contract
   public static async create2RewardManager(
     deployer: Deployer,
     signer: ethers.Signer,
@@ -91,9 +107,10 @@ export class RewardManager {
     rewardSwapContractAddr: string,
     rewardVerifierContract: RewardProofVerifier,
     governanceAddr: string,
+    hasherAddr: string,
     maxEdges: number,
-    rate: number,
-    initialWhitelistedAssetIds: number[]
+    initialvalidRewardAssetIDs: number[],
+    rates: number[]
   ) {
     let zkComponents: ZkComponents;
 
@@ -104,16 +121,21 @@ export class RewardManager {
     } else {
       throw new Error('maxEdges must be 2 or 8');
     }
+    if (initialvalidRewardAssetIDs.length != rates.length) {
+      throw new Error('whitelisted-asset-id list length must be equal to rate-list id length');
+    }
 
-    const argTypes = ['address', 'address', 'address', 'uint8', 'uint256', 'uint32[]'];
+    const argTypes = ['address', 'address', 'address', 'address', 'uint8', 'uint32[]', 'uint32[]'];
     const args = [
       rewardSwapContractAddr,
       rewardVerifierContract.contract.address,
       governanceAddr,
+      hasherAddr,
       maxEdges,
-      rate,
-      initialWhitelistedAssetIds,
+      initialvalidRewardAssetIDs,
+      rates,
     ];
+
     const { contract: rewardEncodeLibrary } = await deployer.deploy(
       RewardEncodeInputs__factory,
       saltHex,
@@ -131,17 +153,19 @@ export class RewardManager {
       args
     );
 
-    return new RewardManager(manager, signer, zkComponents, maxEdges, initialWhitelistedAssetIds);
-  }
-
-  // Get the current rate
-  public async getRate(): Promise<BigNumber> {
-    return await this.contract.rate();
+    return new RewardManager(
+      manager,
+      signer,
+      zkComponents,
+      maxEdges,
+      initialvalidRewardAssetIDs,
+      rates
+    );
   }
 
   // Set the rate (only callable by the governance)
-  public async setRate(newRate: BigNumber): Promise<void> {
-    const tx = await this.contract.setRates(newRate);
+  public async setRate(newRates: number[]): Promise<void> {
+    const tx = await this.contract.setRates(newRates);
     await tx.wait();
   }
 
@@ -151,9 +175,9 @@ export class RewardManager {
     await tx.wait();
   }
 
-  // Update the whitelistedAssetIds (only callable by the governance)
-  public async updateWhiteListedAssetIds(newAssetIds: BigNumber[]): Promise<void> {
-    const tx = await this.contract.updatewhitelistedAssetIDs(newAssetIds);
+  // Update the validRewardAssetIDs (only callable by the governance)
+  public async setvalidRewardAssetIDs(newAssetIds: number[]): Promise<void> {
+    const tx = await this.contract.setvalidRewardAssetIDs(newAssetIds);
     await tx.wait();
   }
 
@@ -170,12 +194,6 @@ export class RewardManager {
   // Add a new edge (only callable by the governance)
   public async addEdge(chainId: number): Promise<void> {
     const tx = await this.contract.addEdge(chainId);
-    await tx.wait();
-  }
-
-  // Update an existing edge with a new chainId (only callable by the governance)
-  public async updateEdge(oldChainId: number, newChainId: number): Promise<void> {
-    const tx = await this.contract.updateEdge(oldChainId, newChainId);
     await tx.wait();
   }
 
@@ -224,7 +242,7 @@ export class RewardManager {
   }
 
   // Helper function to hash `IMASPRewardExtData` to a field element
-  public toRewardExtDataHash(extData: IMASPRewardExtData): BigNumberish {
+  public toRewardExtDataHash(extData: IMASPRewardExtData): BigNumber {
     const abi = new ethers.utils.AbiCoder();
     const encodedData = abi.encode(
       ['uint256', 'address', 'address'],
@@ -247,7 +265,6 @@ export class RewardManager {
   public generateMASPRewardInputs(
     maspNote: MaspUtxo,
     maspNotePathIndices: number,
-    rate: number,
     rewardNullifier: BigNumber,
     spentTimestamp: EpochTimeStamp,
     spentRoots: BigNumberish[],
@@ -259,15 +276,20 @@ export class RewardManager {
     unspentPathElements: BigNumberish[],
     extData: IMASPRewardExtData
   ): IMASPRewardAllInputs {
-    const anonymityRewardPoints = maspNote.amount.mul(rate).mul(spentTimestamp - unspentTimestamp);
+    const selectedRewardRate = this.getRate(Number(maspNote.assetID));
+    const anonymityRewardPoints = maspNote.amount
+      .mul(selectedRewardRate)
+      .mul(spentTimestamp - unspentTimestamp);
     const extDataHash = this.toRewardExtDataHash(extData);
+    const spentRootsBigNumber = spentRoots.map((num) => BigNumber.from(num));
+    const unspentRootsBigNumber = unspentRoots.map((num) => BigNumber.from(num));
 
     return {
-      rate: rate,
       anonymityRewardPoints: anonymityRewardPoints,
       rewardNullifier: rewardNullifier,
       extDataHash: extDataHash,
-      whitelistedAssetIDs: this.whitelistedAssetIDs,
+      validRewardAssetIDs: this.validRewardAssetIDs,
+      rates: this.rates,
       noteChainID: maspNote.chainID,
       noteAmount: maspNote.amount,
       noteAssetID: maspNote.assetID,
@@ -284,17 +306,16 @@ export class RewardManager {
       unspentRoots: unspentRoots,
       unspentPathIndices: unspentPathIndices,
       unspentPathElements: unspentPathElements,
+      selectedRewardRate: selectedRewardRate,
     };
   }
 
   // This function is called by the relayer to claim the reward.
   // The relayer will receive the reward amount and the fee.
   // The recipient will receive the remaining amount.
-
   public async reward(
     maspNote: MaspUtxo,
     maspNotePathIndices: number,
-    rate: number,
     spentTimestamp: EpochTimeStamp,
     spentRoots: BigNumberish[],
     spentPathIndices: BigNumberish,
@@ -321,7 +342,6 @@ export class RewardManager {
     const rewardAllInputs = this.generateMASPRewardInputs(
       maspNote,
       maspNotePathIndices,
-      rate,
       rewardNullifier,
       spentTimestamp,
       spentRoots,
@@ -335,23 +355,42 @@ export class RewardManager {
     );
 
     const { proofEncoded, publicSignals } = await this.generateRewardProof(rewardAllInputs);
-
     const tx = await this.contract.reward(
       proofEncoded,
       {
-        rate: publicSignals[0],
-        anonymityRewardPoints: publicSignals[1],
-        rewardNullifier: publicSignals[2],
-        extDataHash: publicSignals[3],
-        whitelistedAssetIDs: RewardManager.createBNArrayToBytes(this.whitelistedAssetIDs),
+        anonymityRewardPoints: rewardAllInputs.anonymityRewardPoints,
+        rewardNullifier: rewardAllInputs.rewardNullifier,
+        extDataHash: rewardAllInputs.extDataHash,
+        validRewardAssetIDs: RewardManager.createBNArrayToBytes(this.validRewardAssetIDs),
+        rates: RewardManager.createBNArrayToBytes(this.rates),
         spentRoots: RewardManager.createBNArrayToBytes(spentRoots),
         unspentRoots: RewardManager.createBNArrayToBytes(unspentRoots),
       },
-      extData
+      extData,
+      {
+        gasLimit: 10000000,
+      }
     );
     const receipt = await tx.wait();
     const anonymityRewardPoints = rewardAllInputs.anonymityRewardPoints;
     return { anonymityRewardPoints, receipt };
+  }
+
+  // Get the reward rate for a given asset-id
+  public getRate(assetId: number): number {
+    let assetIdIndex = 0;
+    let found = false;
+    for (let i = 0; i < this.validRewardAssetIDs.length; i++) {
+      if (assetId == this.validRewardAssetIDs[i]) {
+        found = true;
+        assetIdIndex = i;
+      }
+    }
+    if (found) {
+      return this.rates[assetIdIndex];
+    } else {
+      throw new Error('asset-id doesnot exist');
+    }
   }
 
   public static createBNArrayToBytes(arr: BigNumberish[]) {

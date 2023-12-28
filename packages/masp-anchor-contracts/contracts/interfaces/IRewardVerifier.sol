@@ -30,7 +30,7 @@ interface IRewardVerifier2_30 {
 		uint[2] memory a,
 		uint[2][2] memory b,
 		uint[2] memory c,
-		uint256[18] memory input
+		uint256[27] memory input
 	) external view returns (bool r);
 }
 
@@ -44,6 +44,6 @@ interface IRewardVerifier8_30 {
 		uint[2] memory a,
 		uint[2][2] memory b,
 		uint[2] memory c,
-		uint256[30] memory input
+		uint256[39] memory input
 	) external view returns (bool r);
 }

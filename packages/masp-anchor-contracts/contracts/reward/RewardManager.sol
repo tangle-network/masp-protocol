@@ -6,9 +6,11 @@
 pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@webb-tools/protocol-solidity/hashers/IHasher.sol";
 import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
 import "./RewardEncodeInputs.sol";
+import "hardhat/console.sol";
 
 contract RewardManager is ReentrancyGuard {
 	// this constant is taken from the Verifier.sol generated from circom library
@@ -20,11 +22,12 @@ contract RewardManager is ReentrancyGuard {
 	IRewardSwap public immutable rewardSwap;
 	IRewardVerifier public immutable rewardVerifier;
 	address public immutable governance;
+	IHasher public hasher;
 
 	mapping(bytes32 => bool) public rewardNullifiers;
-	uint256 public rate;
 
-	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public whitelistedAssetIDs;
+	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public validRewardAssetIDs;
+	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public rates;
 
 	struct Edge {
 		uint256[ROOT_HISTORY_SIZE] spentRootList;
@@ -43,9 +46,9 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToSpentList(uint256 indexed chainId, uint256 root);
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
-	event RateUpdated(uint256 newRate);
-	// Event to log changes in whitelistedAssetIDs.
-	event whitelistedAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newwhitelistedAssetIDs);
+	event RatesUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newRates);
+	// Event to log changes in validRewardAssetIDs.
+	event validRewardAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newvalidRewardAssetIDs);
 
 	modifier onlyGovernance() {
 		require(msg.sender == governance, "Only governance can perform this action");
@@ -56,47 +59,56 @@ contract RewardManager is ReentrancyGuard {
 		address _rewardSwap,
 		address _rewardVerifier,
 		address _governance,
+		address _hasher,
 		uint8 _maxEdges,
-		uint256 _rate,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialwhitelistedAssetIDs
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialvalidRewardAssetIDs,
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
 	) {
 		rewardSwap = IRewardSwap(_rewardSwap);
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
 		governance = _governance;
-		rate = _rate;
-		whitelistedAssetIDs = _initialwhitelistedAssetIDs;
+		hasher = IHasher(_hasher);
+		rates = _rates;
+		validRewardAssetIDs = _initialvalidRewardAssetIDs;
 		maxEdges = _maxEdges;
 	}
 
+	/// Claim a reward a spent UTXO using a zkSNARK proof
+	/// @param _proof The SNARK proof
+	/// @param _publicInputs The public inputs to the SNARK proof
+	/// @param _extData The external data to the SNARK proof
 	function reward(
 		bytes memory _proof,
 		RewardPublicInputs memory _publicInputs,
 		RewardExtData memory _extData
 	) public {
+		// Destructure public input data
 		(
-			bytes memory _encodedInputs,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
+			bytes memory encodedInput,
+			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _validRewardAssetIDs,
+			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
 			uint256[] memory _spentRoots,
 			uint256[] memory _unspentRoots
 		) = RewardEncodeInputs._encodeInputs(_publicInputs, maxEdges);
-
-		require(_publicInputs.rate == rate && _publicInputs.rate > 0, "Invalid reward rate");
+		// prevent double claim of rewards
 		require(
 			!rewardNullifiers[bytes32(_publicInputs.rewardNullifier)],
 			"Reward has been already spent"
 		);
+		// Prevent modification of ExtData which includes addresses of recipient, relayer and fee
 		require(
 			_publicInputs.extDataHash ==
 				uint256(_getExtDataHash(_extData)) % SNARK_SCALAR_FIELD_SIZE,
 			"Incorrect external data hash"
 		);
-		require(_isValidWhitelistedIds(_whitelistedAssetIDs), "Invalid asset IDs");
+		require(_isValidWhitelistedIds(_validRewardAssetIDs), "Invalid asset IDs");
+		require(_isValidRates(_rates), "Invalid rates");
 		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
 
-		// Verify the proof
+		// verify the proof
 		require(
-			IRewardVerifier(rewardVerifier).verifyProof(_proof, _encodedInputs, maxEdges),
+			IRewardVerifier(rewardVerifier).verifyProof(_proof, encodedInput, maxEdges),
 			"Invalid reward proof"
 		);
 
@@ -114,48 +126,24 @@ contract RewardManager is ReentrancyGuard {
 		}
 	}
 
-	function setRates(uint256 _rate) external onlyGovernance nonReentrant {
-		rate = _rate;
-		emit RateUpdated(rate);
+	// Function to modify the validRewardAssetIDs.
+	function setvalidRewardAssetIDs(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newvalidRewardAssetIDs
+	) external onlyGovernance nonReentrant {
+		validRewardAssetIDs = _newvalidRewardAssetIDs;
+		emit validRewardAssetIDsUpdated(_newvalidRewardAssetIDs);
+	}
+
+	// Function to modify the rates.
+	function setRates(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
+	) external onlyGovernance nonReentrant {
+		rates = _rates;
+		emit RatesUpdated(rates);
 	}
 
 	function setPoolWeight(uint256 _newWeight) external onlyGovernance nonReentrant {
 		rewardSwap.setPoolWeight(_newWeight);
-	}
-
-	// Function to modify the whitelistedAssetIDs.
-	function updatewhitelistedAssetIDs(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newwhitelistedAssetIDs
-	) external onlyGovernance nonReentrant {
-		whitelistedAssetIDs = _newwhitelistedAssetIDs;
-		emit whitelistedAssetIDsUpdated(_newwhitelistedAssetIDs);
-	}
-
-	// Getter function to retrieve whitelistedAssetIDs.
-	function getwhitelistedAssetIDs()
-		external
-		view
-		returns (uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory)
-	{
-		return whitelistedAssetIDs;
-	}
-
-	function _getExtDataHash(RewardExtData memory _extData) private pure returns (bytes32) {
-		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
-	}
-
-	function _isValidWhitelistedIds(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
-	) private view returns (bool) {
-		require(_inputIds.length == whitelistedAssetIDs.length, "Input list length does not match");
-
-		for (uint256 i = 0; i < _inputIds.length; i++) {
-			if (_inputIds[i] != whitelistedAssetIDs[i]) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	// Add a new edge.
@@ -172,31 +160,6 @@ contract RewardManager is ReentrancyGuard {
 		edgeExistsForChain[chainId] = true;
 		chainIdToEdgeListIndex[chainId] = edgeIndex;
 		emit EdgeAdded(chainId, edgeIndex);
-	}
-
-	// Update an existing edge with a new chainId.
-	function updateEdge(
-		uint256 oldChainId,
-		uint256 newChainId
-	) external onlyGovernance nonReentrant {
-		require(edgeExistsForChain[oldChainId], "Edge for old chainId does not exist");
-		require(!edgeExistsForChain[newChainId], "Edge for new chainId already exists");
-		uint256 edgeIndex = chainIdToEdgeListIndex[oldChainId];
-		chainIdToEdgeListIndex[oldChainId] = 0;
-		chainIdToEdgeListIndex[newChainId] = edgeIndex;
-		edgeExistsForChain[oldChainId] = false;
-		edgeExistsForChain[newChainId] = true;
-
-		// Clear the content of the old chain's spent and unspent root lists
-		Edge storage edge = edgeList[edgeIndex];
-		for (uint8 i = 0; i < ROOT_HISTORY_SIZE; i++) {
-			edge.currentSpentRootListIndex = 0;
-			edge.spentRootList[i] = 0;
-			edge.currentUnspentRootListIndex = 0;
-			edge.unspentRootList[i] = 0;
-		}
-
-		emit EdgeUpdated(oldChainId, newChainId);
 	}
 
 	// Add a root to the spent list of an existing edge.
@@ -225,6 +188,7 @@ contract RewardManager is ReentrancyGuard {
 		emit RootAddedToUnspentList(chainId, root);
 	}
 
+	// Get the latest spent roots for all edges.
 	function getLatestSpentRoots() external view returns (uint256[] memory) {
 		uint256[] memory latestSpentRoots = new uint256[](maxEdges);
 
@@ -247,6 +211,7 @@ contract RewardManager is ReentrancyGuard {
 		return latestSpentRoots;
 	}
 
+	// Get the latest unspent roots for all edges.
 	function getLatestUnspentRoots() external view returns (uint256[] memory) {
 		uint256[] memory latestUnspentRoots = new uint256[](maxEdges);
 
@@ -267,6 +232,38 @@ contract RewardManager is ReentrancyGuard {
 		}
 
 		return latestUnspentRoots;
+	}
+
+	function _getExtDataHash(RewardExtData memory _extData) private pure returns (bytes32) {
+		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
+	}
+
+	function _isValidRates(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputRates
+	) private view returns (bool) {
+		require(_inputRates.length == rates.length, "Input list length does not match");
+
+		for (uint256 i = 0; i < _inputRates.length; i++) {
+			if (_inputRates[i] != rates[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	function _isValidWhitelistedIds(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
+	) private view returns (bool) {
+		require(_inputIds.length == validRewardAssetIDs.length, "Input list length does not match");
+
+		for (uint256 i = 0; i < _inputIds.length; i++) {
+			if (_inputIds[i] != validRewardAssetIDs[i]) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	function _isValidSpentRoots(uint256[] memory spentRoots) private view returns (bool) {

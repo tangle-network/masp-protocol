@@ -10,12 +10,12 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/contracts": "^1.0.7",
-    "@webb-tools/create2-utils": "^1.0.7",
-    "@webb-tools/interfaces": "^1.0.7",
-    "@webb-tools/masp-anchor-contracts": "^1.0.5",
-    "@webb-tools/masp-anchors": "file:../masp-anchors",
-    "@webb-tools/utils": "^1.0.7",
+    "@webb-tools/contracts": "^1.0.10",
+    "@webb-tools/create2-utils": "^1.0.10",
+    "@webb-tools/interfaces": "^1.0.10",
+    "@webb-tools/masp-anchor-contracts": "^1.0.8",
+    "@webb-tools/masp-anchors": "^1.0.8",
+    "@webb-tools/utils": "^1.0.10",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"
   },
@@ -27,5 +27,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/masp-protocol.git"
   },
-  "version": "1.0.3"
+  "version": "1.0.8"
 }
