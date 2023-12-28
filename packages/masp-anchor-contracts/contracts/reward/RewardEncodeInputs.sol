@@ -16,7 +16,7 @@ struct RewardPublicInputs {
 	uint256 anonymityRewardPoints;
 	uint256 rewardNullifier;
 	uint256 extDataHash;
-	bytes whitelistedAssetIDs;
+	bytes validRewardAssetIDs;
 	bytes rates;
 	bytes spentRoots;
 	bytes unspentRoots;
@@ -42,7 +42,7 @@ library RewardEncodeInputs {
 			uint256[] memory
 		)
 	{
-		uint32[10] memory whitelistedAssetIDs = abi.decode(_args.whitelistedAssetIDs, (uint32[10]));
+		uint32[10] memory validRewardAssetIDs = abi.decode(_args.validRewardAssetIDs, (uint32[10]));
 		uint32[10] memory rates = abi.decode(_args.rates, (uint32[10]));
 		uint256[] memory spentRootsResult = new uint256[](_maxEdges);
 		uint256[] memory unspentRootsResult = new uint256[](_maxEdges);
@@ -62,16 +62,16 @@ library RewardEncodeInputs {
 			inputs[i++] = uint256(_args.anonymityRewardPoints);
 			inputs[i++] = uint256(_args.rewardNullifier);
 			inputs[i++] = uint256(_args.extDataHash);
-			inputs[i++] = uint256(whitelistedAssetIDs[0]);
-			inputs[i++] = uint256(whitelistedAssetIDs[1]);
-			inputs[i++] = uint256(whitelistedAssetIDs[2]);
-			inputs[i++] = uint256(whitelistedAssetIDs[3]);
-			inputs[i++] = uint256(whitelistedAssetIDs[4]);
-			inputs[i++] = uint256(whitelistedAssetIDs[5]);
-			inputs[i++] = uint256(whitelistedAssetIDs[6]);
-			inputs[i++] = uint256(whitelistedAssetIDs[7]);
-			inputs[i++] = uint256(whitelistedAssetIDs[8]);
-			inputs[i++] = uint256(whitelistedAssetIDs[9]);
+			inputs[i++] = uint256(validRewardAssetIDs[0]);
+			inputs[i++] = uint256(validRewardAssetIDs[1]);
+			inputs[i++] = uint256(validRewardAssetIDs[2]);
+			inputs[i++] = uint256(validRewardAssetIDs[3]);
+			inputs[i++] = uint256(validRewardAssetIDs[4]);
+			inputs[i++] = uint256(validRewardAssetIDs[5]);
+			inputs[i++] = uint256(validRewardAssetIDs[6]);
+			inputs[i++] = uint256(validRewardAssetIDs[7]);
+			inputs[i++] = uint256(validRewardAssetIDs[8]);
+			inputs[i++] = uint256(validRewardAssetIDs[9]);
 			inputs[i++] = uint256(rates[0]);
 			inputs[i++] = uint256(rates[1]);
 			inputs[i++] = uint256(rates[2]);
@@ -118,16 +118,16 @@ library RewardEncodeInputs {
 			inputs[i++] = uint256(_args.anonymityRewardPoints);
 			inputs[i++] = uint256(_args.rewardNullifier);
 			inputs[i++] = uint256(_args.extDataHash);
-			inputs[i++] = uint256(whitelistedAssetIDs[0]);
-			inputs[i++] = uint256(whitelistedAssetIDs[1]);
-			inputs[i++] = uint256(whitelistedAssetIDs[2]);
-			inputs[i++] = uint256(whitelistedAssetIDs[3]);
-			inputs[i++] = uint256(whitelistedAssetIDs[4]);
-			inputs[i++] = uint256(whitelistedAssetIDs[5]);
-			inputs[i++] = uint256(whitelistedAssetIDs[6]);
-			inputs[i++] = uint256(whitelistedAssetIDs[7]);
-			inputs[i++] = uint256(whitelistedAssetIDs[8]);
-			inputs[i++] = uint256(whitelistedAssetIDs[9]);
+			inputs[i++] = uint256(validRewardAssetIDs[0]);
+			inputs[i++] = uint256(validRewardAssetIDs[1]);
+			inputs[i++] = uint256(validRewardAssetIDs[2]);
+			inputs[i++] = uint256(validRewardAssetIDs[3]);
+			inputs[i++] = uint256(validRewardAssetIDs[4]);
+			inputs[i++] = uint256(validRewardAssetIDs[5]);
+			inputs[i++] = uint256(validRewardAssetIDs[6]);
+			inputs[i++] = uint256(validRewardAssetIDs[7]);
+			inputs[i++] = uint256(validRewardAssetIDs[8]);
+			inputs[i++] = uint256(validRewardAssetIDs[9]);
 			inputs[i++] = uint256(rates[0]);
 			inputs[i++] = uint256(rates[1]);
 			inputs[i++] = uint256(rates[2]);
@@ -160,6 +160,6 @@ library RewardEncodeInputs {
 			require(false, "Invalid edges");
 		}
 
-		return (encodedInput, whitelistedAssetIDs, rates, spentRootsResult, unspentRootsResult);
+		return (encodedInput, validRewardAssetIDs, rates, spentRootsResult, unspentRootsResult);
 	}
 }

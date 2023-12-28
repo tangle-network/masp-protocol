@@ -55,7 +55,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
   const chainID = getChainIdType(31337);
   const anotherChainID = getChainIdType(30337);
   const levels = 30;
-  const whitelistedAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const validRewardAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
   let hasherInstance;
@@ -108,7 +108,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
       sender.address,
       hasherInstance.contract.address,
       maxEdges,
-      whitelistedAssetIDs,
+      validRewardAssetIDs,
       rates
     );
     // set manager
@@ -198,7 +198,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
         rewardNullifier: rewardNullifier,
         // Dummy
         extDataHash: extDataHash.toHexString(),
-        whitelistedAssetIDs: whitelistedAssetIDs,
+        validRewardAssetIDs: validRewardAssetIDs,
         rates: rates,
 
         // MASP Spent Note for which anonymity points are being claimed

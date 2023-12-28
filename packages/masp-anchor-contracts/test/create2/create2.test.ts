@@ -536,7 +536,7 @@ describe('Should deploy MASP contracts to the same address', () => {
 
     it('should deploy RewardManager and get gas cost', async () => {
       const maxEdges = 2;
-      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const initialRewardAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
       const zkComponents = await maspRewardZkComponents[230]();
 
@@ -553,7 +553,7 @@ describe('Should deploy MASP contracts to the same address', () => {
         sender.address,
         sender.address,
         maxEdges,
-        initialWhitelistedAssetIds,
+        initialRewardAssetIDs,
         rates
       );
       const gas = await ethers.provider.estimateGas(deployTx);
@@ -563,7 +563,7 @@ describe('Should deploy MASP contracts to the same address', () => {
     it('should deploy RewardManager to the same address', async () => {
       const dummyGovernance = sender.address;
       const maxEdges = 2;
-      const initialWhitelistedAssetIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const initialRewardAssetIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       const rates = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
       // create a new reward manager
@@ -576,7 +576,7 @@ describe('Should deploy MASP contracts to the same address', () => {
         dummyGovernance,
         poseidonHasher1.contract.address,
         maxEdges,
-        initialWhitelistedAssetIds,
+        initialRewardAssetIDs,
         rates
       );
 
@@ -590,7 +590,7 @@ describe('Should deploy MASP contracts to the same address', () => {
         dummyGovernance,
         poseidonHasher2.contract.address,
         maxEdges,
-        initialWhitelistedAssetIds,
+        initialRewardAssetIDs,
         rates
       );
 

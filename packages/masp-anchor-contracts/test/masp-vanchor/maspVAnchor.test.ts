@@ -393,7 +393,7 @@ describe('MASP for 2 max edges', () => {
           BigNumber.from(0)
         ),
       ];
-      const whitelistedAssetIDs = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+      const validFeeAssetIDs = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
       inputs.map((x) => x.forceSetIndex(BigNumber.from(0)));
       feeInputs.map((x) => x.forceSetIndex(BigNumber.from(0)));
 
@@ -428,7 +428,7 @@ describe('MASP for 2 max edges', () => {
         inputs[0].maspKey,
         feeAssetID,
         feeTokenID,
-        whitelistedAssetIDs,
+        validFeeAssetIDs,
         feeInputs,
         feeOutputs,
         feeInputs[0].maspKey,

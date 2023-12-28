@@ -404,11 +404,11 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
   }
 
   public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
-    // publicAssetID, publicTokenID, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments,
+    // publicAssetID, publicTokenID, validFeeAssetIDs, feeInputNullifiers, feeOutputCommitments,
 
-    let whitelistedAssetIDs_bytes = '';
-    for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
-      whitelistedAssetIDs_bytes += toFixedHex(publicInputs.whitelistedAssetIDs[i]).slice(2);
+    let validFeeAssetIDs = '';
+    for (let i = 0; i < publicInputs.validFeeAssetIDs.length; i++) {
+      validFeeAssetIDs += toFixedHex(publicInputs.validFeeAssetIDs[i]).slice(2);
     }
 
     let feeInputNullifier_bytes = '';
@@ -424,7 +424,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
     return (
       toFixedHex(publicInputs.publicAssetID) +
       toFixedHex(publicInputs.publicTokenID).slice(2) +
-      whitelistedAssetIDs_bytes +
+      validFeeAssetIDs +
       feeInputNullifier_bytes +
       feeOutputCommitment_bytes
     );
@@ -484,7 +484,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
     signing_key: MaspKey,
     feeAssetID: BigNumberish,
     feeTokenId: BigNumberish,
-    whitelistedAssetIds: BigNumberish[],
+    validFeeAssetIDs: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
     fee_signing_key: MaspKey,
@@ -570,7 +570,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
       ak_Y: signing_key.getProofAuthorizingKey()[1],
 
       feeAssetID: feeAssetID,
-      whitelistedAssetIDs: whitelistedAssetIds,
+      validFeeAssetIDs: validFeeAssetIDs,
       feeTokenID: feeTokenId,
 
       // data for transaction inputs
@@ -615,7 +615,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
       chainID: allInputs.chainID,
       roots: allInputs.roots,
 
-      whitelistedAssetIDs: allInputs.whitelistedAssetIDs,
+      validFeeAssetIDs: allInputs.validFeeAssetIDs,
 
       // data for transaction inputs
       feeInputNullifier: allInputs.feeInputNullifier,
@@ -637,7 +637,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
     signing_key: MaspKey,
     feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
-    whitelistedAssetIds: BigNumberish[],
+    validFeeAssetIDs: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
     fee_signing_key: MaspKey,
@@ -657,7 +657,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
       signing_key,
       feeAssetId,
       feeTokenId,
-      whitelistedAssetIds,
+      validFeeAssetIDs,
       feeInputs,
       feeOutputs,
       fee_signing_key,

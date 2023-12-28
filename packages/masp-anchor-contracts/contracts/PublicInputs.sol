@@ -10,7 +10,7 @@ pragma solidity ^0.8.18;
 struct MASPAuxPublicInputs {
 	uint256 publicAssetID;
 	uint256 publicTokenID;
-	uint256[10] whitelistedAssetIDs;
+	uint256[10] validFeeAssetIDs;
 	uint256[2] feeInputNullifiers;
 	uint256[2] feeOutputCommitments;
 }

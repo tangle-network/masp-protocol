@@ -26,7 +26,7 @@ contract RewardManager is ReentrancyGuard {
 
 	mapping(bytes32 => bool) public rewardNullifiers;
 
-	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public whitelistedAssetIDs;
+	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public validRewardAssetIDs;
 	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public rates;
 
 	struct Edge {
@@ -47,8 +47,8 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
 	event RatesUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newRates);
-	// Event to log changes in whitelistedAssetIDs.
-	event whitelistedAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newwhitelistedAssetIDs);
+	// Event to log changes in validRewardAssetIDs.
+	event validRewardAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newvalidRewardAssetIDs);
 
 	modifier onlyGovernance() {
 		require(msg.sender == governance, "Only governance can perform this action");
@@ -61,7 +61,7 @@ contract RewardManager is ReentrancyGuard {
 		address _governance,
 		address _hasher,
 		uint8 _maxEdges,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialWhitelistedAssetIDs,
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialvalidRewardAssetIDs,
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
 	) {
 		rewardSwap = IRewardSwap(_rewardSwap);
@@ -69,7 +69,7 @@ contract RewardManager is ReentrancyGuard {
 		governance = _governance;
 		hasher = IHasher(_hasher);
 		rates = _rates;
-		whitelistedAssetIDs = _initialWhitelistedAssetIDs;
+		validRewardAssetIDs = _initialvalidRewardAssetIDs;
 		maxEdges = _maxEdges;
 	}
 
@@ -85,7 +85,7 @@ contract RewardManager is ReentrancyGuard {
 		// Destructure public input data
 		(
 			bytes memory encodedInput,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _whitelistedAssetIDs,
+			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _validRewardAssetIDs,
 			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
 			uint256[] memory _spentRoots,
 			uint256[] memory _unspentRoots
@@ -101,7 +101,7 @@ contract RewardManager is ReentrancyGuard {
 				uint256(_getExtDataHash(_extData)) % SNARK_SCALAR_FIELD_SIZE,
 			"Incorrect external data hash"
 		);
-		require(_isValidWhitelistedIds(_whitelistedAssetIDs), "Invalid asset IDs");
+		require(_isValidWhitelistedIds(_validRewardAssetIDs), "Invalid asset IDs");
 		require(_isValidRates(_rates), "Invalid rates");
 		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
@@ -126,12 +126,12 @@ contract RewardManager is ReentrancyGuard {
 		}
 	}
 
-	// Function to modify the whitelistedAssetIDs.
-	function setWhitelistedAssetIDs(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newWhitelistedAssetIDs
+	// Function to modify the validRewardAssetIDs.
+	function setvalidRewardAssetIDs(
+		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newvalidRewardAssetIDs
 	) external onlyGovernance nonReentrant {
-		whitelistedAssetIDs = _newWhitelistedAssetIDs;
-		emit whitelistedAssetIDsUpdated(_newWhitelistedAssetIDs);
+		validRewardAssetIDs = _newvalidRewardAssetIDs;
+		emit validRewardAssetIDsUpdated(_newvalidRewardAssetIDs);
 	}
 
 	// Function to modify the rates.
@@ -255,10 +255,10 @@ contract RewardManager is ReentrancyGuard {
 	function _isValidWhitelistedIds(
 		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
 	) private view returns (bool) {
-		require(_inputIds.length == whitelistedAssetIDs.length, "Input list length does not match");
+		require(_inputIds.length == validRewardAssetIDs.length, "Input list length does not match");
 
 		for (uint256 i = 0; i < _inputIds.length; i++) {
-			if (_inputIds[i] != whitelistedAssetIDs[i]) {
+			if (_inputIds[i] != validRewardAssetIDs[i]) {
 				return false;
 			}
 		}

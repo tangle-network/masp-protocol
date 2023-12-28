@@ -6,7 +6,7 @@ component main { public [
   anonymityRewardPoints,
   rewardNullifier,
   extDataHash,
-  whitelistedAssetIDs,
+  validRewardAssetIDs,
   rates,
   spentRoots,
   unspentRoots

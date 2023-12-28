@@ -12,7 +12,7 @@ export type IMASPRewardPublicInputs = {
   anonymityRewardPoints: BigNumberish;
   rewardNullifier: BigNumberish;
   extDataHash: BigNumberish;
-  whitelistedAssetIDs: number[];
+  validRewardAssetIDs: number[];
   spentRoots: BigNumberish[];
   unspentRoots: BigNumberish[];
   extData: IMASPRewardExtData;
@@ -22,7 +22,7 @@ export type IMASPRewardAllInputs = {
   anonymityRewardPoints: BigNumberish;
   rewardNullifier: BigNumberish;
   extDataHash: BigNumberish;
-  whitelistedAssetIDs: BigNumberish[];
+  validRewardAssetIDs: BigNumberish[];
   rates: number[];
 
   // MASP Spent Note for which anonymity points are being claimed
