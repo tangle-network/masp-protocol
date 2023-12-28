@@ -9,19 +9,17 @@ include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
 
-/*
-Goal is to support:
-- Fungible assets
-- Non-fungible assets
-- Contract calls from the shielded and ability to re-shield
 
-Goal is to differentiate between
-- Collections of NFTs without taking over too much of the address space
-
-commitment = hash(assetID, tokenID, amount, hash(chainID, pubKey, blinding))
-nullifier = hash(ak_X, ak_Y, commitment)
-*/
-
+/// Goal is to support:
+/// - Fungible assets
+/// - Non-fungible assets
+/// - Contract calls from the shielded and ability to re-shield
+///
+/// Goal is to differentiate between
+/// - Collections of NFTs without taking over too much of the address space
+///
+/// commitment = hash(assetID, tokenID, amount, hash(chainID, pubKey, blinding))
+/// nullifier = hash(ak_X, ak_Y, commitment)
 template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeTokens) {
     // extAmount = external amount used for deposits and withdrawals
     // correct extAmount range is enforced on the smart contract

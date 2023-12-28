@@ -1,9 +1,7 @@
 #!/bin/bash
 
 compile () {
-    local outdir="$1" circuit="$2" size="$3"
-    mkdir -p build/$outdir
-    mkdir -p build/$outdir/$size
+    local outdir="$1" circuit="$2"
     mkdir -p artifacts/circuits/$outdir
     echo "circuits/main/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
@@ -13,41 +11,42 @@ compile () {
 }
 
 copy_to_fixtures () {
-    local outdir="$1" circuit="$2" size="$3" anchorType="$4" 
-    mkdir -p solidity-fixtures/solidity-fixtures/$anchorType
-    mkdir -p solidity-fixtures/solidity-fixtures/$anchorType/$size
-    cp artifacts/circuits/$outdir/$circuit.sym solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.sym
-    cp artifacts/circuits/$outdir/$circuit.r1cs solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.r1cs
-    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.wasm
-    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js solidity-fixtures/solidity-fixtures/$anchorType/$size/witness_calculator.cjs
+    local circuit_type="$1" circuit="$2" size="$3"
+    mkdir -p solidity-fixtures/solidity-fixtures/$circuit_type/$size
+    cp artifacts/circuits/$circuit_type/$circuit.sym solidity-fixtures/solidity-fixtures/$circuit_type/$size/$circuit.sym
+    cp artifacts/circuits/$circuit_type/$circuit.r1cs solidity-fixtures/solidity-fixtures/$circuit_type/$size/$circuit.r1cs
+    cp artifacts/circuits/$circuit_type/$circuit\_js/$circuit.wasm solidity-fixtures/solidity-fixtures/$circuit_type/$size/$circuit.wasm
+    cp artifacts/circuits/$circuit_type/$circuit\_js/witness_calculator.js solidity-fixtures/solidity-fixtures/$circuit_type/$size/${circuit}_witness_calculator.cjs
 }
 
 run_batch_tree () {
     local size="$1"
     echo "Compiling batch insertion for $size leafs (levels=$(($size/2)))"
-    compile batch_tree_$size batchMerkleTreeUpdate_$size $size
-    copy_to_fixtures batch_tree_$size batchMerkleTreeUpdate_$size $size batch-tree
+    compile batch_tree batch_tree_$size $size
+    copy_to_fixtures batch_tree batch_tree_$size $size
 }
 
 run_masp_vanchor () {
     local size="$1"
     echo "Compiling Webb style multi-asset Poseidon vanchor $size circuit w/ 2 inputs"
-    compile masp_vanchor_2 masp_vanchor_2_$size $size
-    copy_to_fixtures masp_vanchor_2 masp_vanchor_2_$size $size masp_vanchor_2
+    compile masp_vanchor masp_vanchor_2_${size} $size
+    compile masp_vanchor masp_vanchor_16_${size} $size
+    copy_to_fixtures masp_vanchor masp_vanchor_2_${size} $size
+    copy_to_fixtures masp_vanchor masp_vanchor_16_${size} $size
 }
 
 run_reward () {
-    local size="$1"
-    echo "Compiling anonimity mining circuit"
-    compile reward_$size reward_30_$size 30
-    copy_to_fixtures reward_$size reward_30_$size 30 reward_$size
+    local size="$1" height="$2"
+    echo "Compiling anonimity mining circuit $height $size"
+    compile reward reward_${height}_${size} $size
+    copy_to_fixtures reward reward_${height}_${size} $size
 }
 
 run_swap () {
-    local size="$1"
-    echo "Compiling swap circuit 30 $size"
-    compile swap_$size swap_30_$size 30
-    copy_to_fixtures swap_$size swap_30_$size 30 swap_$size
+    local size="$1" height="$2"
+    echo "Compiling swap circuit $height $size"
+    compile swap swap_${height}_${size} $size
+    copy_to_fixtures swap swap_${height}_${size} $size
 }
 
 case "$1" in
@@ -63,9 +62,6 @@ case "$1" in
     --circuit=batch32)
         run_batch_tree 32
         ;;
-    --circuit=batch64)
-        run_batch_tree 64
-        ;;
     --circuit=masp2)
         run_masp_vanchor 2
         ;;
@@ -73,25 +69,27 @@ case "$1" in
         run_masp_vanchor 8
         ;;
     --circuit=reward2)
-        run_reward 2
+        run_reward 2 30
         ;;
     --circuit=reward8)
-        run_reward 8
+        run_reward 8 30
         ;;
     --circuit=swap2)
-        run_swap 2
+        run_swap 2 30
         ;;
     --circuit=swap8)
-        run_swap 8
+        run_swap 8 30
         ;;
     *)
-        for size in 4 8 16 32 64; do
+        for size in 4 8 16 32; do
             run_batch_tree $size
         done
         for size in 2 8; do
             run_masp_vanchor $size
-            run_reward $size
-            run_swap $size
+            run_reward $size 30
+            run_swap $size 30
         done
         ;;
 esac
+
+trap 'echo "Process interrupted"; exit' SIGINT

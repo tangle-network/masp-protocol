@@ -2,7 +2,6 @@ pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 
-// Nullfier = Poseidon(ak_X, ak_Y, Record)
 template Nullifier() {
     signal input ak_X;
     signal input ak_Y;
