@@ -176,8 +176,8 @@ export class RewardManager {
   }
 
   // Update the validRewardAssetIDs (only callable by the governance)
-  public async setvalidRewardAssetIDs(newAssetIds: number[]): Promise<void> {
-    const tx = await this.contract.setvalidRewardAssetIDs(newAssetIds);
+  public async setValidRewardAssetIDs(newAssetIds: number[], newRates: number[]): Promise<void> {
+    const tx = await this.contract.setValidRewardAssetIDs(newAssetIds, newRates);
     await tx.wait();
   }
 
