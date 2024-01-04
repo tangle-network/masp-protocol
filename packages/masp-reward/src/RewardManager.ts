@@ -163,12 +163,6 @@ export class RewardManager {
     );
   }
 
-  // Set the rate (only callable by the governance)
-  public async setRate(newRates: number[]): Promise<void> {
-    const tx = await this.contract.setRates(newRates);
-    await tx.wait();
-  }
-
   // Set the pool weight (only callable by the governance)
   public async setPoolWeight(newWeight: BigNumber): Promise<void> {
     const tx = await this.contract.setPoolWeight(newWeight);
