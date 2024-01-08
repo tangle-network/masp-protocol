@@ -10,7 +10,6 @@ import "@webb-tools/protocol-solidity/hashers/IHasher.sol";
 import "../interfaces/IRewardSwap.sol";
 import "../interfaces/IRewardVerifier.sol";
 import "./RewardEncodeInputs.sol";
-import "hardhat/console.sol";
 
 contract RewardManager is ReentrancyGuard {
 	// this constant is taken from the Verifier.sol generated from circom library
@@ -25,9 +24,9 @@ contract RewardManager is ReentrancyGuard {
 	IHasher public hasher;
 
 	mapping(bytes32 => bool) public rewardNullifiers;
-
-	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public validRewardAssetIDs;
-	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public rates;
+	mapping(uint32 => bool) public validRewardAssetIDs;
+	mapping(uint32 => bool) public rateExists;
+	mapping(uint32 => uint32) public rates;
 
 	struct Edge {
 		uint256[ROOT_HISTORY_SIZE] spentRootList;
@@ -46,9 +45,9 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToSpentList(uint256 indexed chainId, uint256 root);
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
-	event RatesUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newRates);
+	event RatesUpdated(uint32[VALID_REWARD_ASSET_IDS_SIZE] newRates);
 	// Event to log changes in validRewardAssetIDs.
-	event validRewardAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newvalidRewardAssetIDs);
+	event RewardAssetsUpdate(uint32[] newValidRewardAssetIDs, uint32[] newRates);
 
 	modifier onlyGovernance() {
 		require(msg.sender == governance, "Only governance can perform this action");
@@ -61,16 +60,24 @@ contract RewardManager is ReentrancyGuard {
 		address _governance,
 		address _hasher,
 		uint8 _maxEdges,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialvalidRewardAssetIDs,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
+		uint32[] memory _initialValidRewardAssetIDs,
+		uint32[] memory _rates
 	) {
+		require(
+			_initialValidRewardAssetIDs.length == _rates.length,
+			"RewardManager: Invalid rates size"
+		);
 		rewardSwap = IRewardSwap(_rewardSwap);
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
 		governance = _governance;
 		hasher = IHasher(_hasher);
-		rates = _rates;
-		validRewardAssetIDs = _initialvalidRewardAssetIDs;
 		maxEdges = _maxEdges;
+
+		for (uint256 i = 0; i < _initialValidRewardAssetIDs.length; i++) {
+			validRewardAssetIDs[_initialValidRewardAssetIDs[i]] = true;
+			rates[_initialValidRewardAssetIDs[i]] = _rates[i];
+			rateExists[_initialValidRewardAssetIDs[i]] = true;
+		}
 	}
 
 	/// Claim a reward a spent UTXO using a zkSNARK proof
@@ -85,12 +92,12 @@ contract RewardManager is ReentrancyGuard {
 		// Destructure public input data
 		(
 			bytes memory encodedInput,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _validRewardAssetIDs,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
+			uint32[VALID_REWARD_ASSET_IDS_SIZE] memory _validRewardAssetIDs,
+			uint32[VALID_REWARD_ASSET_IDS_SIZE] memory _rates,
 			uint256[] memory _spentRoots,
 			uint256[] memory _unspentRoots
 		) = RewardEncodeInputs._encodeInputs(_publicInputs, maxEdges);
-		// prevent double claim of rewards
+		// Prevent double claim of rewards
 		require(
 			!rewardNullifiers[bytes32(_publicInputs.rewardNullifier)],
 			"Reward has been already spent"
@@ -101,8 +108,7 @@ contract RewardManager is ReentrancyGuard {
 				uint256(_getExtDataHash(_extData)) % SNARK_SCALAR_FIELD_SIZE,
 			"Incorrect external data hash"
 		);
-		require(_isValidWhitelistedIds(_validRewardAssetIDs), "Invalid asset IDs");
-		require(_isValidRates(_rates), "Invalid rates");
+		require(_isValidRewardAssetIDs(_validRewardAssetIDs, _rates), "Invalid asset IDs");
 		require(_isValidSpentRoots(_spentRoots), "Invalid spent roots");
 		require(_isValidUnspentRoots(_unspentRoots), "Invalid spent roots");
 
@@ -127,19 +133,17 @@ contract RewardManager is ReentrancyGuard {
 	}
 
 	// Function to modify the validRewardAssetIDs.
-	function setvalidRewardAssetIDs(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newvalidRewardAssetIDs
+	function setValidRewardAssetIDs(
+		uint32[] memory _validRewardAssetIDs,
+		uint32[] memory _rates
 	) external onlyGovernance nonReentrant {
-		validRewardAssetIDs = _newvalidRewardAssetIDs;
-		emit validRewardAssetIDsUpdated(_newvalidRewardAssetIDs);
-	}
-
-	// Function to modify the rates.
-	function setRates(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
-	) external onlyGovernance nonReentrant {
-		rates = _rates;
-		emit RatesUpdated(rates);
+		require(_validRewardAssetIDs.length == _rates.length, "RewardManager: Invalid rates size");
+		for (uint256 i = 0; i < _validRewardAssetIDs.length; i++) {
+			validRewardAssetIDs[_validRewardAssetIDs[i]] = true;
+			rates[_validRewardAssetIDs[i]] = _rates[i];
+			rateExists[_validRewardAssetIDs[i]] = true;
+		}
+		emit RewardAssetsUpdate(_validRewardAssetIDs, _rates);
 	}
 
 	function setPoolWeight(uint256 _newWeight) external onlyGovernance nonReentrant {
@@ -238,27 +242,20 @@ contract RewardManager is ReentrancyGuard {
 		return keccak256(abi.encode(_extData.fee, _extData.recipient, _extData.relayer));
 	}
 
-	function _isValidRates(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputRates
+	function _isValidRewardAssetIDs(
+		uint32[VALID_REWARD_ASSET_IDS_SIZE] memory _inputIds,
+		uint32[VALID_REWARD_ASSET_IDS_SIZE] memory _inputRates
 	) private view returns (bool) {
-		require(_inputRates.length == rates.length, "Input list length does not match");
-
-		for (uint256 i = 0; i < _inputRates.length; i++) {
-			if (_inputRates[i] != rates[i]) {
+		for (uint256 i = 0; i < _inputIds.length; i++) {
+			if (!validRewardAssetIDs[_inputIds[i]]) {
 				return false;
 			}
-		}
 
-		return true;
-	}
+			if (!rateExists[_inputIds[i]]) {
+				return false;
+			}
 
-	function _isValidWhitelistedIds(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
-	) private view returns (bool) {
-		require(_inputIds.length == validRewardAssetIDs.length, "Input list length does not match");
-
-		for (uint256 i = 0; i < _inputIds.length; i++) {
-			if (_inputIds[i] != validRewardAssetIDs[i]) {
+			if (_inputRates[i] != rates[_inputIds[i]]) {
 				return false;
 			}
 		}
