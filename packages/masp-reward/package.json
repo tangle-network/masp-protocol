@@ -13,8 +13,8 @@
     "@webb-tools/contracts": "^1.0.10",
     "@webb-tools/create2-utils": "^1.0.10",
     "@webb-tools/interfaces": "^1.0.10",
-    "@webb-tools/masp-anchor-contracts": "^1.0.9",
-    "@webb-tools/masp-anchors": "^1.0.9",
+    "@webb-tools/masp-anchor-contracts": "^1.0.10",
+    "@webb-tools/masp-anchors": "^1.0.10",
     "@webb-tools/utils": "^1.0.10",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"
@@ -27,5 +27,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/masp-protocol.git"
   },
-  "version": "1.0.9"
+  "version": "1.0.10"
 }
