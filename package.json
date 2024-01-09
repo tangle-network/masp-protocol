@@ -9,7 +9,9 @@
       "packages/*"
     ],
     "nohoist": [
-      "**/@openzeppelin/**"
+      "**/@openzeppelin/**",
+      "**/@webb-tools/protocol-solidity",
+      "**/@webb-tools/protocol-solidity/**"
     ]
   },
   "engines": {
