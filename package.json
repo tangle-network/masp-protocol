@@ -9,7 +9,8 @@
       "packages/*"
     ],
     "nohoist": [
-      "**/@openzeppelin/**"
+      "**/@openzeppelin/**",
+      "**/@webb-tools/**"
     ]
   },
   "engines": {
