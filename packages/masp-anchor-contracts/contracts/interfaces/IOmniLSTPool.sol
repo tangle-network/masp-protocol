@@ -21,6 +21,7 @@ interface IOmniLSTPool {
 		uint256 targetAllocation;
 		uint256 minAllocation;
 		uint256 swapFee;
+		uint256 denomination;
 	}
 
 	// Main functions

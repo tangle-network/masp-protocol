@@ -172,6 +172,17 @@ contract OmniLSTPool is IOmniLSTPool, ERC20, ReentrancyGuard, Ownable {
         return 1e18;
     }
 
+    /// @notice Retrieves the amount of underlying staking tokens in a specific LST token
+    /// @param token The address of the LST token
+    /// @return The amount of underlying staking tokens
+    function getUnderlyingStakingTokens(address token) external view returns (uint256) {
+        // Implement logic to fetch the amount of underlying staking tokens
+        // This is a placeholder and should be replaced with actual implementation
+        // For example, if the LST token has a method to get the underlying amount, it can be called here
+        // return ILSTToken(token).getUnderlyingStakingTokens();
+        return tokenInfo[token].balance; // Placeholder: assuming balance represents underlying staking tokens
+    }
+
     /// @notice Adjusts swap fees based on current pool shares and target allocations
     /// @param fromToken The address of the token being swapped from
     /// @param toToken The address of the token being swapped to
