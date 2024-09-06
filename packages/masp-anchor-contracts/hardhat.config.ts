@@ -2,6 +2,7 @@ import { HardhatUserConfig } from 'hardhat/types';
 import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
+import 'hardhat-contract-sizer';
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
@@ -51,6 +52,17 @@ const config: HardhatUserConfig = {
           },
         },
       },
+
+      {
+        version: '0.8.24',
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            runs: 1337,
+          },
+        },
+      },
     ],
   },
   mocha: {
@@ -61,6 +73,9 @@ const config: HardhatUserConfig = {
     currency: 'USD',
     gasPrice: 21,
   },
+  contractSizer: {
+    runOnCompile: true,
+  }
 };
 
 export default config;
