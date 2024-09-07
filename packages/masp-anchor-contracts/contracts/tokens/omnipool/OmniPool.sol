@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import { TokenInfo, PRECISION, FEE_BASIS_POINTS } from  "./OmniLib.sol";
+import { WhitelistedTokens, PRECISION, FEE_BASIS_POINTS } from  "./OmniLib.sol";
 import { IOmniPool } from "../../interfaces/IOmniPool.sol";
 import { IOracle} from "../../interfaces/IOracle.sol";
 import { ERC20 } from "./ERC20.sol";
@@ -16,9 +16,10 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
     address public immutable anchor;
     address public immutable treasury;
     IOracle public oracle;
+    uint256 public feeCap;
 
-    mapping(address => TokenInfo) private _tokenInfo;
-    address[] private _whitelistedTokens;
+    //mapping(address => TokenInfo) private _tokenInfo; this mapping used with manually managed fees.
+   WhitelistedTokens private _whitelist;
 
 
     constructor(
@@ -26,11 +27,13 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
         string memory _symbol,
         address _anchor,
         address _oracle,
-        address _treasury
+        address _treasury,
+        uint256 _feeCap
     ) ERC20(_name, _symbol) {
         anchor = _anchor;
         treasury = _treasury;
         oracle = IOracle(_oracle);
+        feeCap = _feeCap;
     }
 
     function changeOracle(
@@ -76,11 +79,9 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
         address _token,
         uint256 _shares
     ) external nonReentrant returns (uint256 amount) {
-        // read token info
-        TokenInfo info = _tokenInfo[_token];
 
         // validate token whitelists and shares are not zero
-        if(!info.isWhitelisted()) revert TokenIsNotWhitelisted(_token);
+        if(!_whitelist.exists(_token)) revert TokenIsNotWhitelisted(_token);
         if(_shares == 0) revert WithdrawAmountIsZero();
 
         // get total pool value
@@ -98,55 +99,48 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
     }
 
     function swap(
-        address _from,
-        address _to,
+        address _in,
+        address _out,
         uint256 _amountIn
     ) external nonReentrant returns (uint256 amountOut) {
-        // read tokens info
-        TokenInfo tokenIn = _tokenInfo[_from];
-        TokenInfo tokenOut = _tokenInfo[_to];
 
         // validate tokens are whitelisted
-        if(!tokenIn.isWhitelisted()) revert TokenIsNotWhitelisted(_from);
-        if(!tokenOut.isWhitelisted()) revert TokenIsNotWhitelisted(_to);
+        if(!_whitelist.exists(_in)) revert TokenIsNotWhitelisted(_in);
+        if(!_whitelist.exists(_out)) revert TokenIsNotWhitelisted(_out);
         // validate amountIn is non zero
         if(_amountIn == 0) revert SwapAmountIsZero();
 
-        uint256 swapValueIn = _chargeFees(tokenIn.inputFee(), _amountIn * oracle.getPrice(_from) / PRECISION);
-        uint256 swapValueOut = _chargeFees(tokenOut.outputFee(), swapValueIn);
-        amountOut = swapValueOut * PRECISION / oracle.getPrice(_to);
+        amountOut = _calculateAmountOut(_in, _out, _amountIn);
 
-        if (IERC20(_to).balanceOf(address(this)) >= amountOut) revert NotEnoughTokensToWithdraw();
+        if (IERC20(_out).balanceOf(address(this)) >= amountOut) revert NotEnoughTokensToWithdraw();
 
-        IERC20(_to).safeTransferFrom(address(this), msg.sender, amountOut);
+        IERC20(_out).safeTransferFrom(address(this), msg.sender, amountOut);
 
-        emit Swap(msg.sender, _from, _to, _amountIn, amountOut);
+        emit Swap(msg.sender, _in, _out, _amountIn, amountOut);
     }
 
     function totalPoolValue() public view returns (uint256 value) {
-        uint256 length = _whitelistedTokens.length;
+        uint256 length = _whitelist.array.length;
         for (uint256 i = 0; i < length;) {
-            (uint256 price, uint256 balance) =oracle.getPriceAndBalance(address(this), _whitelistedTokens[i]);
-            value += (price * balance) / PRECISION;
+            (uint256 price, uint256 balance) = oracle.getPriceAndBalance(address(this), _whitelist.array[i]);
             unchecked {
+                value += (price * balance) / PRECISION;
                 ++i;
             }
         }
     }
 
     function getWhitelistedTokens() public view returns (address[] memory whitelisted) {
-        whitelisted = _whitelistedTokens;
+        whitelisted = _whitelist.array;
     }
 
     function _deposit(
         address _token,
         uint256 _amount
     ) private returns (uint256 shares) {
-        // read token info
-        TokenInfo info = _tokenInfo[_token];
 
         // validate token whitelists and amount is not zero
-        if(!info.isWhitelisted()) revert TokenIsNotWhitelisted(_token);
+        if(!_whitelist.exists(_token)) revert TokenIsNotWhitelisted(_token);
         if(_amount == 0) revert DepositAmountIsZero();
 
         // get native value of the deposit
@@ -160,7 +154,46 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
         emit Deposit(msg.sender, _token, _amount, shares);
     }
 
-    function _chargeFees(uint256 _fee, uint256 _amount) private pure returns (uint256){
-        return _amount * _fee / FEE_BASIS_POINTS;
+    function _calculateAmountOut(
+        address _in,
+        address _out,
+        uint256 _amountIn
+    ) private view returns (uint256 amountOut) {
+        // read token prices and calculate ideal target value.
+        uint256 priceIn = oracle.getPrice(_in);
+        uint256 priceOut = oracle.getPrice(_out);
+        uint256 targetValue = totalPoolValue() / _whitelist.array.length;
+
+        // apply fees
+        uint256 swapValueIn = _chargeFees(
+            _calculateInputFee(_in, targetValue, priceIn),
+            _amountIn * priceIn / PRECISION
+        );
+        uint256 swapValueOut = _chargeFees(
+            _calculateOutputFee(_in, targetValue, priceOut),
+            swapValueIn
+        );
+
+        // calculate output amount
+        amountOut = swapValueOut * PRECISION / priceOut;
+    }
+
+    function _calculateInputFee(address _in, uint256 _targetValue, uint256 _priceIn) private view returns (uint256) {
+        uint256 tokenValue = IERC20(_in).balanceOf(address(this)) * _priceIn / PRECISION;
+        if (tokenValue <= _targetValue) return 0;
+        uint256 proficit = tokenValue - _targetValue;
+        return proficit * FEE_BASIS_POINTS / _targetValue;
+    }
+
+    function _calculateOutputFee(address _out, uint256 _targetValue, uint256 _priceOut) private view returns (uint256) {
+        uint256 tokenValue = IERC20(_out).balanceOf(address(this)) * _priceOut / PRECISION;
+        if (tokenValue >= _targetValue) return 0;
+        uint256 deficit = _targetValue - tokenValue;
+        return deficit * FEE_BASIS_POINTS / _targetValue;
+    }
+
+    function _chargeFees(uint256 _fee, uint256 _amount) private view returns (uint256){
+        uint256 fee = _fee > feeCap ? feeCap : _fee;
+        return _amount * fee / FEE_BASIS_POINTS;
     }
 }
