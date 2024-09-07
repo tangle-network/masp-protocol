@@ -30,10 +30,6 @@ interface IOmniPool {
 		uint256 amountIn,
 		uint256 amountOut
 	);
-    event OracleChanged(
-        address oldOracle,
-        address newOracle
-    );
 
     // non-restricted functions
     function deposit(address _token, uint256 _amount) external returns (uint256 shares);
@@ -42,7 +38,6 @@ interface IOmniPool {
     
     // view functions
     function getWhitelistedTokens() external view returns (address[] memory whitelisted);
+    function getTokenTargetAllocation(address _token) external view returns (uint256);
     function totalPoolValue() external view returns (uint256 value);
-
-    // admin functions
 }

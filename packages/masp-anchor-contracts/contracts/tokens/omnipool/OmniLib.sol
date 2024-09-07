@@ -6,6 +6,7 @@ type TokenInfo is uint256;
 struct WhitelistedTokens {
     address[] array;
     mapping(address => uint256) idx;
+    mapping(address => uint256) allocationTargets;
 }
 
 using OmniLib for WhitelistedTokens global;
@@ -44,6 +45,7 @@ library OmniLib {
 
         _whitelisted.array.pop();
         delete _whitelisted.idx[_token];
+        delete _whitelisted.allocationTargets[_token];
     }
 
     function isWhitelisted(TokenInfo _info) internal pure returns (bool) {
