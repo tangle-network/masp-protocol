@@ -4,9 +4,11 @@ pragma solidity ^0.8.24;
 interface IOmniPool {
     // Errors
 	error TokenIsNotWhitelisted(address);
+    error NotEnoughTokensToWithdraw();
     error ArgumentsLengthMismatch();
     error WithdrawAmountIsZero();
 	error DepositAmountIsZero();
+    error SwapAmountIsZero();
 
     // Events
 	event Deposit(
@@ -40,6 +42,7 @@ interface IOmniPool {
     
     // view functions
     function getWhitelistedTokens() external view returns (address[] memory whitelisted);
+    function totalPoolValue() public view returns (uint256 value);
 
     // admin functions
 }
