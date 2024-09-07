@@ -160,7 +160,7 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
         emit Deposit(msg.sender, _token, _amount, shares);
     }
 
-    function _chargeFees(uint256 _fee, uint256 _amount) private returns (uint256){
+    function _chargeFees(uint256 _fee, uint256 _amount) private pure returns (uint256){
         return _amount * _fee / FEE_BASIS_POINTS;
     }
 }

@@ -42,7 +42,7 @@ interface IOmniPool {
     
     // view functions
     function getWhitelistedTokens() external view returns (address[] memory whitelisted);
-    function totalPoolValue() public view returns (uint256 value);
+    function totalPoolValue() external view returns (uint256 value);
 
     // admin functions
 }
