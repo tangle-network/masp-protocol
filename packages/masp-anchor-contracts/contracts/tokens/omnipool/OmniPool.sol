@@ -112,20 +112,15 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
         // validate amountIn is non zero
         if(_amountIn == 0) revert SwapAmountIsZero();
 
-       
-        uint256 swapValueIn = _chargeFees(tokenIn, _amountIn * oracle.getPrice(_from) / PRECISION);
-        uint256 swapValueOut = _chargeFees(tokenOut, swapValueIn);
+        uint256 swapValueIn = _chargeFees(tokenIn.inputFee(), _amountIn * oracle.getPrice(_from) / PRECISION);
+        uint256 swapValueOut = _chargeFees(tokenOut.outputFee(), swapValueIn);
         amountOut = swapValueOut * PRECISION / oracle.getPrice(_to);
-
-        uint256 sharesToBurn = swapValueOut * totalSupply / totalPoolValue();
 
         if (IERC20(_to).balanceOf(address(this)) >= amountOut) revert NotEnoughTokensToWithdraw();
 
         IERC20(_to).safeTransferFrom(address(this), msg.sender, amountOut);
 
-        _burn(msg.sender, sharesToBurn);
-
-        emit Withdraw(msg.sender, _to, amountOut, sharesToBurn);
+        emit Swap(msg.sender, _from, _to, _amountIn, amountOut);
     }
 
     function totalPoolValue() public view returns (uint256 value) {
@@ -165,7 +160,7 @@ contract OmniPool is IOmniPool, ERC20, ReentrancyGuard, Ownable {
         emit Deposit(msg.sender, _token, _amount, shares);
     }
 
-    function _chargeFees(TokenInfo _info, uint256 _amount) private returns (uint256){
-        // fee logic here
+    function _chargeFees(uint256 _fee, uint256 _amount) private returns (uint256){
+        return _amount * _fee / FEE_BASIS_POINTS;
     }
 }
