@@ -29,17 +29,12 @@ contract Oracle is IOracle {
         return 0;
     }
 
-    // function getTotalValue(
-    //     address at,
-    //     address[] calldata _tokens
-    // ) external view returns (uint256 totalValue) {
-    //     for (uint256 i = 0; i < _tokens.length;) {
-    //         totalValue += 1e18;
-    //         unchecked {
-    //             ++i;
-    //         }
-    //     }
-    // }
+    function getDepositAmount(address _token, uint256 _amount) external view returns (uint256) {
+        if (_token == LIDO_ETH) {
+            return stETH(LIDO_ETH).getSharesByPooledEth(_amount);
+        }
+        return _amount;
+    }
 
     function _stEth() private pure returns (uint256) {
         return 1 ether;

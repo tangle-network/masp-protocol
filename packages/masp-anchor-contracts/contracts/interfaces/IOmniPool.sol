@@ -31,13 +31,17 @@ interface IOmniPool {
 		uint256 amountOut
 	);
 
-    // non-restricted functions
+    // write functions
     function deposit(address _token, uint256 _amount) external returns (uint256 shares);
     function withdraw(address _token, uint256 _shares) external returns (uint256 amount);
     function swap(address _from, address _to, uint256 _amountIn) external returns (uint256 amountOut);
     
     // view functions
-    function getWhitelistedTokens() external view returns (address[] memory whitelisted);
-    function getTokenTargetAllocation(address _token) external view returns (uint256);
-    function totalPoolValue() external view returns (uint256 value);
+    function totalPoolValue() external view returns (uint256);
+    function whitelistedTokens() external view returns (address[] memory whitelisted);
+    function tokenTargetAllocation(address _token) external view returns (uint256);
+    function getFeeConfig() external view returns (uint256 feeCap_, uint256 protocolFee_, address treasury_);
+    function treasury() external view returns (address);
+    function feeCap() external view returns (uint256);
+    function protocolFee() external view returns (uint256);
 }
