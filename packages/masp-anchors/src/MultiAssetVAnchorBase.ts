@@ -230,11 +230,11 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
   }
 
   public async getMinWithdrawalLimitProposalData(
-    _minimalWithdrawalAmount: string
+    _minimumWithdrawalAmount: string
   ): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
+      .keccak256(ethers.utils.toUtf8Bytes('configureMinimumWithdrawalLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.proposalNonce()) + 1;
@@ -243,7 +243,7 @@ export abstract class MultiAssetVAnchorBase implements IVAnchor<MultiAssetVAncho
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
-      toFixedHex(_minimalWithdrawalAmount).substr(2)
+      toFixedHex(_minimumWithdrawalAmount).substr(2)
     );
   }
 
