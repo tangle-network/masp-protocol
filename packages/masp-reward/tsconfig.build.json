@@ -1,11 +1,11 @@
-{
-  "compilerOptions": {
-    "outDir": "./dist/",
-    "baseUrl": ".",
-  },
-  "exclude": [],
-  "extends": "../../tsconfig.build.json",
-  "include": [
-    "./src/*.ts",
-  ]
-}
+// {
+//   "compilerOptions": {
+//     "outDir": "./dist/",
+//     "baseUrl": ".",
+//   },
+//   "exclude": [],
+//   "extends": "../../tsconfig.build.json",
+//   "include": [
+//     "./src/*.ts",
+//   ]
+// }

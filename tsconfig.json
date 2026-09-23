@@ -30,12 +30,12 @@
       /**
       *   MASP Reward TypeScript packages
       */
-      "@webb-tools/masp-reward": [
-        "packages/masp-reward/src"
-      ],
-      "@webb-tools/masp-reward/*": [
-        "packages/masp-reward/src/*"
-      ],
+      // "@webb-tools/masp-reward": [
+      //   "packages/masp-reward/src"
+      // ],
+      // "@webb-tools/masp-reward/*": [
+      //   "packages/masp-reward/src/*"
+      // ],
       /**
       *   Utils TypeScript packages
       */
