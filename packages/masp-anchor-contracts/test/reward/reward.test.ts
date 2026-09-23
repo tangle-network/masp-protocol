@@ -334,7 +334,7 @@ describe('MASP Reward Tests for maxEdges=2, levels=30', () => {
           .sub(expectedRelayerFeeTNT)
           .lt(BigNumber.from(delta))
       );
-      // to make following work, we need #TODO implement a function to reset blocktime
+      // TODO: To make following work, we need to implement a function to reset blocktime
       // assert(recipientTNTBalanceAfter.sub(recipientTNTBalanceBefore).eq(expectedRecipientTNT));
     });
 

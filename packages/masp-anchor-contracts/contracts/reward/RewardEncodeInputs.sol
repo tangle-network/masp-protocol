@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 
 import "hardhat/console.sol";
 
-uint8 constant WHITELISTED_ASSET_ID_LIST_SIZE = 10;
+uint8 constant VALID_REWARD_ASSET_IDS_COUNT = 10;
 
 struct RewardExtData {
 	uint256 fee;
@@ -36,8 +36,8 @@ library RewardEncodeInputs {
 		view
 		returns (
 			bytes memory,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory,
+			uint32[VALID_REWARD_ASSET_IDS_COUNT] memory,
+			uint32[VALID_REWARD_ASSET_IDS_COUNT] memory,
 			uint256[] memory,
 			uint256[] memory
 		)

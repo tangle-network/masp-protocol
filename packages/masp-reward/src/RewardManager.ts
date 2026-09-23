@@ -281,8 +281,6 @@ export class RewardManager {
       .mul(selectedRewardRate)
       .mul(spentTimestamp - unspentTimestamp);
     const extDataHash = this.toRewardExtDataHash(extData);
-    const spentRootsBigNumber = spentRoots.map((num) => BigNumber.from(num));
-    const unspentRootsBigNumber = unspentRoots.map((num) => BigNumber.from(num));
 
     return {
       anonymityRewardPoints: anonymityRewardPoints,

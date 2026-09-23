@@ -26,8 +26,8 @@ contract RewardManager is ReentrancyGuard {
 
 	mapping(bytes32 => bool) public rewardNullifiers;
 
-	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public validRewardAssetIDs;
-	uint32[WHITELISTED_ASSET_ID_LIST_SIZE] public rates;
+	uint32[VALID_REWARD_ASSET_IDS_COUNT] public validRewardAssetIDs;
+	uint32[VALID_REWARD_ASSET_IDS_COUNT] public rates;
 
 	struct Edge {
 		uint256[ROOT_HISTORY_SIZE] spentRootList;
@@ -46,9 +46,9 @@ contract RewardManager is ReentrancyGuard {
 	event RootAddedToSpentList(uint256 indexed chainId, uint256 root);
 	event RootAddedToUnspentList(uint256 indexed chainId, uint256 root);
 
-	event RatesUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newRates);
+	event RatesUpdated(uint32[VALID_REWARD_ASSET_IDS_COUNT] newRates);
 	// Event to log changes in validRewardAssetIDs.
-	event validRewardAssetIDsUpdated(uint32[WHITELISTED_ASSET_ID_LIST_SIZE] newvalidRewardAssetIDs);
+	event validRewardAssetIDsUpdated(uint32[VALID_REWARD_ASSET_IDS_COUNT] newvalidRewardAssetIDs);
 
 	modifier onlyGovernance() {
 		require(msg.sender == governance, "Only governance can perform this action");
@@ -61,8 +61,8 @@ contract RewardManager is ReentrancyGuard {
 		address _governance,
 		address _hasher,
 		uint8 _maxEdges,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _initialvalidRewardAssetIDs,
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
+		uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _initialvalidRewardAssetIDs,
+		uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _rates
 	) {
 		rewardSwap = IRewardSwap(_rewardSwap);
 		rewardVerifier = IRewardVerifier(_rewardVerifier);
@@ -85,8 +85,8 @@ contract RewardManager is ReentrancyGuard {
 		// Destructure public input data
 		(
 			bytes memory encodedInput,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _validRewardAssetIDs,
-			uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates,
+			uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _validRewardAssetIDs,
+			uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _rates,
 			uint256[] memory _spentRoots,
 			uint256[] memory _unspentRoots
 		) = RewardEncodeInputs._encodeInputs(_publicInputs, maxEdges);
@@ -128,7 +128,7 @@ contract RewardManager is ReentrancyGuard {
 
 	// Function to modify the validRewardAssetIDs.
 	function setvalidRewardAssetIDs(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _newvalidRewardAssetIDs
+		uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _newvalidRewardAssetIDs
 	) external onlyGovernance nonReentrant {
 		validRewardAssetIDs = _newvalidRewardAssetIDs;
 		emit validRewardAssetIDsUpdated(_newvalidRewardAssetIDs);
@@ -136,7 +136,7 @@ contract RewardManager is ReentrancyGuard {
 
 	// Function to modify the rates.
 	function setRates(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _rates
+		uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _rates
 	) external onlyGovernance nonReentrant {
 		rates = _rates;
 		emit RatesUpdated(rates);
@@ -239,7 +239,7 @@ contract RewardManager is ReentrancyGuard {
 	}
 
 	function _isValidRates(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputRates
+		uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _inputRates
 	) private view returns (bool) {
 		require(_inputRates.length == rates.length, "Input list length does not match");
 
@@ -253,7 +253,7 @@ contract RewardManager is ReentrancyGuard {
 	}
 
 	function _isValidWhitelistedIds(
-		uint32[WHITELISTED_ASSET_ID_LIST_SIZE] memory _inputIds
+		uint32[VALID_REWARD_ASSET_IDS_COUNT] memory _inputIds
 	) private view returns (bool) {
 		require(_inputIds.length == validRewardAssetIDs.length, "Input list length does not match");
 
