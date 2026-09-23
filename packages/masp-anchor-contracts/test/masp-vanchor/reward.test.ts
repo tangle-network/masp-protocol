@@ -16,7 +16,7 @@ const snarkjs = require('snarkjs');
 
 const maspRewardZkComponents = maspRewardFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('Reward snarkjs local proof', () => {
+describe.only('Reward snarkjs local proof', () => {
   let unspentTree: MerkleTree;
   let spentTree: MerkleTree;
   // VAnchor-like contract's merkle-tree

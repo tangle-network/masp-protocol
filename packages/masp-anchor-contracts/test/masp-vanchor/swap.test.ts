@@ -16,7 +16,7 @@ const { poseidon, eddsa } = require('circomlibjs');
 
 const maspSwapZkComponents = maspSwapFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('swap snarkjs local proof', () => {
+describe.only('swap snarkjs local proof', () => {
   let sender: SignerWithAddress;
   let zkComponent: ZkComponents;
   let create2InputWitness;
