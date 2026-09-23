@@ -14,14 +14,13 @@ import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
-import { getChainIdType, hexToU8a, ZkComponents } from '@webb-tools/utils';
+import { getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
 import { maspRewardFixtures } from '@webb-tools/masp-protocol-utils';
 import { RewardManager, RewardProofVerifier, RewardSwap } from '@webb-tools/masp-reward';
 import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 import { TangleTokenMockFixedSupply__factory } from '@webb-tools/masp-anchor-contracts';
-import { anonymityRewardPointsToTNT } from '@webb-tools/masp-reward';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { TangleTokenMockFixedSupply } from '@webb-tools/masp-anchor-contracts/index';
 
