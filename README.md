@@ -1,3 +1,5 @@
+> **Status: dormant / reference-only (as of 2026-10).** This repository is not under active development and was never fully finished or tested. Active shielded-payments work happens in [tangle-network/shielded-payment-gateway](https://github.com/tangle-network/shielded-payment-gateway), which builds directly on [protocol-solidity](https://github.com/tangle-network/protocol-solidity) VAnchor pools. The SP1-based rebuild sketched in [ARCHITECTURE.md](./ARCHITECTURE.md) is being realized incrementally inside the gateway via its SP1 `BatchVerifier`/`BatchTransactor` path — that is also where multi-asset support would land if it is ever needed. Do not start new work here.
+
 <div align="center">
 <a href="https://www.webb.tools/">
 
